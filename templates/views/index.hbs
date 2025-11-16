@@ -1,0 +1,95 @@
+{{> head}}
+{{> header}}
+
+<main class="site-root">
+  <!-- Hero (mirrors Figma wireframe) -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-inner">
+        <div class="hero-right">
+          <div class="banner-wrap">
+            <!-- Use the local banner PNG (contains its own text) -->
+            <img src="/img/banner-hero.png" alt="Hero banner" loading="eager" decoding="sync" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- About / illustration + text (Figma layout) -->
+  <section id="about" class="about-row">
+    <div class="container" style="max-width:1280px;margin:0 auto;">
+      <div class="about-illustration" style="flex:0 0 48%;max-width:48%;">
+        <img src="/img/illustration.png" alt="illustration" width="722" height="600" style="width:100%;border-radius:8px;" loading="lazy" decoding="async" />
+      </div>
+      <div class="about-card" style="flex:0 0 48%;max-width:48%;">
+        <h3 style="margin-top:0;margin-bottom:8px;font-family:Port_Lligat_Slab,serif;">Pluvia Academy</h3>
+        <p>Pluvia Academy adalah akademi coding online yang dirancang untuk semua orang, dari pemula hingga profesional berpengalaman. Kami menawarkan berbagai program yang menarik dan interaktif untuk membantu Anda mempelajari bahasa pemrograman, membangun aplikasi web dan mobile, dan banyak lagi.</p>
+        <p>Misi kami adalah untuk memberdayakan orang-orang dengan keterampilan coding yang mereka butuhkan untuk sukses di era digital ini. Kami percaya bahwa coding adalah alat yang ampuh yang dapat membantu Anda mencapai tujuan Anda, baik itu memulai bisnis Anda sendiri, beralih ke karir baru, atau hanya ingin lebih memahami dunia di sekitar Anda.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Keunggulan / Features -->
+  <section id="features" class="courses">
+    <div class="container">
+      <h2>Keunggulan Pluvia Academy</h2>
+      <div class="grid" style="max-width:1100px;margin:0 auto;">
+        <div class="course-card">
+          <div class="card-media"><img src="/img/image-13.png" alt="Private class" width="240" height="140" loading="lazy" decoding="async"/></div>
+          <h3>Private Class</h3>
+          <p class="meta">Kelas kecil (avg 10 peserta) agar interaksi dengan instruktur maksimal dan materi terserap efektif.</p>
+        </div>
+
+        <div class="course-card">
+          <div class="card-media"><img src="/img/image-20.png" alt="Materi" width="240" height="140" loading="lazy" decoding="async"/></div>
+          <h3>Materi Lengkap</h3>
+          <p class="meta">Materi up-to-date dan berbasis proyek, lengkap dengan modul praktek dan penilaian berkala.</p>
+        </div>
+
+        <div class="course-card">
+          <div class="card-media"><img src="/img/photo-icon.png" alt="Harga" width="240" height="140" loading="lazy" decoding="async"/></div>
+          <h3>Harga Bersahabat</h3>
+          <p class="meta">Biaya terjangkau dengan opsi beasiswa dan diskon untuk kelompok serta paket bundling.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Anggota -->
+  <section id="members" style="padding:24px 0;">
+    <div class="container text-center">
+      <h2 style="color:#fff;">Anggota Kami</h2>
+      <div style="display:flex;gap:48px;justify-content:center;margin-top:18px;flex-wrap:wrap;">
+        <div class="member">
+          <img src="/img/member-dolly.png" alt="Dolly" width="160" height="160" class="avatar" />
+          <div class="member-name">Dolly Anggara</div>
+        </div>
+        <div class="member">
+          <img src="/img/member-fattan.png" alt="Fattan" width="160" height="160" class="avatar" />
+          <div class="member-name">Fattan Naufan Islami</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimoni -->
+  <section id="testimoni" style="padding:24px 0;">
+    <div class="container" style="max-width:1100px;margin:0 auto;">
+      <h2 style="color:#fff;text-align:center;font-size:32px;font-weight:800;margin-bottom:8px;text-shadow:5px 5px 4px rgba(0,0,0,0.25);">Testimoni</h2>
+      <div class="testimonial-card">
+        <p class="testimonial-text">"Saya sangat bersyukur telah mengikuti Pluvia Academy. Pluvia Academy telah membantu saya untuk meningkatkan nilai saya di sekolah. Saya sekarang lebih percaya diri dalam mengerjakan soal-soal dan saya lebih mudah memahami materi pelajaran."</p>
+        <div class="testimonial-ident">
+          <img src="/img/testimoni-mark.png" alt="mark" class="testimonial-overlap" width="126" height="124" />
+          <div class="testimonial-meta">
+            <div class="testimonial-name">Mark Wilson</div>
+            <div class="testimonial-role">CEO of ReadBook</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+{{> footer}}
