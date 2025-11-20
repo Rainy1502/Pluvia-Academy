@@ -25,8 +25,9 @@
 
 *{box-sizing:border-box}
 html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
-body{background:var(--bg);color:var(--text)}
-.container{max-width:1200px;margin:0 auto;padding:1rem}
+html{font-size:16px}
+body{background:var(--bg);color:var(--text);line-height:1.55;font-size:16px}
+.container{max-width:1200px;margin:0 auto;padding:1.25rem}
 .site-header{background:transparent;padding:0px 0;border-bottom:3px solid #000;min-height:119px;position:static;z-index:10;transition:background .22s ease,box-shadow .22s ease}
 .site-header.scrolled{background:rgba(255,255,255,0.02);box-shadow:0 6px 18px rgba(2,6,23,0.12)}
 .header-row{display:flex;align-items:center;justify-content:space-between;height:119px;padding:0 1rem 0 0.5rem;position:relative;max-width:1200px;margin:0 auto}
@@ -56,36 +57,34 @@ body{background:var(--bg);color:var(--text)}
 
 
 /* Courses grid */
-.courses{padding:3rem 0}
-.courses h2{margin-bottom:1rem;font-size:1.5rem;color:#fff;text-align:center}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem}
+.courses{padding:2.5rem 0}
+.courses h2{margin-bottom:1rem;font-size:32px;color:#fff;text-align:center;font-weight:800;text-shadow:5px 5px 4px rgba(0,0,0,0.25)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
 .course-card{background:var(--card-surface);padding:1.25rem;border-radius:12px;color:var(--text-on-hero)}
-.course-card h3{margin:.4rem 0;font-size:1.05rem}
-.meta{color:rgba(255,255,255,0.8);font-size:.9rem}
+.course-card h3{margin:.4rem 0;font-size:18px}
+.meta{color:rgba(255,255,255,0.85);font-size:15px}
 
 /* Feature cards styled to mirror Figma (yellow cards with black border and shadow) */
-.course-card{background:var(--accent);color:#000;padding:10px 16px;border-radius:0;border:none;box-shadow:10px 10px 4px rgba(0,0,0,0.25);font-family:Poppins,sans-serif;max-width:380px;flex:1;display:flex;flex-direction:column;align-items:center;gap:5px}
+.course-card{background:var(--accent);color:#000;padding:16px 18px;border-radius:6px;border:none;box-shadow:10px 10px 4px rgba(0,0,0,0.25);font-family:Poppins,sans-serif;max-width:380px;flex:1;display:flex;flex-direction:column;align-items:center;gap:10px}
 .course-card .card-media{height:115px;width:116px;display:flex;align-items:center;justify-content:center}
 .course-card .card-media img{max-height:100%;max-width:100%;object-fit:contain}
-.course-card h3{font-size:20px;font-weight:700;margin:0;color:#000;min-height:40px;display:flex;align-items:center;justify-content:center;text-align:center}
-.course-card .meta{color:#000;font-size:16px;line-height:1.4;min-height:120px;display:flex;align-items:center;justify-content:center;text-align:center;max-width:100%}
+.course-card h3{font-size:22px;font-weight:700;margin:0;color:#000;min-height:48px;display:flex;align-items:center;justify-content:center;text-align:center}
+.course-card .meta{color:#000;font-size:16px;line-height:1.5;min-height:120px;display:flex;align-items:center;justify-content:center;text-align:center;max-width:100%}
 .courses .grid{align-items:stretch;max-width:1200px;gap:20px;justify-content:space-between;grid-template-columns:repeat(3,1fr);padding:15px;margin:0 auto}
 
-/* Banner top */
 .banner-top{padding:18px 0}
 .banner-top .container{max-width:1287px;padding:0}
 .banner-top img{max-width:100%;height:auto;display:block}
 
 /* About / description card */
-.about-card{background:var(--accent);padding:22px;border-radius:6px;box-shadow:10px 10px 4px rgba(0,0,0,0.25);color:#000}
+.about-card{background:var(--accent);padding:22px;border-radius:6px;box-shadow:10px 10px 4px rgba(0,0,0,0.25);color:#000;text-align:center}
 
 /* Member avatars */
-.member .avatar{width:160px;height:160px;border-radius:50%;object-fit:cover;border:6px solid var(--surface);box-shadow:0 10px 18px rgba(0,0,0,0.18)}
-.member-name{margin-top:12px;background:var(--accent);display:inline-block;padding:6px 14px;border:3px solid #000;border-radius:6px;box-shadow:6px 6px rgba(0,0,0,0.12)}
+.member .avatar{width:180px;height:180px;border-radius:50%;object-fit:cover;border:6px solid var(--surface);box-shadow:0 12px 20px rgba(0,0,0,0.18)}
+.member-name{margin-top:12px;background:var(--accent);display:inline-block;padding:8px 16px;border:3px solid #000;border-radius:6px;box-shadow:6px 6px rgba(0,0,0,0.12);font-weight:700}
 
-/* Testimonial */
-.testimonial-card{background:var(--accent);border:3px solid #000;padding:18px;border-radius:6px;box-shadow:10px 10px 4px rgba(0,0,0,0.25)}
-.testimonial-text{font-size:18px;color:#000;margin:0 0 14px}
+.testimonial-card{background:var(--accent);border:3px solid #000;padding:20px;border-radius:6px;box-shadow:10px 10px 4px rgba(0,0,0,0.25);max-width:920px;margin:0 auto}
+.testimonial-text{font-size:20px;color:#000;margin:0 0 14px;line-height:1.6;text-align:center;padding:6px 8px}
 .testimonial-ident{display:flex;align-items:center;gap:12px}
 .testimonial-avatar{width:96px;height:96px;border-radius:50%;object-fit:cover;border:4px solid #fff}
 .testimonial-name{font-weight:800}
@@ -93,13 +92,14 @@ body{background:var(--bg);color:var(--text)}
 
 /* Promo box styles removed — promo overlay is unused; banner PNG contains the text */
 
-/* About row layout */
-.about-row{padding:32px 0}
-.about-row .container{display:flex;align-items:center;gap:32px;max-width:1200px}
-.about-illustration{flex:0 0 40%;max-width:40%}
-.about-card{flex:0 0 55%;max-width:55%;background:var(--accent);padding:24px 32px;border-radius:6px;box-shadow:10px 10px 4px rgba(0,0,0,0.25);color:#000;font-family:'Port Lligat Slab',serif}
-.about-card h3{font-size:20px;margin:0 0 12px;font-weight:700;font-family:'Port Lligat Slab',serif}
-.about-card p{line-height:1.5;margin:8px 0;color:#111;font-size:15px;font-family:'Port Lligat Slab',serif}
+.about-row .container{display:flex;align-items:center;gap:28px;max-width:1440px;justify-content:space-between}
+.about-illustration{flex:0 0 46%;max-width:46%;margin-left:-80px;transform:translateX(-10px);display:flex;align-items:center}
+/* enlarge illustration and lift slightly so it visually lines up with the about-card */
+.about-illustration img{display:block;margin:0;width:auto;max-width:none;height:640px;border-radius:8px}
+.about-card{align-self:center}
+.about-card{width:760px;min-height:360px;height:auto;flex-shrink:0;max-width:none;background:#FFD766;padding:10px 20px;border-radius:6px;box-shadow:10px 10px 4px 0 rgba(0,0,0,0.25);color:#000;font-family:'Port Lligat Slab',serif;text-align:left;margin-left:auto;transform:translateX(-20px)}
+.about-card h3{font-size:24px;margin:0 0 12px;font-weight:800;font-family:'Port Lligat Slab',serif}
+.about-card p{color:#000;text-align:justify;text-justify:inter-word;font-family:'Port Lligat Slab',serif;font-size:20px;font-style:normal;font-weight:400;line-height:1.6;margin:8px 0;overflow-wrap:break-word}
 
 /* Members row */
 .members-row{display:flex;gap:60px;justify-content:center;margin-top:8px;flex-wrap:wrap;padding:15px}
@@ -139,19 +139,26 @@ body{background:var(--bg);color:var(--text)}
 	.hero{padding:2rem 0}
 }
 
+/* Responsive adjustments for About section so the fixed-width yellow card
+   doesn't overflow on smaller viewports. Stacks illustration and card. */
+@media (max-width:1100px){
+  .about-row .container{flex-direction:column;align-items:center}
+  .about-illustration{flex:0 0 auto;max-width:720px;width:100%;}
+  .about-card{width:100%;height:auto;max-width:860px;margin-top:18px;padding:20px;transform:none}
+  .about-card p{font-size:20px}
+}
+
 /* small utilities */
 .text-center{text-align:center}
 
 /* Secondary hero block removed to avoid duplication; final centered-banner rules below */
 
 /* Courses grid */
-.courses{padding:3rem 0}
-.courses h2{margin-bottom:1rem;font-size:1.5rem}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem}
-	.courses{padding:2.5rem 0}
-	.courses h2{margin-bottom:1rem;font-size:1.5rem;color:#fff;text-align:center}
-.course-card h3{margin:.4rem 0;font-size:1.05rem}
-.meta{color:var(--muted);font-size:.9rem}
+.courses{padding:2.5rem 0}
+.courses h2{margin-bottom:1rem;font-size:32px;color:#fff;text-align:center;font-weight:800;text-shadow:5px 5px 4px rgba(0,0,0,0.25)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+.course-card h3{margin:.4rem 0;font-size:22px}
+.meta{color:var(--muted);font-size:16px}
 
 /* Pricing / Cards */
 .pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
