@@ -28,6 +28,7 @@ app.use((req, res, next) => {
 });
 
 const courseData = require('./utils/courseData');
+const materiData = require('./utils/materiData');
 
 // expose whether courses exist to templates so header can adapt links
 app.use((req, res, next) => {
@@ -47,6 +48,16 @@ app.get('/kursus', (req, res) => {
   const simulateEmpty = req.query && (req.query.empty === '1' || req.query.empty === 'true');
   const coursesToRender = simulateEmpty ? [] : (Array.isArray(courseData) ? courseData : []);
   res.render('kursus', { title: 'Kursus', courses: coursesToRender });
+});
+
+// Materi page: shows available materials; supports simulation flag `?empty=1`
+app.get('/materi', (req, res) => {
+  // By default, materials are hidden until the user has purchased a package.
+  // Simulate a purchased package by visiting `/materi?paket=1` or `/materi?bought=1`.
+  const purchased = req.query && (req.query.paket === '1' || req.query.bought === '1' || req.query.purchased === '1');
+  const materialsToRender = purchased ? (Array.isArray(materiData) ? materiData : []) : [];
+  // Pass a flag to the template so it can adjust messaging if needed
+  res.render('materi', { title: 'Materi', materials: materialsToRender, hasPackage: Boolean(purchased) });
 });
 
 // Paket kursus / purchase page
