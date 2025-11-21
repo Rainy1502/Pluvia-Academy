@@ -403,12 +403,63 @@ site-header .container.header-row .nav-cluster .site-nav a span{display:block !i
 }
 
 /* ===== My Courses / Kursus page styles ===== */
-.my-courses-section{padding:28px 0;background:var(--primary);}
-.my-courses-title{color:#fff;text-align:center;font-size:18px;font-weight:700;margin:8px 0 20px}
+.my-courses-section{padding:56px 0;background:var(--primary);min-height:calc(100vh - 160px);display:flex;align-items:center}
+.my-courses-title{color:#fff;text-align:center;font-size:22px;font-weight:800;margin:0 0 24px}
 .my-courses-grid{display:flex;gap:28px;justify-content:center;align-items:stretch;max-width:980px;margin:0 auto;padding:12px}
 .my-course-box{width:220px;height:160px;background:#e6e6e6;border-radius:6px;box-shadow:0 6px 16px rgba(0,0,0,0.12);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:12px}
 .my-course-box .box-inner{flex:1;width:100%;background:#ddd;border-radius:4px}
 .my-course-box .course-title{margin-top:10px;font-weight:700;color:#0b1220;text-align:center}
+
+/* Shadowed panel that contains the kursus content */
+.courses-panel{max-width:1100px;margin:0 auto;padding:36px;background:#ffffff;border-radius:16px;box-shadow:0 20px 50px rgba(11,18,32,0.08);border:1px solid rgba(11,18,32,0.06)}
+.courses-panel{color:#0b1220}
+.courses-panel .my-courses-title{margin-top:0;margin-bottom:18px;color:inherit}
+
+/* ensure key empty-state elements contrast on white background */
+.courses-panel .empty-message{color:#0b1220}
+.courses-panel .empty-sub{color:rgba(11,18,32,0.8)}
+.courses-panel .empty-cta{display:inline-flex;align-items:center;justify-content:center;margin:0 auto;text-align:center;box-shadow:0 10px 30px rgba(11,18,32,0.08)}
+
+/* Button hover/press animations for Login (Masuk) and Register (Buat Akun) */
+.login-card .btn-primary, .register-card .btn-primary{
+	position:relative;
+	overflow:hidden;
+	transition: transform .18s cubic-bezier(.2,.8,.2,1), box-shadow .18s ease, background .12s ease, opacity .12s ease;
+	will-change: transform;
+	backface-visibility: hidden;
+}
+.login-card .btn-primary:hover, .register-card .btn-primary:hover{
+	transform: translateY(-4px) scale(1.035);
+	box-shadow: 0 14px 40px rgba(11,18,32,0.12);
+}
+.login-card .btn-primary:active, .register-card .btn-primary:active{
+	transform: translateY(-1px) scale(0.995);
+	box-shadow: 0 8px 24px rgba(11,18,32,0.10);
+}
+.login-card .btn-primary:focus, .register-card .btn-primary:focus{
+	outline: none;
+	box-shadow: 0 10px 34px rgba(11,18,32,0.10), 0 0 0 4px rgba(34,124,255,0.08);
+}
+
+/* Subtle shine effect sliding across the button on hover */
+.login-card .btn-primary::after, .register-card .btn-primary::after{
+	content: "";
+	position: absolute;
+	top: -10%;
+	left: -60%;
+	width: 60%;
+	height: 120%;
+	background: linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.14), rgba(255,255,255,0.04));
+	transform: skewX(-18deg) translateX(0);
+	opacity: 0;
+	transition: transform .6s ease, opacity .35s ease;
+	pointer-events: none;
+	border-radius: 12px;
+}
+.login-card .btn-primary:hover::after, .register-card .btn-primary:hover::after{
+	transform: skewX(-18deg) translateX(250%);
+	opacity: 1;
+}
 
 @media(max-width:800px){
 	.my-courses-grid{flex-direction:column;gap:16px;padding:8px}
@@ -416,11 +467,39 @@ site-header .container.header-row .nav-cluster .site-nav a span{display:block !i
 }
 
 /* Empty state for kursus page when user has no enrolled courses */
-.empty-courses{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:36px 12px;background:transparent;max-width:680px;margin:0 auto}
-.empty-message{color:#fff;font-size:20px;font-weight:800;margin:6px 0}
-.empty-sub{color:rgba(255,255,255,0.9);margin:6px 0 18px;text-align:center}
-.empty-cta{display:inline-block;padding:10px 18px;border-radius:8px;background:#ffd766;color:#000;font-weight:800;text-decoration:none}
-.empty-cta:hover{opacity:0.95}
+.empty-courses{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:36px 12px;background:transparent;max-width:780px;margin:0 auto}
+.empty-courses.empty-centered{margin:0 auto}
+.empty-message{color:#fff;font-size:22px;font-weight:900;margin:8px 0 10px;text-align:center}
+.empty-sub{color:rgba(255,255,255,0.92);margin:6px 0 18px;text-align:center;font-size:16px}
+.empty-cta{display:inline-block;padding:14px 22px;border-radius:14px;background:linear-gradient(90deg,#ffd766,#ffcc4d);color:#000;font-weight:900;text-decoration:none;box-shadow:0 10px 30px rgba(0,0,0,0.18);transition:transform .18s ease,box-shadow .18s ease}
+.empty-cta:hover{transform:translateY(-4px);box-shadow:0 18px 48px rgba(0,0,0,0.22)}
+
+/* Placeholder boxes for empty courses */
+.placeholder-grid{display:flex;gap:22px;justify-content:center;align-items:flex-start;margin:20px 0 12px;flex-wrap:wrap}
+.placeholder-box{width:260px;background:#fff;border-radius:10px;padding:14px;box-shadow:0 12px 28px rgba(2,6,23,0.12);display:flex;flex-direction:column;align-items:stretch}
+.placeholder-inner{height:110px;background:#e9e9e9;border-radius:6px;box-shadow:inset 0 2px 0 rgba(0,0,0,0.03);}
+.placeholder-title{margin-top:12px;font-weight:800;color:var(--text);font-size:16px}
+.placeholder-meta{margin-top:6px;color:var(--muted);font-size:13px}
+
+@media(max-width:860px){
+	.placeholder-grid{flex-direction:column;align-items:center}
+	.placeholder-box{width:92%;max-width:420px}
+}
+
+/* Package cards on paket_kursus page */
+.package-grid{display:flex;gap:28px;justify-content:center;align-items:stretch;flex-wrap:wrap;margin-top:18px}
+.package-card{width:280px;background:#fff;border-radius:12px;padding:14px;box-shadow:0 14px 36px rgba(2,6,23,0.12);display:flex;flex-direction:column;justify-content:space-between;position:relative}
+.package-badge{position:absolute;right:14px;top:-12px;background:var(--primary);color:#fff;padding:6px 10px;border-radius:8px;font-weight:800;font-size:13px}
+.package-title{font-size:18px;margin:0 0 6px}
+.package-desc{color:var(--muted);font-size:14px;margin:0 0 12px}
+.package-footer{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.package-price{font-weight:900;font-size:16px}
+.package-card .btn-primary{width:auto;padding:8px 12px}
+
+@media(max-width:860px){
+	.package-grid{flex-direction:column;align-items:center}
+	.package-card{width:92%;max-width:520px}
+}
 
 /* ===== NAV SIZE TWEAKS: slightly reduce header and nav elements ===== */
 /* These small overrides live at the end so they defeat earlier !important rules */

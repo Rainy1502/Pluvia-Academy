@@ -4,9 +4,10 @@
 <main class="site-root">
   <section class="my-courses-section">
     <div class="container">
-      <h2 class="my-courses-title">Kelas Yang Anda Jalani</h2>
-      {{#if courses.length}}
-      <div class="my-courses-grid">
+      <div class="courses-panel">
+        <h2 class="my-courses-title">Kelas Yang Anda Jalani</h2>
+        {{#if courses.length}}
+        <div class="my-courses-grid">
         {{#each courses}}
         <div class="my-course-box">
           <!-- placeholder content; replace with real thumbnail or title as needed -->
@@ -14,14 +15,15 @@
           <div class="course-title">{{this.title}}</div>
         </div>
         {{/each}}
+        </div>
+        {{else}}
+        <div class="empty-courses empty-centered">
+          <p class="empty-message">Anda belum mengikuti kursus apa pun saat ini.</p>
+          <p class="empty-sub">Pilih paket untuk memulai pembelajaran Anda di Pluvia Academy.</p>
+          <a href="/paket_kursus" class="btn-primary empty-cta">Beli Paket</a>
+        </div>
+        {{/if}}
       </div>
-      {{else}}
-      <div class="empty-courses">
-        <p class="empty-message">Anda belum mengikuti kursus apa pun saat ini.</p>
-        <p class="empty-sub">Pilih paket untuk memulai pembelajaran Anda di Pluvia Academy.</p>
-        <a href="/paket_kursus" class="btn-primary empty-cta">Beli Paket</a>
-      </div>
-      {{/if}}
     </div>
   </section>
 </main>
