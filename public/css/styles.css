@@ -444,6 +444,13 @@ site-header .container.header-row .nav-cluster .site-nav a span{display:block !i
 .courses-panel .empty-sub{color:rgba(11,18,32,0.74);text-align:center;margin-bottom:20px}
 .courses-panel .empty-cta{display:inline-flex;align-items:center;justify-content:center;margin:0 auto;text-align:center;box-shadow:0 24px 60px rgba(11,18,32,0.12);padding:14px 28px;border-radius:14px}
 
+/* Ensure Materi page panel is centered even if container has different layout */
+.materi-section .container{display:flex;justify-content:center}
+.materi-section .courses-panel{margin:72px auto}
+@media (max-width:900px){
+	.materi-section .courses-panel{max-width:92%;margin:36px auto;padding:28px 18px}
+}
+
 /* Button hover/press animations for Login (Masuk) and Register (Buat Akun) */
 .login-card .btn-primary, .register-card .btn-primary{
 	position:relative;
