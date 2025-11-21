@@ -29,11 +29,49 @@ app.use((req, res, next) => {
 
 const courseData = require('./utils/courseData');
 
+// expose whether courses exist to templates so header can adapt links
+app.use((req, res, next) => {
+  res.locals.hasCourses = Array.isArray(courseData) && courseData.length > 0;
+  next();
+});
+
 app.get('/', (req, res) => {
   res.render('index', { title: 'Pluvia Academy', courses: courseData });
 });
 
 app.get('/about', (req, res) => res.render('about', { title: 'Tentang' }));
+
+// Courses page: shows courses the user is enrolled in
+app.get('/kursus', (req, res) => {
+  // allow simulation of empty enrollment for testing: /kursus?empty=1
+  const simulateEmpty = req.query && (req.query.empty === '1' || req.query.empty === 'true');
+  const coursesToRender = simulateEmpty ? [] : (Array.isArray(courseData) ? courseData : []);
+  res.render('kursus', { title: 'Kursus', courses: coursesToRender });
+});
+
+// Paket kursus / purchase page
+app.get('/paket_kursus', (req, res) => {
+  res.render('paket_kursus', { title: 'Paket Kursus' });
+});
+
+// Login page (UI only)
+app.get('/login', (req, res) => res.render('login', { title: 'Masuk' }));
+
+// Simple POST handler for the login form so submissions don't 404.
+// This is a placeholder that accepts urlencoded form data and redirects to home.
+app.post('/login', express.urlencoded({ extended: true }), (req, res) => {
+  // In a real app you'd validate credentials here.
+  return res.redirect('/');
+});
+
+// Register page (UI only)
+app.get('/register', (req, res) => res.render('register', { title: 'Daftar Akun' }));
+
+// Simple POST handler for registration; placeholder that accepts form data then redirects to login.
+app.post('/register', express.urlencoded({ extended: true }), (req, res) => {
+  // In a real app you'd create the user, validate input, and possibly send OTP.
+  return res.redirect('/login');
+});
 
 app.use((req, res) => res.status(404).render('404', { title: 'Tidak ditemukan' }));
 

@@ -45,6 +45,7 @@ body{background:var(--bg);color:var(--text);line-height:1.55;font-size:16px}
 .course-card h3{margin:8px 0;color:var(--text-on-hero)}
 .course-card .meta{color:rgba(255,255,255,0.85)}
 
+.sr-only{position:absolute !important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .site-nav a{color:var(--text-on-hero);margin-left:1rem;text-decoration:none;font-weight:600}
 .auth .btn{margin-left:.5rem}
 
@@ -185,6 +186,92 @@ body{background:var(--bg);color:var(--text);line-height:1.55;font-size:16px}
 /* small utilities */
 .text-center{text-align:center}
 
+/* ===== Login page styles ===== */
+.login-page{display:flex;align-items:center;justify-content:center;padding:56px 0 80px;background:transparent}
+.login-card{max-width:480px;min-width:360px;margin:36px auto;padding:36px 36px;background:#efefef;border:3px solid #000;box-shadow:10px 10px 0 rgba(0,0,0,0.45);border-radius:4px;text-align:center}
+/* card improvements: softer corners, subtle gradient, increased padding for better visual hierarchy */
+.login-card, .register-card{border-radius:12px;padding:34px 36px;background:linear-gradient(180deg,#ffffff 0%,#f3f4f6 100%);border:2px solid rgba(0,0,0,0.85);box-shadow:12px 14px 0 rgba(0,0,0,0.36)}
+.login-brand{margin-bottom:8px}
+.brand-row{display:flex;align-items:center;justify-content:center;gap:14px}
+.login-logo{width:56px;height:56px;object-fit:contain;display:block}
+.login-logo.logo-left{margin-right:6px}
+.login-logo.logo-right{margin-left:6px}
+.brand-text h1{font-family:'Odibee Sans',sans-serif;font-size:28px;margin:0;color:var(--text);letter-spacing:0.5px}
+.login-card h2{margin:12px 0 18px;font-size:18px;font-weight:700;color:var(--muted-strong)}
+.login-form{display:flex;flex-direction:column;gap:14px}
+.form-control{padding:12px 14px;border-radius:4px;border:1px solid #d1d5db;background:#fff;color:var(--text);font-size:15px;box-shadow:inset 0 3px 0 rgba(0,0,0,0.06);width:100%}
+.form-control:focus{outline:none;box-shadow:0 6px 18px rgba(2,6,23,0.12);border-color:var(--primary)}
+.login-meta{display:block;text-align:center;font-size:13px;color:var(--muted);margin-top:4px}
+.signup-note{display:inline-block;margin-top:6px}
+.signup-note a{color:var(--primary);text-decoration:none;font-weight:700}
+.btn-primary{margin-top:12px;background:var(--primary);color:#fff;border:none;padding:10px 18px;border-radius:8px;cursor:pointer;font-weight:800;box-shadow:0 6px 14px rgba(37,99,235,0.24);display:block;margin-left:auto;margin-right:auto;width:140px}
+.btn-primary:hover{opacity:0.98}
+
+/* Input-with-icon (eye toggle) */
+.input-with-icon{position:relative}
+.input-with-icon .btn-icon{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:transparent;border:none;padding:6px;cursor:pointer;font-size:16px}
+.input-with-icon .btn-icon img{width:20px;height:20px;display:block}
+.input-with-icon .btn-icon.visible{opacity:0.9}
+.input-with-icon .btn-icon:focus{outline:2px solid rgba(37,99,235,0.25);border-radius:4px}
+
+/* card badge (top-right small box) */
+.card-badge{position:absolute;right:22px;top:-16px;background:linear-gradient(90deg,var(--primary),#4aa3ff);color:#fff;padding:8px 14px;border-radius:10px;font-weight:800;box-shadow:0 8px 20px rgba(37,99,235,0.18);font-family:'Odibee Sans',sans-serif;letter-spacing:0.6px;transform:translateY(0);transition:transform .32s cubic-bezier(.2,.9,.2,1),box-shadow .32s ease,opacity .2s ease;z-index:30}
+.login-card .card-badge,.register-card .card-badge{font-size:16px}
+
+/* animation for badge when triggered */
+.card-badge.badge-animate{animation:badge-pop .5s cubic-bezier(.2,.9,.2,1) forwards}
+@keyframes badge-pop{0%{transform:translateY(-4px) scale(.98);box-shadow:0 6px 14px rgba(37,99,235,0.12);opacity:1}50%{transform:translateY(-8px) scale(1.06);box-shadow:0 12px 30px rgba(37,99,235,0.22)}100%{transform:translateY(0) scale(1);box-shadow:0 8px 20px rgba(37,99,235,0.18)}}
+
+/* ensure card containers are positioned for absolute badge */
+.login-card, .register-card{position:relative}
+
+/* ===== Page entry animations for login/register cards ===== */
+/* initial state for animated cards */
+.card-animate{opacity:0;transform:translateY(18px) scale(.995);filter:drop-shadow(0 0 0 rgba(0,0,0,0));transition:opacity .42s cubic-bezier(.2,.9,.2,1),transform .42s cubic-bezier(.2,.9,.2,1),filter .42s ease}
+.card-animate.in{opacity:1;transform:translateY(0) scale(1);filter:drop-shadow(6px 8px 10px rgba(0,0,0,0.18))}
+
+/* slight scale-up pulse for the submit button when the card finishes entering */
+.card-animate.in .btn-primary{transform:translateY(0) scale(1);transition:transform .28s ease .18s}
+
+/* input focus glow for better visibility */
+.form-control{transition:box-shadow .18s ease, border-color .18s ease}
+.form-control:focus{box-shadow:0 8px 20px rgba(2,6,23,0.12);border-color:var(--primary)}
+
+/* subtle stagger for inner elements (labels/inputs) using CSS variable */
+.card-animate [class*="form-control"],
+.card-animate .login-meta,
+.card-animate .otp-row,
+.card-animate .btn-primary{
+	opacity:0;transform:translateY(8px);transition:opacity .36s ease,var(--t, transform) .36s ease;transition-delay:var(--d, 0ms);
+}
+.card-animate.in [class*="form-control"],
+.card-animate.in .login-meta,
+.card-animate.in .otp-row,
+.card-animate.in .btn-primary{
+	opacity:1;transform:translateY(0);
+}
+
+
+
+/* ===== Register page styles (reuses login visuals) ===== */
+.register-page{display:flex;align-items:center;justify-content:center;padding:48px 0 80px;background:transparent}
+.register-card{max-width:480px;min-width:360px;margin:36px auto;padding:34px 36px;background:linear-gradient(180deg,#ffffff 0%,#f3f4f6 100%);border:2px solid rgba(0,0,0,0.85);box-shadow:12px 14px 0 rgba(0,0,0,0.36);border-radius:12px;text-align:center;position:relative}
+.register-brand{margin-bottom:8px}
+.register-card h1{font-family:'Odibee Sans',sans-serif;font-size:28px;margin:0;color:var(--text);letter-spacing:0.5px}
+.register-card h2{margin:12px 0 18px;font-size:18px;font-weight:700;color:var(--muted-strong)}
+.register-form{display:flex;flex-direction:column;gap:12px}
+.otp-row{display:flex;gap:8px;align-items:center}
+.otp-input{flex:1;padding:10px 12px;border-radius:4px;border:1px solid #d1d5db;background:#fff;color:var(--text);font-size:14px;box-shadow:inset 0 3px 0 rgba(0,0,0,0.06)}
+.otp-btn{padding:8px 10px;border-radius:4px;border:2px solid #d1d5db;background:#fff;cursor:pointer}
+.btn-secondary{background:#fff;color:var(--text);border:2px solid #d1d5db;padding:8px 10px;border-radius:4px;cursor:pointer}
+.register-form .form-control{width:100%;padding:12px 14px;border-radius:4px;border:1px solid #d1d5db;background:#fff;color:var(--text);font-size:15px;box-shadow:inset 0 3px 0 rgba(0,0,0,0.06)}
+
+@media(max-width:680px){
+	.register-card{margin:24px 12px;padding:18px}
+	.otp-row{flex-direction:column;align-items:stretch}
+	.otp-btn{width:100%}
+}
+
 /* ===== NAV OVERRIDE - placed at very end to ensure cascade applies ===== */
 /* Increased sizes for readability; tweak these values as needed */
 .site-header .brand span{font-size:48px !important; font-weight:800 !important;color:#fff !important;font-family:'Odibee Sans',sans-serif !important;letter-spacing:0.5px !important}
@@ -314,6 +401,91 @@ site-header .container.header-row .nav-cluster .site-nav a span{display:block !i
 @media(max-width:1100px){
 	.banner-wrap img{width:720px}
 }
+
+/* ===== My Courses / Kursus page styles ===== */
+.my-courses-section{padding:28px 0;background:var(--primary);}
+.my-courses-title{color:#fff;text-align:center;font-size:18px;font-weight:700;margin:8px 0 20px}
+.my-courses-grid{display:flex;gap:28px;justify-content:center;align-items:stretch;max-width:980px;margin:0 auto;padding:12px}
+.my-course-box{width:220px;height:160px;background:#e6e6e6;border-radius:6px;box-shadow:0 6px 16px rgba(0,0,0,0.12);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:12px}
+.my-course-box .box-inner{flex:1;width:100%;background:#ddd;border-radius:4px}
+.my-course-box .course-title{margin-top:10px;font-weight:700;color:#0b1220;text-align:center}
+
+@media(max-width:800px){
+	.my-courses-grid{flex-direction:column;gap:16px;padding:8px}
+	.my-course-box{width:100%;height:140px}
+}
+
+/* Empty state for kursus page when user has no enrolled courses */
+.empty-courses{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:36px 12px;background:transparent;max-width:680px;margin:0 auto}
+.empty-message{color:#fff;font-size:20px;font-weight:800;margin:6px 0}
+.empty-sub{color:rgba(255,255,255,0.9);margin:6px 0 18px;text-align:center}
+.empty-cta{display:inline-block;padding:10px 18px;border-radius:8px;background:#ffd766;color:#000;font-weight:800;text-decoration:none}
+.empty-cta:hover{opacity:0.95}
+
+/* ===== NAV SIZE TWEAKS: slightly reduce header and nav elements ===== */
+/* These small overrides live at the end so they defeat earlier !important rules */
+.site-header{min-height:88px !important}
+.site-header > .brand .logo{height:50px !important;width:50px !important}
+.site-header .brand span{font-size:36px !important}
+.site-header .container.header-row{height:88px !important}
+.site-header .site-nav a{font-size:16px !important;padding:6px 6px !important;min-width:64px !important}
+.site-header .site-nav .nav-icon{width:36px !important;height:36px !important;margin-bottom:6px !important}
+.site-root{padding-top:88px !important}
+
+/* Nav hover animation: scale + lift for icons and labels */
+.site-header .site-nav a,
+.site-header .site-nav .nav-icon{
+	transition: transform 180ms cubic-bezier(.2,.9,.2,1), box-shadow 180ms ease;
+	will-change: transform;
+}
+.site-header .site-nav a:hover,
+.site-header .site-nav a:focus{
+	transform: translateY(-4px) scale(1.06);
+}
+.site-header .site-nav a:focus{outline:none}
+.site-header .site-nav .nav-icon:hover,
+.site-header .site-nav .nav-icon:focus{
+	transform: translateY(-3px) scale(1.08);
+	filter: drop-shadow(0 6px 10px rgba(2,6,23,0.15));
+}
+
+/* Slightly reduce label weight on hover to emphasize lift (subtle) */
+.site-header .site-nav a span{transition: color 160ms ease, transform 180ms ease}
+.site-header .site-nav a:hover span{color:#fff;transform:translateY(-2px)}
+
+/* Temporarily disable non-card animations (nav hover, icon lift) */
+.site-header .site-nav a,
+.site-header .site-nav .nav-icon{
+	transition: none !important;
+}
+.site-header .site-nav a:hover,
+.site-header .site-nav a:focus,
+.site-header .site-nav .nav-icon:hover,
+.site-header .site-nav .nav-icon:focus{
+	transform: none !important;
+	box-shadow: none !important;
+	filter: none !important;
+}
+.site-header .site-nav a span{transition: none !important; transform: none !important}
+
+/* ===== Stronger override: ensure nav icons are reduced (higher specificity) ===== */
+/* Some earlier rules use longer selectors with !important; replicate them here to win specificity. */
+.site-header .container.header-row .nav-cluster .site-nav .nav-icon,
+.site-header > .site-nav .nav-icon,
+.site-header .site-nav .nav-icon {
+	width: 36px !important;
+	height: 36px !important;
+}
+
+/* Ensure labels match the smaller icons */
+.site-header .container.header-row .nav-cluster .site-nav a span,
+.site-header > .site-nav a span,
+.site-header .site-nav a span {
+	font-size: 14px !important;
+}
+
+
+
 
 
 
