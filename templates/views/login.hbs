@@ -1,0 +1,41 @@
+{{> head}}
+{{> header}}
+
+<main class="site-root">
+  <section class="login-page">
+    <div class="container">
+      <div class="login-card">
+        <div class="login-brand">
+          <div class="brand-row">
+            <img src="/img/logo-pngegg.png" alt="logo" class="login-logo logo-left" />
+            <div class="brand-text">
+              <h1>Pluvia Academy</h1>
+            </div>
+          </div>
+          <h2>Login</h2>
+        </div>
+
+        <form action="/login" method="post" class="login-form">
+          <label class="sr-only" for="email">Email</label>
+          <input id="email" name="email" type="email" placeholder="Email" required class="form-control" />
+
+          <label class="sr-only" for="password">Password</label>
+          <div class="input-with-icon">
+            <input id="password" name="password" type="password" placeholder="Password" required class="form-control password-field" />
+            <button type="button" class="btn-icon toggle-password" aria-label="Tampilkan password" title="Tampilkan password">
+              <img src="/img/eye-closed.png" data-open="/img/eye-open.png" data-closed="/img/eye-closed.png" alt="toggle" />
+            </button>
+          </div>
+
+          <div class="login-meta">
+            <div class="signup-note">Belum punya akun? <a href="/register">Daftar</a></div>
+          </div>
+
+          <button class="btn-primary" type="submit">Masuk</button>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+
+{{> footer}}
