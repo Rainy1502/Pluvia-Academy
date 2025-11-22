@@ -521,7 +521,7 @@ site-header .container.header-row .nav-cluster .site-nav a span{display:block !i
 
 /* Package cards on paket_kursus page */
 .package-grid{display:flex;gap:28px;justify-content:center;align-items:stretch;flex-wrap:wrap;margin-top:18px}
-.package-card{width:280px;background:#fff;border-radius:12px;padding:14px;box-shadow:0 14px 36px rgba(2,6,23,0.12);display:flex;flex-direction:column;justify-content:space-between;position:relative}
+.package-card{background:#fff;border-radius:12px;padding:14px;box-shadow:0 14px 36px rgba(2,6,23,0.12);display:flex;flex-direction:column;justify-content:space-between;position:relative}
 .package-badge{position:absolute;right:14px;top:-12px;background:var(--primary);color:#fff;padding:6px 10px;border-radius:8px;font-weight:800;font-size:13px}
 .package-title{font-size:18px;margin:0 0 6px}
 .package-desc{color:var(--muted);font-size:14px;margin:0 0 12px}
