@@ -14,6 +14,69 @@ document.addEventListener('DOMContentLoaded',function(){
 		});
 	}
 	if(year) year.textContent = new Date().getFullYear();
+	
+	// OTP button: send OTP without submitting whole form
+	const otpBtn = document.querySelector('.otp-btn');
+	if (otpBtn) {
+		otpBtn.addEventListener('click', async function (e) {
+			e.preventDefault();
+			const form = otpBtn.closest('.register-form');
+			if (!form) return;
+			const username = form.querySelector('input[name="username"]')?.value || '';
+			const phone = form.querySelector('input[name="phone"]')?.value || '';
+			const email = form.querySelector('input[name="email"]')?.value || '';
+
+			const password = form.querySelector('input[name="password"]')?.value || '';
+			const passwordConfirm = form.querySelector('input[name="passwordConfirm"]')?.value || '';
+
+			// basic client-side validation
+			if (!password || !passwordConfirm) {
+				showRegisterMessage('Isi password dan konfirmasi password sebelum meminta OTP.', 'error');
+				return;
+			}
+			if (password !== passwordConfirm) {
+				showRegisterMessage('Password dan konfirmasi tidak cocok.', 'error');
+				return;
+			}
+
+			const payload = { full_name: username, username, phone, email, password, passwordConfirm };
+
+			otpBtn.disabled = true;
+			const oldText = otpBtn.textContent;
+			otpBtn.textContent = 'Mengirim...';
+
+			try {
+				const resp = await fetch('/api/auth/resend-otp', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(payload)
+				});
+				const data = await resp.json();
+				showRegisterMessage(data.message || (data.error || (resp.ok ? 'Kode OTP dikirim' : 'Gagal mengirim')) , resp.ok ? 'success' : 'error');
+			} catch (err) {
+				console.error('OTP send failed', err);
+				showRegisterMessage('Gagal mengirim kode. Coba lagi.', 'error');
+			} finally {
+				otpBtn.disabled = false;
+				otpBtn.textContent = oldText;
+			}
+		});
+	}
+
+	function showRegisterMessage(text, type) {
+		const container = document.querySelector('.register-card');
+		if (!container) return;
+		let msg = container.querySelector('.form-message');
+		if (!msg) {
+			msg = document.createElement('div');
+			msg.className = 'form-message';
+			container.insertBefore(msg, container.querySelector('.register-form'));
+		}
+		msg.textContent = text;
+		msg.classList.remove('msg-success', 'msg-error');
+		if (type === 'success') msg.classList.add('msg-success');
+		if (type === 'error') msg.classList.add('msg-error');
+	}
 });
 
 // Header scroll state: add .scrolled when page is scrolled

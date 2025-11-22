@@ -208,6 +208,9 @@ body{background:var(--bg);color:var(--text);line-height:1.55;font-size:16px}
 .login-meta{display:block;text-align:center;font-size:13px;color:var(--muted);margin-top:4px}
 .signup-note{display:inline-block;margin-top:6px}
 .signup-note a{color:var(--primary);text-decoration:none;font-weight:700}
+.form-message{margin:0 0 16px;padding:12px 14px;border-radius:8px;font-weight:700;text-align:center}
+.form-message.msg-success{background:rgba(16,185,129,0.12);color:#059669;border:1px solid rgba(16,185,129,0.18)}
+.form-message.msg-error{background:rgba(239,68,68,0.08);color:#b91c1c;border:1px solid rgba(239,68,68,0.12)}
 .btn-primary{margin-top:12px;background:var(--primary);color:#fff;border:none;padding:10px 18px;border-radius:8px;cursor:pointer;font-weight:800;box-shadow:0 6px 14px rgba(37,99,235,0.24);display:block;margin-left:auto;margin-right:auto;width:140px}
 .btn-primary:hover{opacity:0.98}
 

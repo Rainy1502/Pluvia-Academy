@@ -49,6 +49,9 @@ const supabase = require('./supabaseClient').default;
 const courseData = require('./utils/courseData');
 const materiData = require('./utils/materiData');
 
+// mount auth routes (register + verify OTP)
+app.use('/api/auth', require('./routes/auth'));
+
 // expose whether courses exist to templates so header can adapt links
 app.use((req, res, next) => {
   res.locals.hasCourses = Array.isArray(courseData) && courseData.length > 0;
@@ -134,9 +137,32 @@ app.post('/login', express.urlencoded({ extended: true }), (req, res) => {
 app.get('/register', (req, res) => res.render('register', { title: 'Daftar Akun' }));
 
 // Simple POST handler for registration; placeholder that accepts form data then redirects to login.
-app.post('/register', express.urlencoded({ extended: true }), (req, res) => {
-  // In a real app you'd create the user, validate input, and possibly send OTP.
-  return res.redirect('/login');
+app.post('/register', express.urlencoded({ extended: true }), async (req, res) => {
+  // Submit form data to internal API /api/auth/register so OTP logic is reused
+  try {
+    const { full_name, username, phone, email, password } = req.body;
+    const apiUrl = `${req.protocol}://${req.get('host')}/api/auth/register`;
+
+    const resp = await fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ full_name, username, phone, email, password })
+    });
+
+    const data = await resp.json().catch(() => ({}));
+
+    if (resp.status === 201) {
+      // render register page with success message (ask user to check OTP)
+      return res.render('register', { title: 'Daftar Akun', message: 'Pendaftaran berhasil. Periksa email atau SMS untuk kode verifikasi.', success: true, info: data });
+    }
+
+    // on error, render register with error message
+    const errMsg = data && data.error ? data.error : 'Pendaftaran gagal';
+    return res.render('register', { title: 'Daftar Akun', message: errMsg, error: true });
+  } catch (err) {
+    console.error('Server-side register proxy error', err);
+    return res.render('register', { title: 'Daftar Akun', message: 'Terjadi kesalahan server.', error: true });
+  }
 });
 
 // (routes continue below)
