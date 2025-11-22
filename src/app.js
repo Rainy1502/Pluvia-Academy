@@ -31,8 +31,19 @@ app.use((_req, res, next) => {
   next();
 });
 
+<<<<<<< HEAD
 // supabase client (keperluan nanti untuk auth/login)
 const supabase = require('./supabaseClient').default;
+=======
+const courseData = require('./utils/courseData');
+const materiData = require('./utils/materiData');
+
+// expose whether courses exist to templates so header can adapt links
+app.use((req, res, next) => {
+  res.locals.hasCourses = Array.isArray(courseData) && courseData.length > 0;
+  next();
+});
+>>>>>>> b43ccfb9d8c87c5c135f032d76f06d9a6ec5e37f
 
 // NOTE: The homepage does not use the users table; keep homepage static.
 app.get('/', (_req, res) => {
@@ -46,6 +57,7 @@ app.use(async (req, res, next) => {
     const cookieHeader = req.headers && req.headers.cookie;
     if (!cookieHeader) return next();
 
+<<<<<<< HEAD
     const cookies = {};
     cookieHeader.split(';').forEach(pair => {
       const idx = pair.indexOf('=');
@@ -54,6 +66,51 @@ app.use(async (req, res, next) => {
       const val = pair.slice(idx + 1).trim();
       cookies[key] = decodeURIComponent(val);
     });
+=======
+// Courses page: shows courses the user is enrolled in
+app.get('/kursus', (req, res) => {
+  // allow simulation of empty enrollment for testing: /kursus?empty=1
+  const simulateEmpty = req.query && (req.query.empty === '1' || req.query.empty === 'true');
+  const coursesToRender = simulateEmpty ? [] : (Array.isArray(courseData) ? courseData : []);
+  res.render('kursus', { title: 'Kursus', courses: coursesToRender });
+});
+
+// Materi page: shows available materials; supports simulation flag `?empty=1`
+app.get('/materi', (req, res) => {
+  // By default, materials are hidden until the user has purchased a package.
+  // Simulate a purchased package by visiting `/materi?paket=1` or `/materi?bought=1`.
+  const purchased = req.query && (req.query.paket === '1' || req.query.bought === '1' || req.query.purchased === '1');
+  const materialsToRender = purchased ? (Array.isArray(materiData) ? materiData : []) : [];
+  // Pass a flag to the template so it can adjust messaging if needed
+  res.render('materi', { title: 'Materi', materials: materialsToRender, hasPackage: Boolean(purchased) });
+});
+
+// Paket kursus / purchase page
+app.get('/paket_kursus', (req, res) => {
+  res.render('paket_kursus', { title: 'Paket Kursus' });
+});
+
+// Login page (UI only)
+app.get('/login', (req, res) => res.render('login', { title: 'Masuk' }));
+
+// Simple POST handler for the login form so submissions don't 404.
+// This is a placeholder that accepts urlencoded form data and redirects to home.
+app.post('/login', express.urlencoded({ extended: true }), (req, res) => {
+  // In a real app you'd validate credentials here.
+  return res.redirect('/');
+});
+
+// Register page (UI only)
+app.get('/register', (req, res) => res.render('register', { title: 'Daftar Akun' }));
+
+// Simple POST handler for registration; placeholder that accepts form data then redirects to login.
+app.post('/register', express.urlencoded({ extended: true }), (req, res) => {
+  // In a real app you'd create the user, validate input, and possibly send OTP.
+  return res.redirect('/login');
+});
+
+app.use((req, res) => res.status(404).render('404', { title: 'Tidak ditemukan' }));
+>>>>>>> b43ccfb9d8c87c5c135f032d76f06d9a6ec5e37f
 
     const userId = cookies['user_id'];
     if (!userId) return next();

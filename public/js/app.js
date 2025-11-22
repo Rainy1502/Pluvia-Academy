@@ -27,3 +27,82 @@ document.addEventListener('DOMContentLoaded',function(){
     window.addEventListener('scroll', onScroll, {passive:true});
     onScroll();
 })();
+
+// Toggle password visibility for inputs with .password-field and .toggle-password button
+(function(){
+	function toggleHandler(e){
+		const btn = e.currentTarget;
+		const wrapper = btn.closest('.input-with-icon');
+		if(!wrapper) return;
+		const input = wrapper.querySelector('.password-field');
+		if(!input) return;
+		const icon = btn.querySelector('img');
+		if(input.type === 'password'){
+			input.type = 'text';
+			btn.setAttribute('aria-label','Sembunyikan password');
+			btn.title = 'Sembunyikan password';
+			btn.classList.add('visible');
+			if(icon && icon.dataset.open) icon.src = icon.dataset.open;
+		} else {
+			input.type = 'password';
+			btn.setAttribute('aria-label','Tampilkan password');
+			btn.title = 'Tampilkan password';
+			btn.classList.remove('visible');
+			if(icon && icon.dataset.closed) icon.src = icon.dataset.closed;
+		}
+	}
+
+	document.addEventListener('DOMContentLoaded', function(){
+		const toggles = document.querySelectorAll('.toggle-password');
+		toggles.forEach(btn => btn.addEventListener('click', toggleHandler));
+	});
+})();
+
+// Animate a single card when triggered (no auto-run on page load)
+(function(){
+	function animateCard(card, idx){
+		if(!card) return;
+		card.classList.add('card-animate');
+		const innerDelayBase = 80 + (idx || 0) * 30; // ms
+		const innerEls = card.querySelectorAll('.form-control, .login-meta, .otp-row, .btn-primary');
+		innerEls.forEach((el, i)=>{
+			el.style.setProperty('--d', `${innerDelayBase + i*40}ms`);
+		});
+		// reveal with a small stagger
+		setTimeout(()=>{ card.classList.add('in'); }, 80 + (idx||0)*80);
+	}
+
+	document.addEventListener('DOMContentLoaded', ()=>{
+		const cards = Array.from(document.querySelectorAll('.login-card, .register-card'));
+		cards.forEach((card, idx)=>{
+			const btn = card.querySelector('.btn-primary');
+			const form = card.querySelector('form');
+			if(!btn) return;
+			btn.addEventListener('click', function(e){
+				// prevent immediate submit so animation can play
+				if(form && form.tagName === 'FORM') e.preventDefault();
+
+				// if already animated, submit immediately
+				if(card.classList.contains('anim-played')){
+					form && form.submit();
+					return;
+				}
+
+				// play badge animation if present
+				const badge = card.querySelector('.card-badge');
+				if(badge){
+					badge.classList.remove('badge-animate');
+					// force reflow to restart animation
+					void badge.offsetWidth;
+					badge.classList.add('badge-animate');
+				}
+
+				animateCard(card, idx);
+				card.classList.add('anim-played');
+
+				// submit after animation finishes (match CSS transition ~420ms + badge animation); small buffer
+				setTimeout(()=>{ form && form.submit(); }, 700);
+			});
+		});
+	});
+})();
