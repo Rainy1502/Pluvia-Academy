@@ -89,9 +89,10 @@ app.use(async (req, res, next) => {
     if (!error && data) {
       res.locals.user = data;
     }
+
+    return next();
   } catch (err) {
     console.error('Error loading user from cookie:', err);
-  } finally {
     return next();
   }
 });
