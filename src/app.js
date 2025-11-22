@@ -5,9 +5,22 @@ const { create } = require('express-handlebars');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Simple request logger to help diagnose 404s during fast navigation
+app.use((req, _res, next) => {
+  // only very small log so console stays readable
+  console.log(`[REQ] ${req.method} ${req.url}`);
+  next();
+});
+
 // parse JSON and urlencoded bodies
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Ensure `req.next` exists for view engine error propagation (some engines call it)
+app.use((req, _res, next) => {
+  req.next = next;
+  next();
+});
 
 // view engine - register partials directory so {{> head}} etc. are found
 // create an engine instance so partials are properly registered
@@ -31,10 +44,8 @@ app.use((_req, res, next) => {
   next();
 });
 
-<<<<<<< HEAD
 // supabase client (keperluan nanti untuk auth/login)
 const supabase = require('./supabaseClient').default;
-=======
 const courseData = require('./utils/courseData');
 const materiData = require('./utils/materiData');
 
@@ -43,7 +54,6 @@ app.use((req, res, next) => {
   res.locals.hasCourses = Array.isArray(courseData) && courseData.length > 0;
   next();
 });
->>>>>>> b43ccfb9d8c87c5c135f032d76f06d9a6ec5e37f
 
 // NOTE: The homepage does not use the users table; keep homepage static.
 app.get('/', (_req, res) => {
@@ -57,7 +67,6 @@ app.use(async (req, res, next) => {
     const cookieHeader = req.headers && req.headers.cookie;
     if (!cookieHeader) return next();
 
-<<<<<<< HEAD
     const cookies = {};
     cookieHeader.split(';').forEach(pair => {
       const idx = pair.indexOf('=');
@@ -66,9 +75,29 @@ app.use(async (req, res, next) => {
       const val = pair.slice(idx + 1).trim();
       cookies[key] = decodeURIComponent(val);
     });
-=======
-// Courses page: shows courses the user is enrolled in
-app.get('/kursus', (req, res) => {
+
+    const userId = cookies['user_id'];
+    if (!userId) return next();
+
+    // fetch minimal user info
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, full_name, username, role_id, avatar_url')
+      .eq('id', userId)
+      .single();
+
+    if (!error && data) {
+      res.locals.user = data;
+    }
+  } catch (err) {
+    console.error('Error loading user from cookie:', err);
+  } finally {
+    return next();
+  }
+});
+
+  // Courses page: shows courses the user is enrolled in
+  app.get('/kursus', (req, res) => {
   // allow simulation of empty enrollment for testing: /kursus?empty=1
   const simulateEmpty = req.query && (req.query.empty === '1' || req.query.empty === 'true');
   const coursesToRender = simulateEmpty ? [] : (Array.isArray(courseData) ? courseData : []);
@@ -109,27 +138,21 @@ app.post('/register', express.urlencoded({ extended: true }), (req, res) => {
   return res.redirect('/login');
 });
 
-app.use((req, res) => res.status(404).render('404', { title: 'Tidak ditemukan' }));
->>>>>>> b43ccfb9d8c87c5c135f032d76f06d9a6ec5e37f
+// (routes continue below)
 
-    const userId = cookies['user_id'];
-    if (!userId) return next();
-
-    // fetch minimal user info
-    const { data, error } = await supabase
-      .from('users')
-      .select('id, full_name, username, role_id, avatar_url')
-      .eq('id', userId)
-      .single();
-
-    if (!error && data) {
-      res.locals.user = data;
-    }
-  } catch (err) {
-    console.error('Error loading user from cookie:', err);
-  } finally {
-    return next();
+// Minimal profile route: redirect to kursus if logged in, otherwise to login
+app.get('/profile', (req, res) => {
+  if (res.locals && res.locals.user) {
+    return res.redirect('/kursus');
   }
+  return res.redirect('/login');
+});
+
+// Simple logout route: clear `user_id` cookie and redirect home
+app.get('/logout', (req, res) => {
+  // Clear cookie by setting expired Set-Cookie header
+  res.setHeader('Set-Cookie', 'user_id=; Max-Age=0; Path=/; HttpOnly');
+  return res.redirect('/');
 });
 
 app.get('/about', (_req, res) => res.render('about', { title: 'Tentang' }));

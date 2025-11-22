@@ -406,7 +406,6 @@ site-header .container.header-row .nav-cluster .site-nav a span{display:block !i
 	.banner-wrap img{width:720px}
 }
 
-<<<<<<< HEAD
 /* Small layout overrides: reduce gap between Features (.courses) and Members (#members) */
 .courses h2{margin-bottom:0.5rem !important}
 .courses .grid{padding-bottom:6px !important}
@@ -414,7 +413,6 @@ site-header .container.header-row .nav-cluster .site-nav a span{display:block !i
 /* Reduce inner container gap so Testimoni sits closer to members */
 #members .container > div{margin-bottom:6px}
 #members .member{margin-bottom:0}
-=======
 /* ===== My Courses / Kursus page styles ===== */
 .my-courses-section{padding:56px 0;background:var(--primary);min-height:calc(100vh - 160px);display:flex;align-items:center}
 .my-courses-title{color:#fff;text-align:center;font-size:22px;font-weight:800;margin:0 0 24px}
@@ -538,16 +536,6 @@ site-header .container.header-row .nav-cluster .site-nav a span{display:block !i
 	.package-card{width:92%;max-width:520px}
 }
 
-/* ===== NAV SIZE TWEAKS: slightly reduce header and nav elements ===== */
-/* These small overrides live at the end so they defeat earlier !important rules */
-.site-header{min-height:88px !important}
-.site-header > .brand .logo{height:50px !important;width:50px !important}
-.site-header .brand span{font-size:36px !important}
-.site-header .container.header-row{height:88px !important}
-.site-header .site-nav a{font-size:16px !important;padding:6px 6px !important;min-width:64px !important}
-.site-header .site-nav .nav-icon{width:36px !important;height:36px !important;margin-bottom:6px !important}
-.site-root{padding-top:88px !important}
-
 /* Nav hover animation: scale + lift for icons and labels */
 .site-header .site-nav a,
 .site-header .site-nav .nav-icon{
@@ -574,35 +562,9 @@ site-header .container.header-row .nav-cluster .site-nav a span{display:block !i
 .site-header .site-nav .nav-icon{
 	transition: none !important;
 }
-.site-header .site-nav a:hover,
-.site-header .site-nav a:focus,
-.site-header .site-nav .nav-icon:hover,
-.site-header .site-nav .nav-icon:focus{
-	transform: none !important;
-	box-shadow: none !important;
-	filter: none !important;
-}
-.site-header .site-nav a span{transition: none !important; transform: none !important}
-
-/* ===== Stronger override: ensure nav icons are reduced (higher specificity) ===== */
-/* Some earlier rules use longer selectors with !important; replicate them here to win specificity. */
-.site-header .container.header-row .nav-cluster .site-nav .nav-icon,
-.site-header > .site-nav .nav-icon,
-.site-header .site-nav .nav-icon {
-	width: 36px !important;
-	height: 36px !important;
-}
-
-/* Ensure labels match the smaller icons */
-.site-header .container.header-row .nav-cluster .site-nav a span,
-.site-header > .site-nav a span,
-.site-header .site-nav a span {
-	font-size: 14px !important;
-}
 
 
 
->>>>>>> b43ccfb9d8c87c5c135f032d76f06d9a6ec5e37f
 
 
 
