@@ -121,7 +121,10 @@ app.get('/materi', (req, res) => {
 
 // Paket kursus / purchase page
 app.get('/paket_kursus', (req, res) => {
-  res.render('paket_kursus', { title: 'Paket Kursus' });
+  // Packages are managed by admin. By default there are no published packages.
+  // This route intentionally renders the empty-state until admin adds packages.
+  const packagesToRender = [];
+  res.render('paket_kursus', { title: 'Paket Kursus', packages: packagesToRender });
 });
 
 // Login page (UI only)
