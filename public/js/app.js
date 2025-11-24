@@ -106,3 +106,64 @@ document.addEventListener('DOMContentLoaded',function(){
 		});
 	});
 })();
+
+// OTP Handler: Kirim kode OTP via AJAX
+(function(){
+	document.addEventListener('DOMContentLoaded', function(){
+		const otpBtn = document.querySelector('.otp-btn');
+		if(!otpBtn) return;
+
+		otpBtn.addEventListener('click', async function(e){
+			e.preventDefault();
+
+			// Ambil nilai email dan username dari form
+			const form = otpBtn.closest('form');
+			if(!form) return;
+
+			const emailInput = form.querySelector('input[name="email"]');
+			const usernameInput = form.querySelector('input[name="username"]');
+
+			if(!emailInput || !emailInput.value){
+				alert('Email wajib diisi terlebih dahulu');
+				emailInput && emailInput.focus();
+				return;
+			}
+
+			const email = emailInput.value.trim();
+			const username = usernameInput ? usernameInput.value.trim() : '';
+
+			// Disable button dan ubah text
+			otpBtn.disabled = true;
+			const originalText = otpBtn.textContent;
+			otpBtn.textContent = 'Mengirim...';
+
+			try {
+				const response = await fetch('/api/otp/send', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({ email, username }),
+				});
+
+				const data = await response.json();
+
+				if(response.ok && data.success){
+					alert('Kode OTP telah dikirim ke email Anda. Silakan cek inbox atau folder spam.');
+					// Focus ke input OTP
+					const otpInput = form.querySelector('input[name="otp"]');
+					otpInput && otpInput.focus();
+				} else {
+					alert(data.error || 'Gagal mengirim kode OTP');
+				}
+			} catch(error){
+				console.error('Error sending OTP:', error);
+				alert('Terjadi kesalahan saat mengirim OTP');
+			} finally {
+				// Re-enable button
+				otpBtn.disabled = false;
+				otpBtn.textContent = originalText;
+			}
+		});
+	});
+})();

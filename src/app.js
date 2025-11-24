@@ -48,12 +48,16 @@ app.use((_req, res, next) => {
 const supabase = require('./supabaseClient').default;
 const courseData = require('./utils/courseData');
 const materiData = require('./utils/materiData');
+const otpRoutes = require('./routes/otp');
 
 // expose whether courses exist to templates so header can adapt links
 app.use((req, res, next) => {
   res.locals.hasCourses = Array.isArray(courseData) && courseData.length > 0;
   next();
 });
+
+// API routes untuk OTP
+app.use('/api/otp', otpRoutes);
 
 // NOTE: The homepage does not use the users table; keep homepage static.
 app.get('/', (_req, res) => {
@@ -133,10 +137,107 @@ app.post('/login', express.urlencoded({ extended: true }), (req, res) => {
 // Register page (UI only)
 app.get('/register', (req, res) => res.render('register', { title: 'Daftar Akun' }));
 
-// Simple POST handler for registration; placeholder that accepts form data then redirects to login.
-app.post('/register', express.urlencoded({ extended: true }), (req, res) => {
-  // In a real app you'd create the user, validate input, and possibly send OTP.
-  return res.redirect('/login');
+// POST handler for registration dengan validasi OTP
+app.post('/register', express.urlencoded({ extended: true }), async (req, res) => {
+  try {
+    const { username, phone, email, password, passwordConfirm, otp } = req.body;
+
+    // Validasi input dasar
+    if (!username || !email || !password || !passwordConfirm) {
+      return res.status(400).render('register', {
+        title: 'Daftar Akun',
+        error: 'Semua field wajib diisi',
+      });
+    }
+
+    if (password !== passwordConfirm) {
+      return res.status(400).render('register', {
+        title: 'Daftar Akun',
+        error: 'Password dan konfirmasi password tidak cocok',
+      });
+    }
+
+    if (!otp) {
+      return res.status(400).render('register', {
+        title: 'Daftar Akun',
+        error: 'Kode OTP wajib diisi',
+      });
+    }
+
+    // Verifikasi OTP terlebih dahulu
+    const { data: otpRecords, error: otpError } = await supabase
+      .from('otp_codes')
+      .select('*')
+      .eq('target', email)
+      .eq('code', otp)
+      .eq('used', false)
+      .gt('expires_at', new Date().toISOString())
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (otpError || !otpRecords || otpRecords.length === 0) {
+      return res.status(400).render('register', {
+        title: 'Daftar Akun',
+        error: 'Kode OTP tidak valid atau sudah kadaluarsa',
+      });
+    }
+
+    // Cek apakah email atau username sudah ada
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('id')
+      .or(`email.eq.${email},username.eq.${username}`)
+      .single();
+
+    if (existingUser) {
+      return res.status(400).render('register', {
+        title: 'Daftar Akun',
+        error: 'Email atau username sudah terdaftar',
+      });
+    }
+
+    // Hash password (dalam produksi gunakan bcrypt)
+    // Untuk sementara simpan plain text (TIDAK AMAN - hanya untuk demo)
+    const passwordHash = password; // TODO: gunakan bcrypt.hash(password, 10)
+
+    // Buat user baru
+    const { data: newUser, error: createError } = await supabase
+      .from('users')
+      .insert({
+        full_name: username,
+        username: username,
+        phone: phone || null,
+        email: email,
+        password_hash: passwordHash,
+        is_verified: true, // karena sudah verifikasi OTP
+        role_id: 1, // member
+      })
+      .select()
+      .single();
+
+    if (createError) {
+      console.error('Error creating user:', createError);
+      return res.status(500).render('register', {
+        title: 'Daftar Akun',
+        error: 'Gagal membuat akun. Silakan coba lagi.',
+      });
+    }
+
+    // Mark OTP as used
+    await supabase
+      .from('otp_codes')
+      .update({ used: true })
+      .eq('id', otpRecords[0].id);
+
+    // Redirect ke login dengan pesan sukses
+    return res.redirect('/login?registered=true');
+  } catch (error) {
+    console.error('Error in registration:', error);
+    return res.status(500).render('register', {
+      title: 'Daftar Akun',
+      error: 'Terjadi kesalahan pada server',
+    });
+  }
 });
 
 // (routes continue below)
