@@ -56,16 +56,9 @@ app.use((req, res, next) => {
   next();
 });
 
-// API routes untuk OTP
-app.use('/api/otp', otpRoutes);
-
-// NOTE: The homepage does not use the users table; keep homepage static.
-app.get('/', (_req, res) => {
-  res.render('index', { title: 'Pluvia Academy' });
-});
-
 // Middleware: read `user_id` cookie (if present) and load user from Supabase
 // This keeps homepage and other views able to check `user` via `res.locals.user`.
+// PENTING: Middleware ini harus SEBELUM semua routes agar user tersedia di semua halaman
 app.use(async (req, res, next) => {
   try {
     const cookieHeader = req.headers && req.headers.cookie;
@@ -101,6 +94,14 @@ app.use(async (req, res, next) => {
   }
 });
 
+// API routes untuk OTP
+app.use('/api/otp', otpRoutes);
+
+// Homepage - akan menampilkan menu sesuai status login berkat middleware di atas
+app.get('/', (_req, res) => {
+  res.render('index', { title: 'Pluvia Academy' });
+});
+
   // Courses page: shows courses the user is enrolled in
   app.get('/kursus', (req, res) => {
   // allow simulation of empty enrollment for testing: /kursus?empty=1
@@ -128,13 +129,67 @@ app.get('/paket_kursus', (req, res) => {
 });
 
 // Login page (UI only)
-app.get('/login', (req, res) => res.render('login', { title: 'Masuk' }));
+app.get('/login', (req, res) => {
+  const registered = req.query && req.query.registered === 'true';
+  res.render('login', { 
+    title: 'Masuk', 
+    successMessage: registered ? 'Registrasi berhasil! Silakan login.' : null 
+  });
+});
 
-// Simple POST handler for the login form so submissions don't 404.
-// This is a placeholder that accepts urlencoded form data and redirects to home.
-app.post('/login', express.urlencoded({ extended: true }), (req, res) => {
-  // In a real app you'd validate credentials here.
-  return res.redirect('/');
+// POST handler for login dengan validasi kredensial
+app.post('/login', express.urlencoded({ extended: true }), async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).render('login', {
+        title: 'Masuk',
+        error: 'Email dan password wajib diisi',
+      });
+    }
+
+    // Cari user berdasarkan email
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('id, full_name, username, email, password_hash, role_id, is_verified')
+      .eq('email', email)
+      .single();
+
+    if (userError || !user) {
+      return res.status(400).render('login', {
+        title: 'Masuk',
+        error: 'Email atau password salah',
+      });
+    }
+
+    // Validasi password (dalam produksi gunakan bcrypt.compare)
+    // Untuk sementara plain text comparison (TIDAK AMAN - hanya untuk demo)
+    if (user.password_hash !== password) {
+      return res.status(400).render('login', {
+        title: 'Masuk',
+        error: 'Email atau password salah',
+      });
+    }
+
+    // Update last_login
+    await supabase
+      .from('users')
+      .update({ last_login: new Date().toISOString() })
+      .eq('id', user.id);
+
+    // Set cookie dengan user_id
+    res.setHeader('Set-Cookie', `user_id=${user.id}; Path=/; HttpOnly; Max-Age=2592000`); // 30 days
+
+    // Redirect ke home
+    return res.redirect('/');
+  } catch (error) {
+    console.error('Error in login:', error);
+    return res.status(500).render('login', {
+      title: 'Masuk',
+      error: 'Terjadi kesalahan pada server',
+    });
+  }
 });
 
 // Register page (UI only)
@@ -245,12 +300,42 @@ app.post('/register', express.urlencoded({ extended: true }), async (req, res) =
 
 // (routes continue below)
 
-// Minimal profile route: redirect to kursus if logged in, otherwise to login
-app.get('/profile', (req, res) => {
-  if (res.locals && res.locals.user) {
+// Profile page: menampilkan informasi user yang sedang login
+app.get('/profile', async (req, res) => {
+  if (!res.locals || !res.locals.user) {
+    return res.redirect('/login');
+  }
+
+  try {
+    // Ambil data user lengkap dari database
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('id, full_name, username, email, phone, avatar_url, role_id, created_at, last_login')
+      .eq('id', res.locals.user.id)
+      .single();
+
+    if (error || !user) {
+      console.error('Error fetching user profile:', error);
+      return res.redirect('/login');
+    }
+
+    // Ambil nama role
+    const { data: role } = await supabase
+      .from('roles')
+      .select('name')
+      .eq('id', user.role_id)
+      .single();
+
+    user.role_name = role ? role.name : 'member';
+
+    return res.render('profile', { 
+      title: 'Profile', 
+      profile: user 
+    });
+  } catch (error) {
+    console.error('Error loading profile:', error);
     return res.redirect('/kursus');
   }
-  return res.redirect('/login');
 });
 
 // Simple logout route: clear `user_id` cookie and redirect home

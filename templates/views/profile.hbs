@@ -1,0 +1,66 @@
+{{> head}}
+{{> header}}
+
+<main class="site-root">
+  <section class="profile-page">
+    <div class="container">
+      <div class="profile-card">
+        <div class="profile-header">
+          <div class="profile-avatar">
+            {{#if profile.avatar_url}}
+              <img src="{{profile.avatar_url}}" alt="{{profile.full_name}}" class="avatar-img" />
+            {{else}}
+              <div class="avatar-placeholder">
+                <img src="/img/nav-user.png" alt="user" />
+              </div>
+            {{/if}}
+          </div>
+          <div class="profile-info">
+            <h1>{{profile.full_name}}</h1>
+            <p class="profile-role">{{profile.role_name}}</p>
+          </div>
+        </div>
+
+        <div class="profile-details">
+          <h2>Informasi Akun</h2>
+          
+          <div class="detail-row">
+            <div class="detail-label">Username</div>
+            <div class="detail-value">{{profile.username}}</div>
+          </div>
+
+          <div class="detail-row">
+            <div class="detail-label">Email</div>
+            <div class="detail-value">{{profile.email}}</div>
+          </div>
+
+          {{#if profile.phone}}
+          <div class="detail-row">
+            <div class="detail-label">Nomor HP</div>
+            <div class="detail-value">{{profile.phone}}</div>
+          </div>
+          {{/if}}
+
+          <div class="detail-row">
+            <div class="detail-label">Bergabung Sejak</div>
+            <div class="detail-value">{{profile.created_at}}</div>
+          </div>
+
+          {{#if profile.last_login}}
+          <div class="detail-row">
+            <div class="detail-label">Login Terakhir</div>
+            <div class="detail-value">{{profile.last_login}}</div>
+          </div>
+          {{/if}}
+        </div>
+
+        <div class="profile-actions">
+          <a href="/kursus" class="btn-primary">Lihat Kursus Saya</a>
+          <a href="/logout" class="btn-secondary">Logout</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+{{> footer}}
