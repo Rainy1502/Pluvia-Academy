@@ -2,34 +2,36 @@
 {{> header}}
 
 <main class="site-root">
-  <section class="packages-section">
+  <section class="my-courses-section">
     <div class="container">
-      <h2 style="color:#fff;text-align:center;margin-bottom:18px">Paket Kursus</h2>
-      <p style="color:#fff;text-align:center;max-width:800px;margin:0 auto 24px">Sepertinya Anda belum mengikuti kursus. Pilih paket yang sesuai untuk mulai belajar di Pluvia Academy.</p>
-
-      <div class="package-grid">
-        <div class="package-card">
-          <div class="package-badge">Paling Populer</div>
-          <div class="package-body">
-            <h3 class="package-title">Paket Dasar</h3>
-            <p class="package-desc">Akses materi dasar dan forum komunitas.</p>
+      <div class="courses-panel">
+        <h2 class="my-courses-title">Paket Kursus</h2>
+        {{#if packages.length}}
+        <div class="my-courses-grid">
+          {{#each packages}}
+          <div class="my-course-box package-card">
+            {{#if this.badge}}<div class="package-badge">{{this.badge}}</div>{{/if}}
+            <div class="box-inner">
+              <img src="/img/banner.png" alt="{{this.title}}" loading="lazy" decoding="async"/>
+            </div>
+            <div class="course-desc">
+              <div class="course-title">{{this.title}}</div>
+              <p class="package-desc">{{this.description}}</p>
+            </div>
+            <div class="package-footer">
+              <div class="package-price">{{this.price}}</div>
+              <a href="/register" class="btn-primary">Beli Paket</a>
+            </div>
           </div>
-          <div class="package-footer">
-            <div class="package-price">Rp 199.000</div>
-            <a href="/register" class="btn-primary">Beli Paket</a>
-          </div>
+          {{/each}}
         </div>
-
-        <div class="package-card">
-          <div class="package-body">
-            <h3 class="package-title">Paket Pro</h3>
-            <p class="package-desc">Akses penuh materi, proyek, dan mentor.</p>
-          </div>
-          <div class="package-footer">
-            <div class="package-price">Rp 499.000</div>
-            <a href="/register" class="btn-primary">Beli Paket</a>
-          </div>
+        {{else}}
+        <div class="empty-courses empty-centered">
+          <p class="empty-message">Belum ada paket kursus yang ditambahkan.</p>
+          <p class="empty-sub">Silakan cek kembali nanti atau hubungi administrator untuk menambahkan.</p>
+          <a href="/" class="btn-primary empty-cta">Home</a>
         </div>
+        {{/if}}
       </div>
     </div>
   </section>

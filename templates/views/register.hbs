@@ -15,6 +15,10 @@
           <h2>Daftar Akun</h2>
         </div>
 
+        {{#if error}}
+          <div class="alert alert-error">{{error}}</div>
+        {{/if}}
+
         <form action="/register" method="post" class="register-form">
           <input name="username" type="text" placeholder="Nama Pengguna" required class="form-control" />
           <input name="phone" type="tel" placeholder="Nomor HP" required class="form-control" />
