@@ -1,0 +1,105 @@
+{{> head}}
+{{> header}}
+
+<main class="site-root">
+  <section class="management-page">
+    <div class="container">
+      <div class="page-header">
+        <h1>Manajemen Lecturer</h1>
+        <p class="page-subtitle">Kelola seluruh pengajar yang terdaftar dalam platform</p>
+      </div>
+
+      <div class="action-bar">
+        <button class="btn-primary" onclick="window.location.href='/lecturer/create'">
+          <img src="/img/icon-add.png" alt="add" style="width:20px;height:20px;margin-right:8px;" />
+          Tambah Lecturer
+        </button>
+      </div>
+
+      {{#if lecturers}}
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Foto</th>
+              <th>Nama Pengajar</th>
+              <th>Keahlian</th>
+              <th>Email</th>
+              <th>Status</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each lecturers}}
+            <tr>
+              <td>
+                <div class="lecturer-avatar">
+                  {{#if this.avatar_url}}
+                    <img src="{{this.avatar_url}}" alt="{{this.full_name}}" class="avatar-small" />
+                  {{else}}
+                    <div class="avatar-placeholder-small">
+                      <img src="/img/nav-user.png" alt="user" />
+                    </div>
+                  {{/if}}
+                </div>
+              </td>
+              <td><strong>{{this.full_name}}</strong></td>
+              <td>{{this.expertise}}</td>
+              <td>{{this.email}}</td>
+              <td>
+                {{#if this.is_active}}
+                  <span class="status-badge status-active">Aktif</span>
+                {{else}}
+                  <span class="status-badge status-inactive">Tidak Aktif</span>
+                {{/if}}
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <button class="btn-small btn-info" onclick="window.location.href='/lecturer/{{this.id}}'">Detail</button>
+                  <button class="btn-small btn-warning" onclick="window.location.href='/lecturer/{{this.id}}/edit'">Edit</button>
+                  <button class="btn-small btn-danger" onclick="deleteLecturer('{{this.id}}', '{{this.full_name}}')">Hapus</button>
+                </div>
+              </td>
+            </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+      {{else}}
+      <div class="empty-state">
+        <img src="/img/empty-lecturer.png" alt="No lecturers" class="empty-icon" />
+        <h3>Belum Ada Lecturer</h3>
+        <p>Mulai tambahkan lecturer untuk platform Anda</p>
+        <button class="btn-primary" onclick="window.location.href='/lecturer/create'">Tambah Lecturer Pertama</button>
+      </div>
+      {{/if}}
+    </div>
+  </section>
+</main>
+
+<script>
+function deleteLecturer(id, name) {
+  if (confirm(`Apakah Anda yakin ingin menghapus lecturer "${name}"?`)) {
+    fetch(`/lecturer/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(response => {
+      if (response.ok) {
+        alert('Lecturer berhasil dihapus');
+        window.location.reload();
+      } else {
+        alert('Gagal menghapus lecturer');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Terjadi kesalahan saat menghapus lecturer');
+    });
+  }
+}
+</script>
+
+{{> footer}}

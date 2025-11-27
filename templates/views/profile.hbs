@@ -57,8 +57,16 @@
         </div>
 
         <div class="profile-actions">
-          <a href="/profile/edit" class="btn-edit">Edit Profile</a>
-          <a href="/logout" class="btn-logout">Log Out</a>
+          {{#if (eq profile.role_id 10)}}
+            <!-- Admin actions -->
+            <a href="/lecturer" class="btn-primary">Kelola Lecturer</a>
+            <a href="/kursus" class="btn-primary">Kelola Kursus</a>
+            <a href="/logout" class="btn-secondary">Logout</a>
+          {{else}}
+            <!-- Member/Guest actions -->
+            <a href="/kursus" class="btn-primary">Lihat Kursus Saya</a>
+            <a href="/logout" class="btn-secondary">Logout</a>
+          {{/if}}
         </div>
       </div>
     </div>

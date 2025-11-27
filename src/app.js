@@ -59,7 +59,12 @@ const hbs = create({
   extname: '.hbs',
   defaultLayout: false,
   // partialsDir can be an array; include the partials folder explicitly
-  partialsDir: [join(__dirname, '..', 'templates', 'partials')]
+  partialsDir: [join(__dirname, '..', 'templates', 'partials')],
+  // Add helpers for template conditions
+  helpers: {
+    eq: (a, b) => a === b,
+    neq: (a, b) => a !== b
+  }
 });
 app.engine('hbs', hbs.engine);
 app.set('view engine', 'hbs');
@@ -125,6 +130,17 @@ app.use(async (req, res, next) => {
   }
 });
 
+// Middleware: Check if user is admin
+const requireAdmin = (req, res, next) => {
+  if (!res.locals.user || res.locals.user.role_id !== 10) {
+    return res.status(403).render('404', { 
+      title: 'Akses Ditolak',
+      message: 'Anda tidak memiliki akses ke halaman ini.' 
+    });
+  }
+  next();
+};
+
 // API routes untuk OTP
 app.use('/api/otp', otpRoutes);
 
@@ -133,30 +149,353 @@ app.get('/', (_req, res) => {
   res.render('index', { title: 'Pluvia Academy' });
 });
 
-  // Courses page: shows courses the user is enrolled in
-  app.get('/kursus', (req, res) => {
-  // allow simulation of empty enrollment for testing: /kursus?empty=1
-  const simulateEmpty = req.query && (req.query.empty === '1' || req.query.empty === 'true');
-  const coursesToRender = simulateEmpty ? [] : (Array.isArray(courseData) ? courseData : []);
-  res.render('kursus', { title: 'Kursus', courses: coursesToRender });
+  // Courses page: shows courses the user is enrolled in or management view for admin
+  app.get('/kursus', async (req, res) => {
+  const isAdmin = res.locals.user && res.locals.user.role_id === 10;
+  
+  if (isAdmin) {
+    // Admin view: show all courses with management options
+    try {
+      const [coursesResult, lecturersResult] = await Promise.all([
+        supabase
+          .from('courses')
+          .select('id, title, description, instructor_id, meet_link, thumbnail')
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('users')
+          .select('id, full_name')
+          .eq('role_id', 5)
+          .eq('is_active', true)
+      ]);
+
+      if (coursesResult.error) throw coursesResult.error;
+      
+      return res.render('kursus', { 
+        title: 'Manajemen Kursus', 
+        courses: coursesResult.data || [],
+        lecturers: lecturersResult.data || [],
+        isAdmin: true 
+      });
+    } catch (error) {
+      console.error('Error fetching courses:', error);
+      return res.render('kursus', { 
+        title: 'Manajemen Kursus', 
+        courses: [],
+        lecturers: [],
+        isAdmin: true 
+      });
+    }
+  } else {
+    // Member view: show enrolled courses
+    const simulateEmpty = req.query && (req.query.empty === '1' || req.query.empty === 'true');
+    const coursesToRender = simulateEmpty ? [] : (Array.isArray(courseData) ? courseData : []);
+    return res.render('kursus', { 
+      title: 'Kursus', 
+      courses: coursesToRender,
+      isAdmin: false 
+    });
+  }
 });
 
-// Materi page: shows available materials; supports simulation flag `?empty=1`
-app.get('/materi', (req, res) => {
-  // By default, materials are hidden until the user has purchased a package.
-  // Simulate a purchased package by visiting `/materi?paket=1` or `/materi?bought=1`.
-  const purchased = req.query && (req.query.paket === '1' || req.query.bought === '1' || req.query.purchased === '1');
-  const materialsToRender = purchased ? (Array.isArray(materiData) ? materiData : []) : [];
-  // Pass a flag to the template so it can adjust messaging if needed
-  res.render('materi', { title: 'Materi', materials: materialsToRender, hasPackage: Boolean(purchased) });
+// Materi page: shows available materials or management view for admin
+app.get('/materi', async (req, res) => {
+  const isAdmin = res.locals.user && res.locals.user.role_id === 10;
+  
+  if (isAdmin) {
+    // Admin view: show all materials with management options
+    try {
+      const { data: materials, error } = await supabase
+        .from('materials')
+        .select('id, title, category, order, is_published')
+        .order('order', { ascending: true });
+
+      if (error) throw error;
+
+      return res.render('materi', { 
+        title: 'Manajemen Materi', 
+        materials: materials || [],
+        isAdmin: true 
+      });
+    } catch (error) {
+      console.error('Error fetching materials:', error);
+      return res.render('materi', { 
+        title: 'Manajemen Materi', 
+        materials: [],
+        isAdmin: true 
+      });
+    }
+  } else {
+    // Member view: show purchased materials
+    const purchased = req.query && (req.query.paket === '1' || req.query.bought === '1' || req.query.purchased === '1');
+    const materialsToRender = purchased ? (Array.isArray(materiData) ? materiData : []) : [];
+    return res.render('materi', { 
+      title: 'Materi', 
+      materials: materialsToRender, 
+      hasPackage: Boolean(purchased),
+      isAdmin: false 
+    });
+  }
 });
 
-// Paket kursus / purchase page
-app.get('/paket_kursus', (req, res) => {
-  // Packages are managed by admin. By default there are no published packages.
-  // This route intentionally renders the empty-state until admin adds packages.
-  const packagesToRender = [];
-  res.render('paket_kursus', { title: 'Paket Kursus', packages: packagesToRender });
+// Paket kursus / purchase page or management view for admin
+app.get('/paket_kursus', async (req, res) => {
+  const isAdmin = res.locals.user && res.locals.user.role_id === 10;
+  
+  if (isAdmin) {
+    // Admin view: show all packages with management options
+    try {
+      const { data: packages, error } = await supabase
+        .from('packages')
+        .select('id, title, description, thumbnail, material_count, duration, price')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      return res.render('paket_kursus', { 
+        title: 'Manajemen Paket', 
+        packages: packages || [],
+        isAdmin: true 
+      });
+    } catch (error) {
+      console.error('Error fetching packages:', error);
+      return res.render('paket_kursus', { 
+        title: 'Manajemen Paket', 
+        packages: [],
+        isAdmin: true 
+      });
+    }
+  } else {
+    // Member view: show available packages for purchase
+    const packagesToRender = [];
+    return res.render('paket_kursus', { 
+      title: 'Paket Kursus', 
+      packages: packagesToRender,
+      isAdmin: false 
+    });
+  }
+});
+
+// Lecturer management page (Admin only)
+app.get('/lecturer', async (req, res) => {
+  // Check if user is admin
+  if (!res.locals.user || res.locals.user.role_id !== 10) {
+    return res.redirect('/');
+  }
+
+  try {
+    const { data: lecturers, error } = await supabase
+      .from('users')
+      .select('id, full_name, email, avatar_url, expertise, is_active')
+      .eq('role_id', 5) // Assuming role_id 5 is for lecturers
+      .order('full_name', { ascending: true });
+
+    if (error) throw error;
+
+    return res.render('lecturer', { 
+      title: 'Manajemen Lecturer', 
+      lecturers: lecturers || []
+    });
+  } catch (error) {
+    console.error('Error fetching lecturers:', error);
+    return res.render('lecturer', { 
+      title: 'Manajemen Lecturer', 
+      lecturers: []
+    });
+  }
+});
+
+// Student management for a specific course (Admin only)
+app.get('/kursus/:id/students', requireAdmin, async (req, res) => {
+  const courseId = req.params.id;
+
+  try {
+    // Get course details
+    const { data: course, error: courseError } = await supabase
+      .from('courses')
+      .select('id, title')
+      .eq('id', courseId)
+      .single();
+
+    if (courseError) throw courseError;
+    if (!course) {
+      return res.status(404).render('404', { title: '404 - Tidak Ditemukan' });
+    }
+
+    // Get enrolled students for this course
+    const { data: enrollments, error: enrollError } = await supabase
+      .from('enrollments')
+      .select(`
+        id,
+        user_id,
+        users:user_id (
+          id,
+          full_name,
+          email,
+          avatar_url
+        )
+      `)
+      .eq('course_id', courseId)
+      .order('enrolled_at', { ascending: false });
+
+    if (enrollError) throw enrollError;
+
+    // Transform data for easier template rendering
+    const students = (enrollments || []).map(enrollment => ({
+      id: enrollment.users.id,
+      full_name: enrollment.users.full_name,
+      email: enrollment.users.email,
+      avatar_url: enrollment.users.avatar_url
+    }));
+
+    return res.render('students', {
+      title: `Daftar Student - ${course.title}`,
+      courseId: course.id,
+      courseName: course.title,
+      students
+    });
+  } catch (error) {
+    console.error('Error fetching students:', error);
+    return res.status(500).render('students', {
+      title: 'Daftar Student',
+      courseId,
+      courseName: 'Kursus',
+      students: [],
+      error: 'Gagal memuat daftar student'
+    });
+  }
+});
+
+// Material access management for a specific student in a course (Admin only)
+app.get('/kursus/:courseId/students/:studentId/materi', requireAdmin, async (req, res) => {
+  const { courseId, studentId } = req.params;
+
+  try {
+    // Get course and student details
+    const [courseResult, studentResult, materialsResult] = await Promise.all([
+      supabase.from('courses').select('id, title').eq('id', courseId).single(),
+      supabase.from('users').select('id, full_name').eq('id', studentId).single(),
+      supabase.from('materials').select('id, title, thumbnail, description').eq('course_id', courseId).order('created_at', { ascending: true })
+    ]);
+
+    if (courseResult.error) throw courseResult.error;
+    if (studentResult.error) throw studentResult.error;
+    if (materialsResult.error) throw materialsResult.error;
+
+    if (!courseResult.data || !studentResult.data) {
+      return res.status(404).render('404', { title: '404 - Tidak Ditemukan' });
+    }
+
+    // Get student's progress for this course
+    const { data: progress, error: progressError } = await supabase
+      .from('progress')
+      .select('material_id, is_complete')
+      .eq('user_id', studentId)
+      .eq('course_id', courseId);
+
+    if (progressError) throw progressError;
+
+    // Create a map of material_id to completion status
+    const progressMap = {};
+    (progress || []).forEach(p => {
+      progressMap[p.material_id] = p.is_complete;
+    });
+
+    // Transform materials with lock status
+    const materials = (materialsResult.data || []).map(material => ({
+      id: material.id,
+      title: material.title,
+      thumbnail: material.thumbnail,
+      description: material.description,
+      is_unlocked: progressMap[material.id] !== undefined
+    }));
+
+    return res.render('akses_materi', {
+      title: `Akses Materi - ${studentResult.data.full_name}`,
+      courseId,
+      courseName: courseResult.data.title,
+      studentId,
+      studentName: studentResult.data.full_name,
+      materials
+    });
+  } catch (error) {
+    console.error('Error fetching material access:', error);
+    return res.status(500).render('akses_materi', {
+      title: 'Akses Materi',
+      courseId,
+      studentId,
+      courseName: 'Kursus',
+      studentName: 'Student',
+      materials: [],
+      error: 'Gagal memuat akses materi'
+    });
+  }
+});
+
+// Remove student from course (Admin only)
+app.delete('/kursus/:courseId/students/:studentId', requireAdmin, async (req, res) => {
+  const { courseId, studentId } = req.params;
+
+  try {
+    const { error } = await supabase
+      .from('enrollments')
+      .delete()
+      .eq('course_id', courseId)
+      .eq('user_id', studentId);
+
+    if (error) throw error;
+
+    return res.json({ success: true, message: 'Student berhasil dikeluarkan' });
+  } catch (error) {
+    console.error('Error removing student:', error);
+    return res.status(500).json({ success: false, message: 'Gagal mengeluarkan student' });
+  }
+});
+
+// Toggle material access for student (Admin only)
+app.post('/kursus/:courseId/students/:studentId/materi/:materialId/toggle', requireAdmin, async (req, res) => {
+  const { courseId, studentId, materialId } = req.params;
+
+  try {
+    // Check if progress record exists
+    const { data: existing, error: checkError } = await supabase
+      .from('progress')
+      .select('id')
+      .eq('user_id', studentId)
+      .eq('course_id', courseId)
+      .eq('material_id', materialId)
+      .maybeSingle();
+
+    if (checkError) throw checkError;
+
+    if (existing) {
+      // Delete progress record to lock material
+      const { error: deleteError } = await supabase
+        .from('progress')
+        .delete()
+        .eq('id', existing.id);
+
+      if (deleteError) throw deleteError;
+
+      return res.json({ success: true, is_unlocked: false, message: 'Materi berhasil dikunci' });
+    } else {
+      // Insert progress record to unlock material
+      const { error: insertError } = await supabase
+        .from('progress')
+        .insert({
+          user_id: studentId,
+          course_id: courseId,
+          material_id: materialId,
+          is_complete: false
+        });
+
+      if (insertError) throw insertError;
+
+      return res.json({ success: true, is_unlocked: true, message: 'Materi berhasil dibuka' });
+    }
+  } catch (error) {
+    console.error('Error toggling material access:', error);
+    return res.status(500).json({ success: false, message: 'Gagal mengubah akses materi' });
+  }
 });
 
 // Login page (UI only)
@@ -496,6 +835,561 @@ app.get('/logout', (req, res) => {
   // Clear cookie by setting expired Set-Cookie header
   res.setHeader('Set-Cookie', 'user_id=; Max-Age=0; Path=/; HttpOnly');
   return res.redirect('/');
+});
+
+// ========================================
+// Admin CRUD Routes
+// ========================================
+
+// DELETE Kursus (Admin only)
+app.delete('/kursus/:id', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const { error } = await supabase
+      .from('courses')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+
+    return res.status(200).json({ success: true, message: 'Kursus berhasil dihapus' });
+  } catch (error) {
+    console.error('Error deleting course:', error);
+    return res.status(500).json({ success: false, message: 'Gagal menghapus kursus' });
+  }
+});
+
+// DELETE Materi (Admin only)
+app.delete('/materi/:id', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const { error } = await supabase
+      .from('materials')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+
+    return res.status(200).json({ success: true, message: 'Materi berhasil dihapus' });
+  } catch (error) {
+    console.error('Error deleting material:', error);
+    return res.status(500).json({ success: false, message: 'Gagal menghapus materi' });
+  }
+});
+
+// DELETE Paket (Admin only)
+app.delete('/paket_kursus/:id', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const { error } = await supabase
+      .from('packages')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+
+    return res.status(200).json({ success: true, message: 'Paket berhasil dihapus' });
+  } catch (error) {
+    console.error('Error deleting package:', error);
+    return res.status(500).json({ success: false, message: 'Gagal menghapus paket' });
+  }
+});
+
+// DELETE Lecturer (Admin only)
+app.delete('/lecturer/:id', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Soft delete: update is_active to false instead of actual delete
+    const { error } = await supabase
+      .from('users')
+      .update({ is_active: false })
+      .eq('id', id)
+      .eq('role_id', 5);
+
+    if (error) throw error;
+
+    return res.status(200).json({ success: true, message: 'Lecturer berhasil dihapus' });
+  } catch (error) {
+    console.error('Error deleting lecturer:', error);
+    return res.status(500).json({ success: false, message: 'Gagal menghapus lecturer' });
+  }
+});
+
+// ========================================
+// Admin CREATE Routes
+// ========================================
+
+// GET Create Kursus Form
+app.get('/kursus/create', requireAdmin, async (req, res) => {
+  try {
+    // Fetch lecturers for dropdown
+    const { data: lecturers } = await supabase
+      .from('users')
+      .select('id, full_name')
+      .eq('role_id', 5)
+      .eq('is_active', true);
+
+    return res.render('kursus_form', { 
+      title: 'Tambah Kursus',
+      lecturers: lecturers || []
+    });
+  } catch (error) {
+    console.error('Error loading create form:', error);
+    return res.render('kursus_form', { 
+      title: 'Tambah Kursus',
+      lecturers: []
+    });
+  }
+});
+
+// POST Create Kursus
+app.post('/kursus/create', requireAdmin, express.urlencoded({ extended: true }), async (req, res) => {
+  try {
+    const { title, description, instructor_id, meet_link, thumbnail } = req.body;
+
+    if (!title || !instructor_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'Nama kursus dan lecturer wajib diisi'
+      });
+    }
+
+    const { error } = await supabase
+      .from('courses')
+      .insert({
+        title,
+        description,
+        instructor_id,
+        meet_link,
+        thumbnail,
+        slug: title.toLowerCase().replace(/\s+/g, '-'),
+        created_at: new Date().toISOString()
+      });
+
+    if (error) throw error;
+
+    return res.redirect('/kursus');
+  } catch (error) {
+    console.error('Error creating course:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Gagal menambahkan kursus'
+    });
+  }
+});
+
+// GET Create Materi Form
+app.get('/materi/create', requireAdmin, (req, res) => {
+  return res.render('materi_form', { title: 'Tambah Materi' });
+});
+
+// POST Create Materi
+app.post('/materi/create', requireAdmin, express.urlencoded({ extended: true }), async (req, res) => {
+  try {
+    const { title, category, summary, content, order, duration, thumbnail, video_url, is_published } = req.body;
+
+    if (!title || !category || !order) {
+      return res.status(400).render('materi_form', {
+        title: 'Tambah Materi',
+        error: 'Judul, kategori, dan urutan wajib diisi'
+      });
+    }
+
+    const { error } = await supabase
+      .from('materials')
+      .insert({
+        title,
+        category,
+        summary,
+        content,
+        order: parseInt(order),
+        duration: duration ? parseInt(duration) : null,
+        thumbnail,
+        video_url,
+        is_published: is_published === 'true',
+        created_at: new Date().toISOString()
+      });
+
+    if (error) throw error;
+
+    return res.redirect('/materi');
+  } catch (error) {
+    console.error('Error creating material:', error);
+    return res.status(500).render('materi_form', {
+      title: 'Tambah Materi',
+      error: 'Gagal menambahkan materi'
+    });
+  }
+});
+
+// GET Create Paket Form
+app.get('/paket_kursus/create', requireAdmin, (req, res) => {
+  return res.render('paket_form', { title: 'Tambah Paket' });
+});
+
+// POST Create Paket
+app.post('/paket_kursus/create', requireAdmin, express.urlencoded({ extended: true }), async (req, res) => {
+  try {
+    const { title, description, price, duration, material_count, thumbnail, badge, is_active } = req.body;
+
+    if (!title || !description || !price || !thumbnail) {
+      return res.status(400).render('paket_form', {
+        title: 'Tambah Paket',
+        error: 'Nama paket, deskripsi, harga, dan thumbnail wajib diisi'
+      });
+    }
+
+    const { error } = await supabase
+      .from('packages')
+      .insert({
+        title,
+        description,
+        price: parseInt(price),
+        duration,
+        material_count: material_count ? parseInt(material_count) : 0,
+        thumbnail,
+        badge,
+        is_active: is_active === 'true',
+        created_at: new Date().toISOString()
+      });
+
+    if (error) throw error;
+
+    return res.redirect('/paket_kursus');
+  } catch (error) {
+    console.error('Error creating package:', error);
+    return res.status(500).render('paket_form', {
+      title: 'Tambah Paket',
+      error: 'Gagal menambahkan paket'
+    });
+  }
+});
+
+// GET Create Lecturer Form
+app.get('/lecturer/create', requireAdmin, (req, res) => {
+  return res.render('lecturer_form', { title: 'Tambah Lecturer' });
+});
+
+// POST Create Lecturer
+app.post('/lecturer/create', requireAdmin, express.urlencoded({ extended: true }), async (req, res) => {
+  try {
+    const { full_name, username, email, password, phone, expertise, bio, avatar_url, is_active } = req.body;
+
+    if (!full_name || !username || !email || !password) {
+      return res.status(400).render('lecturer_form', {
+        title: 'Tambah Lecturer',
+        error: 'Nama, username, email, dan password wajib diisi'
+      });
+    }
+
+    // Check if email or username already exists
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('id')
+      .or(`email.eq.${email},username.eq.${username}`)
+      .single();
+
+    if (existingUser) {
+      return res.status(400).render('lecturer_form', {
+        title: 'Tambah Lecturer',
+        error: 'Email atau username sudah terdaftar'
+      });
+    }
+
+    const { error } = await supabase
+      .from('users')
+      .insert({
+        full_name,
+        username,
+        email,
+        password_hash: password, // TODO: hash password with bcrypt
+        phone,
+        expertise,
+        bio,
+        avatar_url,
+        role_id: 5, // Lecturer role
+        is_active: is_active === 'true',
+        is_verified: true,
+        created_at: new Date().toISOString()
+      });
+
+    if (error) throw error;
+
+    return res.redirect('/lecturer');
+  } catch (error) {
+    console.error('Error creating lecturer:', error);
+    return res.status(500).render('lecturer_form', {
+      title: 'Tambah Lecturer',
+      error: 'Gagal menambahkan lecturer'
+    });
+  }
+});
+
+// ========================================
+// Admin EDIT Routes
+// ========================================
+
+// GET Edit Kursus Form
+app.get('/kursus/:id/edit', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const [courseResult, lecturersResult] = await Promise.all([
+      supabase.from('courses').select('*').eq('id', id).single(),
+      supabase.from('users').select('id, full_name').eq('role_id', 5).eq('is_active', true)
+    ]);
+
+    if (courseResult.error || !courseResult.data) {
+      return res.redirect('/kursus');
+    }
+
+    return res.render('kursus_form', {
+      title: 'Edit Kursus',
+      course: courseResult.data,
+      lecturers: lecturersResult.data || []
+    });
+  } catch (error) {
+    console.error('Error loading edit form:', error);
+    return res.redirect('/kursus');
+  }
+});
+
+// POST Edit Kursus
+app.post('/kursus/:id/edit', requireAdmin, express.urlencoded({ extended: true }), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, meet_link, thumbnail } = req.body;
+
+    if (!title) {
+      return res.status(400).json({
+        success: false,
+        message: 'Nama kursus wajib diisi'
+      });
+    }
+
+    const { error } = await supabase
+      .from('courses')
+      .update({
+        title,
+        description,
+        meet_link,
+        thumbnail,
+        slug: title.toLowerCase().replace(/\s+/g, '-'),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id);
+
+    if (error) throw error;
+
+    return res.redirect('/kursus');
+  } catch (error) {
+    console.error('Error updating course:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Gagal memperbarui kursus'
+    });
+  }
+});
+
+// GET Edit Materi Form
+app.get('/materi/:id/edit', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const { data: material, error } = await supabase
+      .from('materials')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error || !material) {
+      return res.redirect('/materi');
+    }
+
+    return res.render('materi_form', {
+      title: 'Edit Materi',
+      material
+    });
+  } catch (error) {
+    console.error('Error loading edit form:', error);
+    return res.redirect('/materi');
+  }
+});
+
+// POST Edit Materi
+app.post('/materi/:id/edit', requireAdmin, express.urlencoded({ extended: true }), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, category, summary, content, order, duration, thumbnail, video_url, is_published } = req.body;
+
+    if (!title || !category || !order) {
+      return res.status(400).render('materi_form', {
+        title: 'Edit Materi',
+        error: 'Judul, kategori, dan urutan wajib diisi'
+      });
+    }
+
+    const { error } = await supabase
+      .from('materials')
+      .update({
+        title,
+        category,
+        summary,
+        content,
+        order: parseInt(order),
+        duration: duration ? parseInt(duration) : null,
+        thumbnail,
+        video_url,
+        is_published: is_published === 'true',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id);
+
+    if (error) throw error;
+
+    return res.redirect('/materi');
+  } catch (error) {
+    console.error('Error updating material:', error);
+    return res.status(500).render('materi_form', {
+      title: 'Edit Materi',
+      error: 'Gagal memperbarui materi'
+    });
+  }
+});
+
+// GET Edit Paket Form
+app.get('/paket_kursus/:id/edit', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const { data: package, error } = await supabase
+      .from('packages')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error || !package) {
+      return res.redirect('/paket_kursus');
+    }
+
+    return res.render('paket_form', {
+      title: 'Edit Paket',
+      package
+    });
+  } catch (error) {
+    console.error('Error loading edit form:', error);
+    return res.redirect('/paket_kursus');
+  }
+});
+
+// POST Edit Paket
+app.post('/paket_kursus/:id/edit', requireAdmin, express.urlencoded({ extended: true }), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, price, duration, material_count, thumbnail, badge, is_active } = req.body;
+
+    if (!title || !description || !price || !thumbnail) {
+      return res.status(400).render('paket_form', {
+        title: 'Edit Paket',
+        error: 'Nama paket, deskripsi, harga, dan thumbnail wajib diisi'
+      });
+    }
+
+    const { error } = await supabase
+      .from('packages')
+      .update({
+        title,
+        description,
+        price: parseInt(price),
+        duration,
+        material_count: material_count ? parseInt(material_count) : 0,
+        thumbnail,
+        badge,
+        is_active: is_active === 'true',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id);
+
+    if (error) throw error;
+
+    return res.redirect('/paket_kursus');
+  } catch (error) {
+    console.error('Error updating package:', error);
+    return res.status(500).render('paket_form', {
+      title: 'Edit Paket',
+      error: 'Gagal memperbarui paket'
+    });
+  }
+});
+
+// GET Edit Lecturer Form
+app.get('/lecturer/:id/edit', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const { data: lecturer, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', id)
+      .eq('role_id', 5)
+      .single();
+
+    if (error || !lecturer) {
+      return res.redirect('/lecturer');
+    }
+
+    return res.render('lecturer_form', {
+      title: 'Edit Lecturer',
+      lecturer
+    });
+  } catch (error) {
+    console.error('Error loading edit form:', error);
+    return res.redirect('/lecturer');
+  }
+});
+
+// POST Edit Lecturer
+app.post('/lecturer/:id/edit', requireAdmin, express.urlencoded({ extended: true }), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { full_name, email, phone, expertise, bio, avatar_url, is_active } = req.body;
+
+    if (!full_name || !email) {
+      return res.status(400).render('lecturer_form', {
+        title: 'Edit Lecturer',
+        error: 'Nama dan email wajib diisi'
+      });
+    }
+
+    const { error } = await supabase
+      .from('users')
+      .update({
+        full_name,
+        email,
+        phone,
+        expertise,
+        bio,
+        avatar_url,
+        is_active: is_active === 'true',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .eq('role_id', 5);
+
+    if (error) throw error;
+
+    return res.redirect('/lecturer');
+  } catch (error) {
+    console.error('Error updating lecturer:', error);
+    return res.status(500).render('lecturer_form', {
+      title: 'Edit Lecturer',
+      error: 'Gagal memperbarui lecturer'
+    });
+  }
 });
 
 app.get('/about', (_req, res) => res.render('about', { title: 'Tentang' }));
