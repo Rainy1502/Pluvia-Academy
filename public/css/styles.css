@@ -438,7 +438,7 @@ site-header .container.header-row .nav-cluster .site-nav a span{display:block !i
 #members .container > div{margin-bottom:6px}
 #members .member{margin-bottom:0}
 /* ===== My Courses / Kursus page styles ===== */
-.my-courses-section{padding:24px 0 48px;background:var(--primary);display:flex;align-items:flex-start}
+.my-courses-section{padding:0px 0 0px;background:var(--primary);display:flex;align-items:flex-start}
 .my-courses-title{color:#fff;text-align:center;font-size:22px;font-weight:800;margin:0 0 24px}
 .my-courses-grid{display:flex;gap:28px;justify-content:center;align-items:stretch;max-width:980px;margin:0 auto;padding:12px}
 .my-course-box{
@@ -464,7 +464,7 @@ site-header .container.header-row .nav-cluster .site-nav a span{display:block !i
 .courses-panel{
 	max-width:760px;
 	width:760px;
-	margin:128.5px auto;
+	margin:60px auto 128.5px auto;
 	padding:56px 48px;
 	background:#ffffff;
 	border-radius:22px;
@@ -1370,13 +1370,14 @@ site-header .container.header-row .nav-cluster .site-nav a span{display:block !i
 .kursus-admin-container{
 	max-width:913px;
 	margin:0 auto;
-	padding:40px 20px;
+	padding:0px 20px 0px 20px;
 }
 
 .kursus-header{
 	display:flex;
-	justify-content:space-between;
+	flex-direction:column;
 	align-items:center;
+	gap:20px;
 	margin-bottom:30px;
 }
 
@@ -1386,6 +1387,7 @@ site-header .container.header-row .nav-cluster .site-nav a span{display:block !i
 	color:#000;
 	text-shadow:5px 5px 4px rgba(0,0,0,0.25);
 	margin:0;
+	text-align:center;
 }
 
 .kursus-tambah-btn{
@@ -1401,6 +1403,7 @@ site-header .container.header-row .nav-cluster .site-nav a span{display:block !i
 	font-weight:600;
 	cursor:pointer;
 	transition:background 0.2s ease;
+	align-self:flex-end;
 }
 
 .kursus-tambah-btn:hover{
@@ -1817,6 +1820,412 @@ site-header .container.header-row .nav-cluster .site-nav a span{display:block !i
 	margin:0;
 }
 
+/* Materi Admin Styles */
+.materi-admin-container{
+	max-width:913px;
+	margin:0 auto;
+	padding:0px 20px 0px 20px;
+}
+
+.materi-header{
+	display:flex;
+	flex-direction:column;
+	align-items:center;
+	gap:20px;
+	margin-bottom:30px;
+}
+
+.materi-admin-title{
+	font-size:32px;
+	font-weight:800;
+	color:#000;
+	text-shadow:5px 5px 4px rgba(0,0,0,0.25);
+	margin:0;
+	text-align:center;
+}
+
+.materi-tambah-btn{
+	display:flex;
+	align-items:center;
+	gap:8px;
+	background:#000;
+	color:#fff;
+	border:2px solid #000;
+	padding:8px 16px;
+	border-radius:4px;
+	font-size:16px;
+	font-weight:600;
+	cursor:pointer;
+	transition:background 0.2s ease;
+	align-self:flex-end;
+}
+
+.materi-tambah-btn:hover{
+	background:#333;
+}
+
+.materi-tambah-btn .plus-icon{
+	font-size:20px;
+}
+
+.materi-card{
+	background:#d9d9d9;
+	border:2px solid #000;
+	padding:32px 40px;
+	border-radius:8px;
+}
+
+.materi-item{
+	display:flex;
+	align-items:center;
+	justify-content:space-between;
+	padding:20px 0;
+	border-bottom:1px solid #000;
+}
+
+.materi-item:last-child{
+	border-bottom:none;
+}
+
+.materi-info{
+	display:flex;
+	align-items:center;
+	gap:20px;
+	flex:1;
+}
+
+.materi-icon{
+	width:45px;
+	height:45px;
+	border-radius:50%;
+	background:#fff;
+	border:2px solid #000;
+	flex-shrink:0;
+}
+
+.materi-content{
+	display:flex;
+	flex-direction:column;
+	gap:4px;
+}
+
+.materi-title{
+	font-family:Inter,sans-serif;
+	font-size:20px;
+	font-weight:700;
+	color:#000;
+	margin:0;
+}
+
+.materi-desc{
+	font-family:Inter,sans-serif;
+	font-size:16px;
+	font-weight:400;
+	color:#000;
+	margin:0;
+}
+
+.materi-actions{
+	display:flex;
+	gap:10px;
+	align-items:center;
+}
+
+.materi-btn{
+	padding:4px 16px;
+	font-family:Inter,sans-serif;
+	font-size:16px;
+	font-weight:700;
+	border:none;
+	border-radius:4px;
+	cursor:pointer;
+	height:24px;
+	min-width:79px;
+	box-shadow:0px 1px 2px 0px rgba(0,0,0,0.05);
+	transition:opacity 0.2s ease,transform 0.15s ease;
+	color:#fff;
+	line-height:1;
+}
+
+.materi-btn:hover{
+	opacity:0.9;
+	transform:translateY(-1px);
+}
+
+.materi-btn-edit{
+	background:#ffc107;
+}
+
+.materi-btn-hapus{
+	background:#f44242;
+}
+
+/* Paket Admin Styles */
+.paket-admin-container{
+	max-width:913px;
+	margin:0 auto;
+	padding:0px 20px 0px 20px;
+}
+
+.paket-header{
+	display:flex;
+	flex-direction:column;
+	align-items:center;
+	gap:20px;
+	margin-bottom:30px;
+}
+
+.paket-admin-title{
+	font-size:32px;
+	font-weight:800;
+	color:#000;
+	text-shadow:5px 5px 4px rgba(0,0,0,0.25);
+	margin:0;
+	text-align:center;
+}
+
+.paket-tambah-btn{
+	display:flex;
+	align-items:center;
+	gap:8px;
+	background:#000;
+	color:#fff;
+	border:2px solid #000;
+	padding:8px 16px;
+	border-radius:4px;
+	font-size:16px;
+	font-weight:600;
+	cursor:pointer;
+	transition:background 0.2s ease;
+	align-self:flex-end;
+}
+
+.paket-tambah-btn:hover{
+	background:#333;
+}
+
+.paket-tambah-btn .plus-icon{
+	font-size:20px;
+}
+
+.paket-card{
+	background:#d9d9d9;
+	border:2px solid #000;
+	padding:32px 40px;
+	border-radius:8px;
+}
+
+.paket-item{
+	display:flex;
+	align-items:center;
+	justify-content:space-between;
+	padding:20px 0;
+	border-bottom:1px solid #000;
+}
+
+.paket-item:last-child{
+	border-bottom:none;
+}
+
+.paket-info{
+	display:flex;
+	align-items:center;
+	gap:20px;
+	flex:1;
+}
+
+.paket-icon{
+	width:45px;
+	height:45px;
+	border-radius:50%;
+	background:#fff;
+	border:2px solid #000;
+	flex-shrink:0;
+}
+
+.paket-content{
+	display:flex;
+	flex-direction:column;
+	gap:4px;
+}
+
+.paket-title{
+	font-family:Inter,sans-serif;
+	font-size:20px;
+	font-weight:700;
+	color:#000;
+	margin:0;
+}
+
+.paket-desc{
+	font-family:Inter,sans-serif;
+	font-size:16px;
+	font-weight:400;
+	color:#000;
+	margin:0;
+}
+
+.paket-actions{
+	display:flex;
+	gap:10px;
+	align-items:center;
+}
+
+.paket-btn{
+	padding:4px 16px;
+	font-family:Inter,sans-serif;
+	font-size:16px;
+	font-weight:700;
+	border:none;
+	border-radius:4px;
+	cursor:pointer;
+	height:24px;
+	min-width:79px;
+	box-shadow:0px 1px 2px 0px rgba(0,0,0,0.05);
+	transition:opacity 0.2s ease,transform 0.15s ease;
+	color:#fff;
+	line-height:1;
+}
+
+.paket-btn:hover{
+	opacity:0.9;
+	transform:translateY(-1px);
+}
+
+.paket-btn-edit{
+	background:#ffc107;
+}
+
+.paket-btn-hapus{
+	background:#f44242;
+}
+
+/* Lecturer Management Styles */
+.lecturer-admin-container{
+	max-width:913px;
+	margin:0 auto;
+	padding:0px 20px 0px 20px;
+}
+
+.lecturer-header{
+	display:flex;
+	flex-direction:column;
+	align-items:center;
+	gap:20px;
+	margin-bottom:30px;
+}
+
+.lecturer-title{
+	font-size:32px;
+	font-weight:800;
+	color:#000;
+	text-shadow:5px 5px 4px rgba(0,0,0,0.25);
+	margin:0;
+	text-align:center;
+}
+
+.lecturer-btn-tambah{
+	display:flex;
+	align-items:center;
+	gap:8px;
+	background:#000;
+	color:#fff;
+	border:2px solid #000;
+	padding:8px 16px;
+	border-radius:4px;
+	font-size:16px;
+	font-weight:600;
+	cursor:pointer;
+	transition:background 0.2s ease;
+	align-self:flex-end;
+}
+
+.lecturer-btn-tambah:hover{
+	background:#333;
+}
+
+.lecturer-btn-tambah .plus-icon{
+	font-size:20px;
+}
+
+.lecturer-card{
+	background:#d9d9d9;
+	border:2px solid #000;
+	padding:32px 40px;
+	border-radius:8px;
+}
+
+.lecturer-item{
+	display:flex;
+	align-items:center;
+	justify-content:space-between;
+	padding:20px 0;
+	border-bottom:1px solid #000;
+}
+
+.lecturer-item:last-child{
+	border-bottom:none;
+}
+
+.lecturer-info{
+	display:flex;
+	align-items:center;
+	gap:20px;
+	flex:1;
+}
+
+.lecturer-icon{
+	width:45px;
+	height:45px;
+	border-radius:50%;
+	background:#fff;
+	border:2px solid #000;
+	flex-shrink:0;
+}
+
+.lecturer-name{
+	font-family:Inter,sans-serif;
+	font-size:20px;
+	font-weight:700;
+	color:#000;
+	margin:0;
+}
+
+.lecturer-actions{
+	display:flex;
+	gap:10px;
+	align-items:center;
+}
+
+.lecturer-btn{
+	padding:4px 16px;
+	font-family:Inter,sans-serif;
+	font-size:16px;
+	font-weight:700;
+	border:none;
+	border-radius:4px;
+	cursor:pointer;
+	height:24px;
+	min-width:79px;
+	box-shadow:0px 1px 2px 0px rgba(0,0,0,0.05);
+	transition:opacity 0.2s ease,transform 0.15s ease;
+	color:#fff;
+	line-height:1;
+}
+
+.lecturer-btn:hover{
+	opacity:0.9;
+	transform:translateY(-1px);
+}
+
+.lecturer-btn-edit{
+	background:#ffc107;
+}
+
+.lecturer-btn-hapus{
+	background:#f44242;
+}
+
 /* Responsive */
 @media(max-width:1024px){
 	.materi-grid{
@@ -1826,42 +2235,68 @@ site-header .container.header-row .nav-cluster .site-nav a span{display:block !i
 
 @media(max-width:768px){
 	.kursus-admin-container,
-	.students-admin-container{
+	.students-admin-container,
+	.lecturer-admin-container,
+	.materi-admin-container,
+	.paket-admin-container{
 		padding:20px 12px;
 	}
 	
-	.kursus-header{
+	.lecturer-item{
+		flex-direction:column;
+		align-items:flex-start;
+		gap:12px;
+	}
+	
+	.lecturer-actions{
+		width:100%;
+		justify-content:flex-end;
+	}
+	
+	.kursus-header,
+	.materi-header,
+	.paket-header{
 		flex-direction:column;
 		gap:16px;
 		align-items:stretch;
 	}
 	
 	.kursus-card,
-	.students-card{
+	.students-card,
+	.materi-card,
+	.paket-card{
 		padding:20px 16px;
 	}
 	
 	.kursus-item,
-	.student-item{
+	.student-item,
+	.materi-item,
+	.paket-item{
 		flex-direction:column;
 		align-items:flex-start;
 		gap:12px;
 	}
 	
 	.kursus-actions,
-	.student-actions{
+	.student-actions,
+	.materi-actions,
+	.paket-actions{
 		width:100%;
 		justify-content:flex-end;
 	}
 	
 	.kursus-btn,
-	.student-btn{
+	.student-btn,
+	.materi-btn,
+	.paket-btn{
 		font-size:14px;
 		min-width:65px;
 	}
 	
 	.kursus-admin-title,
-	.students-title{
+	.students-title,
+	.materi-admin-title,
+	.paket-admin-title{
 		font-size:24px;
 	}
 	

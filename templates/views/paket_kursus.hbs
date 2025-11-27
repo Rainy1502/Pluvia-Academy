@@ -7,60 +7,40 @@
       <div class="courses-panel">
         {{#if isAdmin}}
           <!-- Admin View - Manajemen Paket -->
-          <div class="page-header">
-            <h2 class="my-courses-title">Manajemen Paket</h2>
-            <p class="page-subtitle">Kelola seluruh paket kursus yang tersedia dalam sistem</p>
-          </div>
+          <div class="paket-admin-container">
+            <div class="paket-header">
+              <h2 class="paket-admin-title">Manajemen Paket Kursus</h2>
+              <button class="paket-tambah-btn" onclick="openTambahPaketModal()">
+                <span class="plus-icon">⊕</span> Tambah Data
+              </button>
+            </div>
 
-          <div class="action-bar" style="margin-bottom: 20px;">
-            <button class="btn-primary" onclick="window.location.href='/paket_kursus/create'">
-              <span style="font-size:18px; margin-right:8px;">+</span>
-              Tambah Paket
-            </button>
+            {{#if packages.length}}
+            <div class="paket-card">
+              {{#each packages}}
+              <div class="paket-item">
+                <div class="paket-info">
+                  <div class="paket-icon"></div>
+                  <div class="paket-content">
+                    <h3 class="paket-title">{{this.title}}</h3>
+                    <p class="paket-desc">{{this.description}}</p>
+                  </div>
+                </div>
+                <div class="paket-actions">
+                  <button class="paket-btn paket-btn-edit" onclick="openEditPaketModal('{{this.id}}', '{{this.title}}', '{{this.description}}', '{{this.price}}', '{{this.duration}}', '{{this.material_count}}', '{{this.thumbnail}}')">Edit</button>
+                  <button class="paket-btn paket-btn-hapus" onclick="deletePackage('{{this.id}}', '{{this.title}}')">Hapus</button>
+                </div>
+              </div>
+              {{/each}}
+            </div>
+            {{else}}
+            <div class="empty-courses empty-centered">
+              <p class="empty-message">Belum ada paket yang ditambahkan.</p>
+              <p class="empty-sub">Mulai tambahkan paket untuk platform Anda</p>
+              <button class="btn-primary empty-cta" onclick="openTambahPaketModal()">Tambah Paket Pertama</button>
+            </div>
+            {{/if}}
           </div>
-
-          {{#if packages.length}}
-          <div class="table-container">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Thumbnail</th>
-                  <th>Nama Paket</th>
-                  <th>Jumlah Materi</th>
-                  <th>Durasi</th>
-                  <th>Harga</th>
-                  <th>Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {{#each packages}}
-                <tr>
-                  <td>
-                    <img src="{{this.thumbnail}}" alt="{{this.title}}" style="width:80px;height:50px;object-fit:cover;border-radius:4px;" />
-                  </td>
-                  <td><strong>{{this.title}}</strong></td>
-                  <td>{{this.material_count}} materi</td>
-                  <td>{{this.duration}}</td>
-                  <td><strong>{{this.price}}</strong></td>
-                  <td>
-                    <div class="action-buttons">
-                      <button class="btn-small btn-info" onclick="window.location.href='/paket_kursus/{{this.id}}'">Detail</button>
-                      <button class="btn-small btn-warning" onclick="window.location.href='/paket_kursus/{{this.id}}/edit'">Edit</button>
-                      <button class="btn-small btn-danger" onclick="deletePackage('{{this.id}}', '{{this.title}}')">Hapus</button>
-                    </div>
-                  </td>
-                </tr>
-                {{/each}}
-              </tbody>
-            </table>
-          </div>
-          {{else}}
-          <div class="empty-courses empty-centered">
-            <p class="empty-message">Belum ada paket yang ditambahkan.</p>
-            <p class="empty-sub">Mulai tambahkan paket untuk platform Anda</p>
-            <button class="btn-primary empty-cta" onclick="window.location.href='/paket_kursus/create'">Tambah Paket Pertama</button>
-          </div>
-          {{/if}}
 
         {{else}}
           <!-- Member View - Paket Kursus untuk Dibeli -->
@@ -97,7 +77,116 @@
   </section>
 </main>
 
+<!-- Modal Tambah Paket -->
+<div id="tambahPaketModal" class="kursus-modal">
+  <div class="kursus-modal-content">
+    <div class="modal-logo">
+      <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="modal-logo-img"/>
+      <h2>Pluvia Academy</h2>
+    </div>
+    <h3 class="modal-title">Tambah Paket Kursus</h3>
+    
+    <form id="tambahPaketForm" method="POST" action="/paket_kursus/create">
+      <input type="text" name="title" placeholder="Nama Paket" required class="modal-input"/>
+      
+      <input type="text" name="description" placeholder="Deskripsi" required class="modal-input"/>
+      
+      <input type="number" name="price" placeholder="Harga" required class="modal-input"/>
+      
+      <input type="text" name="duration" placeholder="Durasi (contoh: 6 Bulan)" class="modal-input"/>
+      
+      <input type="number" name="material_count" placeholder="Jumlah Materi" class="modal-input"/>
+      
+      <div class="file-input-wrapper">
+        <input type="file" id="paketThumbnailInput" accept="image/*" class="modal-file-input"/>
+        <label for="paketThumbnailInput" class="file-input-label">
+          <span>Pilih Gambar</span>
+          <span class="file-icon">🖼️</span>
+        </label>
+      </div>
+      <input type="hidden" name="thumbnail" id="paketThumbnailUrl"/>
+      
+      <div class="modal-actions">
+        <button type="submit" class="modal-btn modal-btn-tambah">Tambah</button>
+        <button type="button" class="modal-btn modal-btn-batal" onclick="closeTambahPaketModal()">Batal</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Edit Paket -->
+<div id="editPaketModal" class="kursus-modal">
+  <div class="kursus-modal-content">
+    <div class="modal-logo">
+      <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="modal-logo-img"/>
+      <h2>Pluvia Academy</h2>
+    </div>
+    <h3 class="modal-title">Edit Paket Kursus</h3>
+    
+    <form id="editPaketForm" method="POST">
+      <input type="text" name="title" id="editPaketTitle" placeholder="Nama Paket" required class="modal-input"/>
+      
+      <input type="text" name="description" id="editPaketDescription" placeholder="Deskripsi" required class="modal-input"/>
+      
+      <input type="number" name="price" id="editPaketPrice" placeholder="Harga" required class="modal-input"/>
+      
+      <input type="text" name="duration" id="editPaketDuration" placeholder="Durasi (contoh: 6 Bulan)" class="modal-input"/>
+      
+      <input type="number" name="material_count" id="editPaketMaterialCount" placeholder="Jumlah Materi" class="modal-input"/>
+      
+      <div class="file-input-wrapper">
+        <input type="file" id="editPaketThumbnailInput" accept="image/*" class="modal-file-input"/>
+        <label for="editPaketThumbnailInput" class="file-input-label">
+          <span>Pilih Gambar</span>
+          <span class="file-icon">🖼️</span>
+        </label>
+      </div>
+      <input type="hidden" name="thumbnail" id="editPaketThumbnailUrl"/>
+      
+      <div class="modal-actions">
+        <button type="submit" class="modal-btn modal-btn-edit">Edit</button>
+        <button type="button" class="modal-btn modal-btn-batal" onclick="closeEditPaketModal()">Batal</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
+function openTambahPaketModal() {
+  document.getElementById('tambahPaketModal').style.display = 'flex';
+}
+
+function closeTambahPaketModal() {
+  document.getElementById('tambahPaketModal').style.display = 'none';
+}
+
+function openEditPaketModal(id, title, description, price, duration, material_count, thumbnail) {
+  document.getElementById('editPaketTitle').value = title || '';
+  document.getElementById('editPaketDescription').value = description || '';
+  document.getElementById('editPaketPrice').value = price || '';
+  document.getElementById('editPaketDuration').value = duration || '';
+  document.getElementById('editPaketMaterialCount').value = material_count || '';
+  document.getElementById('editPaketThumbnailUrl').value = thumbnail || '';
+  document.getElementById('editPaketForm').action = `/paket_kursus/${id}/edit`;
+  document.getElementById('editPaketModal').style.display = 'flex';
+}
+
+function closeEditPaketModal() {
+  document.getElementById('editPaketModal').style.display = 'none';
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+  const tambahModal = document.getElementById('tambahPaketModal');
+  const editModal = document.getElementById('editPaketModal');
+  if (event.target === tambahModal) {
+    closeTambahPaketModal();
+  }
+  if (event.target === editModal) {
+    closeEditPaketModal();
+  }
+}
+
 function deletePackage(id, title) {
   if (confirm(`Apakah Anda yakin ingin menghapus paket "${title}"?`)) {
     fetch(`/paket_kursus/${id}`, {

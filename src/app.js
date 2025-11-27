@@ -175,8 +175,8 @@ app.get('/materi', async (req, res) => {
     try {
       const { data: materials, error } = await supabase
         .from('materials')
-        .select('id, title, category, order, is_published')
-        .order('order', { ascending: true });
+        .select('id, title, course_id, thumbnail, description, ordinal')
+        .order('ordinal', { ascending: true });
 
       if (error) throw error;
 
@@ -254,7 +254,7 @@ app.get('/lecturer', async (req, res) => {
   try {
     const { data: lecturers, error } = await supabase
       .from('users')
-      .select('id, full_name, email, avatar_url, expertise, is_active')
+      .select('id, full_name, email, avatar_url, is_active')
       .eq('role_id', 5) // Assuming role_id 5 is for lecturers
       .order('full_name', { ascending: true });
 
@@ -829,20 +829,15 @@ app.post('/kursus/create', requireAdmin, express.urlencoded({ extended: true }),
   }
 });
 
-// GET Create Materi Form
-app.get('/materi/create', requireAdmin, (req, res) => {
-  return res.render('materi_form', { title: 'Tambah Materi' });
-});
-
 // POST Create Materi
 app.post('/materi/create', requireAdmin, express.urlencoded({ extended: true }), async (req, res) => {
   try {
-    const { title, category, summary, content, order, duration, thumbnail, video_url, is_published } = req.body;
+    const { title, description, ordinal, thumbnail, course_id } = req.body;
 
-    if (!title || !category || !order) {
-      return res.status(400).render('materi_form', {
-        title: 'Tambah Materi',
-        error: 'Judul, kategori, dan urutan wajib diisi'
+    if (!title || !ordinal) {
+      return res.status(400).json({
+        success: false,
+        message: 'Judul dan urutan wajib diisi'
       });
     }
 
@@ -850,14 +845,10 @@ app.post('/materi/create', requireAdmin, express.urlencoded({ extended: true }),
       .from('materials')
       .insert({
         title,
-        category,
-        summary,
-        content,
-        order: parseInt(order),
-        duration: duration ? parseInt(duration) : null,
-        thumbnail,
-        video_url,
-        is_published: is_published === 'true',
+        description: description || null,
+        ordinal: parseInt(ordinal),
+        thumbnail: thumbnail || null,
+        course_id: course_id || null,
         created_at: new Date().toISOString()
       });
 
@@ -866,27 +857,22 @@ app.post('/materi/create', requireAdmin, express.urlencoded({ extended: true }),
     return res.redirect('/materi');
   } catch (error) {
     console.error('Error creating material:', error);
-    return res.status(500).render('materi_form', {
-      title: 'Tambah Materi',
-      error: 'Gagal menambahkan materi'
+    return res.status(500).json({
+      success: false,
+      message: 'Gagal menambahkan materi'
     });
   }
-});
-
-// GET Create Paket Form
-app.get('/paket_kursus/create', requireAdmin, (req, res) => {
-  return res.render('paket_form', { title: 'Tambah Paket' });
 });
 
 // POST Create Paket
 app.post('/paket_kursus/create', requireAdmin, express.urlencoded({ extended: true }), async (req, res) => {
   try {
-    const { title, description, price, duration, material_count, thumbnail, badge, is_active } = req.body;
+    const { title, description, price, duration, material_count, thumbnail } = req.body;
 
-    if (!title || !description || !price || !thumbnail) {
-      return res.status(400).render('paket_form', {
-        title: 'Tambah Paket',
-        error: 'Nama paket, deskripsi, harga, dan thumbnail wajib diisi'
+    if (!title || !description || !price) {
+      return res.status(400).json({
+        success: false,
+        message: 'Nama paket, deskripsi, dan harga wajib diisi'
       });
     }
 
@@ -896,11 +882,9 @@ app.post('/paket_kursus/create', requireAdmin, express.urlencoded({ extended: tr
         title,
         description,
         price: parseInt(price),
-        duration,
+        duration: duration || null,
         material_count: material_count ? parseInt(material_count) : 0,
-        thumbnail,
-        badge,
-        is_active: is_active === 'true',
+        thumbnail: thumbnail || null,
         created_at: new Date().toISOString()
       });
 
@@ -909,43 +893,46 @@ app.post('/paket_kursus/create', requireAdmin, express.urlencoded({ extended: tr
     return res.redirect('/paket_kursus');
   } catch (error) {
     console.error('Error creating package:', error);
-    return res.status(500).render('paket_form', {
-      title: 'Tambah Paket',
-      error: 'Gagal menambahkan paket'
+    return res.status(500).json({
+      success: false,
+      message: 'Gagal menambahkan paket'
     });
   }
-});
-
-// GET Create Lecturer Form
-app.get('/lecturer/create', requireAdmin, (req, res) => {
-  return res.render('lecturer_form', { title: 'Tambah Lecturer' });
 });
 
 // POST Create Lecturer
 app.post('/lecturer/create', requireAdmin, express.urlencoded({ extended: true }), async (req, res) => {
   try {
-    const { full_name, username, email, password, phone, expertise, bio, avatar_url, is_active } = req.body;
+    const { full_name, email, password, phone } = req.body;
 
-    if (!full_name || !username || !email || !password) {
-      return res.status(400).render('lecturer_form', {
-        title: 'Tambah Lecturer',
-        error: 'Nama, username, email, dan password wajib diisi'
+    if (!full_name || !email || !password || !phone) {
+      return res.status(400).json({
+        success: false,
+        message: 'Nama lengkap, email, password, dan nomor HP wajib diisi'
       });
     }
 
-    // Check if email or username already exists
+    // Check if email already exists
     const { data: existingUser } = await supabase
       .from('users')
       .select('id')
-      .or(`email.eq.${email},username.eq.${username}`)
-      .single();
+      .eq('email', email)
+      .maybeSingle();
 
     if (existingUser) {
-      return res.status(400).render('lecturer_form', {
-        title: 'Tambah Lecturer',
-        error: 'Email atau username sudah terdaftar'
+      return res.status(400).json({
+        success: false,
+        message: 'Email sudah terdaftar'
       });
     }
+
+    // Hash password with bcrypt
+    const bcrypt = require('bcrypt');
+    const saltRounds = 10;
+    const password_hash = await bcrypt.hash(password, saltRounds);
+
+    // Generate username from email
+    const username = email.split('@')[0] + '_' + Date.now().toString().slice(-4);
 
     const { error } = await supabase
       .from('users')
@@ -953,13 +940,10 @@ app.post('/lecturer/create', requireAdmin, express.urlencoded({ extended: true }
         full_name,
         username,
         email,
-        password_hash: password, // TODO: hash password with bcrypt
+        password_hash,
         phone,
-        expertise,
-        bio,
-        avatar_url,
         role_id: 5, // Lecturer role
-        is_active: is_active === 'true',
+        is_active: true,
         is_verified: true,
         created_at: new Date().toISOString()
       });
@@ -969,9 +953,9 @@ app.post('/lecturer/create', requireAdmin, express.urlencoded({ extended: true }
     return res.redirect('/lecturer');
   } catch (error) {
     console.error('Error creating lecturer:', error);
-    return res.status(500).render('lecturer_form', {
-      title: 'Tambah Lecturer',
-      error: 'Gagal menambahkan lecturer'
+    return res.status(500).json({
+      success: false,
+      message: 'Gagal menambahkan lecturer'
     });
   }
 });
@@ -1042,41 +1026,16 @@ app.post('/kursus/:id/edit', requireAdmin, express.urlencoded({ extended: true }
   }
 });
 
-// GET Edit Materi Form
-app.get('/materi/:id/edit', requireAdmin, async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const { data: material, error } = await supabase
-      .from('materials')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (error || !material) {
-      return res.redirect('/materi');
-    }
-
-    return res.render('materi_form', {
-      title: 'Edit Materi',
-      material
-    });
-  } catch (error) {
-    console.error('Error loading edit form:', error);
-    return res.redirect('/materi');
-  }
-});
-
 // POST Edit Materi
 app.post('/materi/:id/edit', requireAdmin, express.urlencoded({ extended: true }), async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, category, summary, content, order, duration, thumbnail, video_url, is_published } = req.body;
+    const { title, description, ordinal, thumbnail } = req.body;
 
-    if (!title || !category || !order) {
-      return res.status(400).render('materi_form', {
-        title: 'Edit Materi',
-        error: 'Judul, kategori, dan urutan wajib diisi'
+    if (!title || !ordinal) {
+      return res.status(400).json({
+        success: false,
+        message: 'Judul dan urutan wajib diisi'
       });
     }
 
@@ -1084,14 +1043,9 @@ app.post('/materi/:id/edit', requireAdmin, express.urlencoded({ extended: true }
       .from('materials')
       .update({
         title,
-        category,
-        summary,
-        content,
-        order: parseInt(order),
-        duration: duration ? parseInt(duration) : null,
-        thumbnail,
-        video_url,
-        is_published: is_published === 'true',
+        description: description || null,
+        ordinal: parseInt(ordinal),
+        thumbnail: thumbnail || null,
         updated_at: new Date().toISOString()
       })
       .eq('id', id);
@@ -1101,35 +1055,10 @@ app.post('/materi/:id/edit', requireAdmin, express.urlencoded({ extended: true }
     return res.redirect('/materi');
   } catch (error) {
     console.error('Error updating material:', error);
-    return res.status(500).render('materi_form', {
-      title: 'Edit Materi',
-      error: 'Gagal memperbarui materi'
+    return res.status(500).json({
+      success: false,
+      message: 'Gagal memperbarui materi'
     });
-  }
-});
-
-// GET Edit Paket Form
-app.get('/paket_kursus/:id/edit', requireAdmin, async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const { data: package, error } = await supabase
-      .from('packages')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (error || !package) {
-      return res.redirect('/paket_kursus');
-    }
-
-    return res.render('paket_form', {
-      title: 'Edit Paket',
-      package
-    });
-  } catch (error) {
-    console.error('Error loading edit form:', error);
-    return res.redirect('/paket_kursus');
   }
 });
 
@@ -1137,12 +1066,12 @@ app.get('/paket_kursus/:id/edit', requireAdmin, async (req, res) => {
 app.post('/paket_kursus/:id/edit', requireAdmin, express.urlencoded({ extended: true }), async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, price, duration, material_count, thumbnail, badge, is_active } = req.body;
+    const { title, description, price, duration, material_count, thumbnail } = req.body;
 
-    if (!title || !description || !price || !thumbnail) {
-      return res.status(400).render('paket_form', {
-        title: 'Edit Paket',
-        error: 'Nama paket, deskripsi, harga, dan thumbnail wajib diisi'
+    if (!title || !description || !price) {
+      return res.status(400).json({
+        success: false,
+        message: 'Nama paket, deskripsi, dan harga wajib diisi'
       });
     }
 
@@ -1152,11 +1081,9 @@ app.post('/paket_kursus/:id/edit', requireAdmin, express.urlencoded({ extended: 
         title,
         description,
         price: parseInt(price),
-        duration,
+        duration: duration || null,
         material_count: material_count ? parseInt(material_count) : 0,
-        thumbnail,
-        badge,
-        is_active: is_active === 'true',
+        thumbnail: thumbnail || null,
         updated_at: new Date().toISOString()
       })
       .eq('id', id);
@@ -1173,57 +1100,36 @@ app.post('/paket_kursus/:id/edit', requireAdmin, express.urlencoded({ extended: 
   }
 });
 
-// GET Edit Lecturer Form
-app.get('/lecturer/:id/edit', requireAdmin, async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const { data: lecturer, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', id)
-      .eq('role_id', 5)
-      .single();
-
-    if (error || !lecturer) {
-      return res.redirect('/lecturer');
-    }
-
-    return res.render('lecturer_form', {
-      title: 'Edit Lecturer',
-      lecturer
-    });
-  } catch (error) {
-    console.error('Error loading edit form:', error);
-    return res.redirect('/lecturer');
-  }
-});
-
 // POST Edit Lecturer
 app.post('/lecturer/:id/edit', requireAdmin, express.urlencoded({ extended: true }), async (req, res) => {
   try {
     const { id } = req.params;
-    const { full_name, email, phone, expertise, bio, avatar_url, is_active } = req.body;
+    const { full_name, email, phone, password } = req.body;
 
-    if (!full_name || !email) {
-      return res.status(400).render('lecturer_form', {
-        title: 'Edit Lecturer',
-        error: 'Nama dan email wajib diisi'
+    if (!full_name || !email || !phone) {
+      return res.status(400).json({
+        success: false,
+        message: 'Nama lengkap, email, dan nomor HP wajib diisi'
       });
+    }
+
+    const updateData = {
+      full_name,
+      email,
+      phone,
+      updated_at: new Date().toISOString()
+    };
+
+    // Only update password if provided
+    if (password && password.trim() !== '') {
+      const bcrypt = require('bcrypt');
+      const saltRounds = 10;
+      updateData.password_hash = await bcrypt.hash(password, saltRounds);
     }
 
     const { error } = await supabase
       .from('users')
-      .update({
-        full_name,
-        email,
-        phone,
-        expertise,
-        bio,
-        avatar_url,
-        is_active: is_active === 'true',
-        updated_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('id', id)
       .eq('role_id', 5);
 
@@ -1232,9 +1138,9 @@ app.post('/lecturer/:id/edit', requireAdmin, express.urlencoded({ extended: true
     return res.redirect('/lecturer');
   } catch (error) {
     console.error('Error updating lecturer:', error);
-    return res.status(500).render('lecturer_form', {
-      title: 'Edit Lecturer',
-      error: 'Gagal memperbarui lecturer'
+    return res.status(500).json({
+      success: false,
+      message: 'Gagal memperbarui lecturer'
     });
   }
 });

@@ -8,7 +8,12 @@
         {{#if isAdmin}}
           <!-- Admin View - Manajemen Materi -->
           <div class="materi-admin-container">
-            <h2 class="materi-admin-title">Manajemen Materi</h2>
+            <div class="materi-header">
+              <h2 class="materi-admin-title">Manajemen Materi</h2>
+              <button class="materi-tambah-btn" onclick="openTambahMateriModal()">
+                <span class="plus-icon">⊕</span> Tambah Data
+              </button>
+            </div>
 
             {{#if materials.length}}
             <div class="materi-card">
@@ -18,12 +23,11 @@
                   <div class="materi-icon"></div>
                   <div class="materi-content">
                     <h3 class="materi-title">{{this.title}}</h3>
-                    <p class="materi-desc">{{this.summary}}</p>
+                    <p class="materi-desc">{{this.description}}</p>
                   </div>
                 </div>
                 <div class="materi-actions">
-                  <button class="materi-btn materi-btn-tambah" onclick="window.location.href='/materi/{{this.id}}'">Tambah</button>
-                  <button class="materi-btn materi-btn-edit" onclick="window.location.href='/materi/{{this.id}}/edit'">Edit</button>
+                  <button class="materi-btn materi-btn-edit" onclick="openEditMateriModal('{{this.id}}', '{{this.title}}', '{{this.description}}', '{{this.thumbnail}}', '{{this.ordinal}}')">Edit</button>
                   <button class="materi-btn materi-btn-hapus" onclick="deleteMaterial('{{this.id}}', '{{this.title}}')">Hapus</button>
                 </div>
               </div>
@@ -33,7 +37,7 @@
             <div class="empty-courses empty-centered">
               <p class="empty-message">Belum ada materi yang ditambahkan.</p>
               <p class="empty-sub">Mulai tambahkan materi untuk platform Anda</p>
-              <button class="btn-primary empty-cta" onclick="window.location.href='/materi/create'">Tambah Materi Pertama</button>
+              <button class="btn-primary empty-cta" onclick="openTambahMateriModal()">Tambah Materi Pertama</button>
             </div>
             {{/if}}
           </div>
@@ -68,7 +72,106 @@
   </section>
 </main>
 
+<!-- Modal Tambah Materi -->
+<div id="tambahMateriModal" class="kursus-modal">
+  <div class="kursus-modal-content">
+    <div class="modal-logo">
+      <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="modal-logo-img"/>
+      <h2>Pluvia Academy</h2>
+    </div>
+    <h3 class="modal-title">Tambah Materi</h3>
+    
+    <form id="tambahMateriForm" method="POST" action="/materi/create">
+      <input type="text" name="title" placeholder="Nama Materi" required class="modal-input"/>
+      
+      <input type="text" name="description" placeholder="Deskripsi" class="modal-input"/>
+      
+      <input type="number" name="ordinal" placeholder="Urutan" required class="modal-input"/>
+      
+      <div class="file-input-wrapper">
+        <input type="file" id="materiThumbnailInput" accept="image/*" class="modal-file-input"/>
+        <label for="materiThumbnailInput" class="file-input-label">
+          <span>Pilih Gambar</span>
+          <span class="file-icon">🖼️</span>
+        </label>
+      </div>
+      <input type="hidden" name="thumbnail" id="materiThumbnailUrl"/>
+      
+      <div class="modal-actions">
+        <button type="submit" class="modal-btn modal-btn-tambah">Tambah</button>
+        <button type="button" class="modal-btn modal-btn-batal" onclick="closeTambahMateriModal()">Batal</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Edit Materi -->
+<div id="editMateriModal" class="kursus-modal">
+  <div class="kursus-modal-content">
+    <div class="modal-logo">
+      <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="modal-logo-img"/>
+      <h2>Pluvia Academy</h2>
+    </div>
+    <h3 class="modal-title">Edit Materi</h3>
+    
+    <form id="editMateriForm" method="POST">
+      <input type="text" name="title" id="editMateriTitle" placeholder="Nama Materi" required class="modal-input"/>
+      
+      <input type="text" name="description" id="editMateriDescription" placeholder="Deskripsi" class="modal-input"/>
+      
+      <input type="number" name="ordinal" id="editMateriOrdinal" placeholder="Urutan" required class="modal-input"/>
+      
+      <div class="file-input-wrapper">
+        <input type="file" id="editMateriThumbnailInput" accept="image/*" class="modal-file-input"/>
+        <label for="editMateriThumbnailInput" class="file-input-label">
+          <span>Pilih Gambar</span>
+          <span class="file-icon">🖼️</span>
+        </label>
+      </div>
+      <input type="hidden" name="thumbnail" id="editMateriThumbnailUrl"/>
+      
+      <div class="modal-actions">
+        <button type="submit" class="modal-btn modal-btn-edit">Edit</button>
+        <button type="button" class="modal-btn modal-btn-batal" onclick="closeEditMateriModal()">Batal</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
+function openTambahMateriModal() {
+  document.getElementById('tambahMateriModal').style.display = 'flex';
+}
+
+function closeTambahMateriModal() {
+  document.getElementById('tambahMateriModal').style.display = 'none';
+}
+
+function openEditMateriModal(id, title, description, thumbnail, ordinal) {
+  document.getElementById('editMateriTitle').value = title || '';
+  document.getElementById('editMateriDescription').value = description || '';
+  document.getElementById('editMateriOrdinal').value = ordinal || '';
+  document.getElementById('editMateriThumbnailUrl').value = thumbnail || '';
+  document.getElementById('editMateriForm').action = `/materi/${id}/edit`;
+  document.getElementById('editMateriModal').style.display = 'flex';
+}
+
+function closeEditMateriModal() {
+  document.getElementById('editMateriModal').style.display = 'none';
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+  const tambahModal = document.getElementById('tambahMateriModal');
+  const editModal = document.getElementById('editMateriModal');
+  if (event.target === tambahModal) {
+    closeTambahMateriModal();
+  }
+  if (event.target === editModal) {
+    closeEditMateriModal();
+  }
+}
+
 function deleteMaterial(id, title) {
   if (confirm(`Apakah Anda yakin ingin menghapus materi "${title}"?`)) {
     fetch(`/materi/${id}`, {

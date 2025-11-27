@@ -2,82 +2,129 @@
 {{> header}}
 
 <main class="site-root">
-  <section class="management-page">
+  <section class="my-courses-section">
     <div class="container">
-      <div class="page-header">
-        <h1>Manajemen Lecturer</h1>
-        <p class="page-subtitle">Kelola seluruh pengajar yang terdaftar dalam platform</p>
-      </div>
+      <div class="courses-panel">
+        <div class="lecturer-admin-container">
+          <div class="lecturer-header">
+            <h2 class="lecturer-title">Manajemen Lecturer</h2>
+            <button class="lecturer-btn-tambah" onclick="openTambahLecturerModal()">
+              <span class="plus-icon">⊕</span> Tambah Data
+            </button>
+          </div>
 
-      <div class="action-bar">
-        <button class="btn-primary" onclick="window.location.href='/lecturer/create'">
-          <img src="/img/icon-add.png" alt="add" style="width:20px;height:20px;margin-right:8px;" />
-          Tambah Lecturer
-        </button>
-      </div>
-
-      {{#if lecturers}}
-      <div class="table-container">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Foto</th>
-              <th>Nama Pengajar</th>
-              <th>Keahlian</th>
-              <th>Email</th>
-              <th>Status</th>
-              <th>Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
+          {{#if lecturers.length}}
+          <div class="lecturer-card">
             {{#each lecturers}}
-            <tr>
-              <td>
-                <div class="lecturer-avatar">
-                  {{#if this.avatar_url}}
-                    <img src="{{this.avatar_url}}" alt="{{this.full_name}}" class="avatar-small" />
-                  {{else}}
-                    <div class="avatar-placeholder-small">
-                      <img src="/img/nav-user.png" alt="user" />
-                    </div>
-                  {{/if}}
-                </div>
-              </td>
-              <td><strong>{{this.full_name}}</strong></td>
-              <td>{{this.expertise}}</td>
-              <td>{{this.email}}</td>
-              <td>
-                {{#if this.is_active}}
-                  <span class="status-badge status-active">Aktif</span>
-                {{else}}
-                  <span class="status-badge status-inactive">Tidak Aktif</span>
-                {{/if}}
-              </td>
-              <td>
-                <div class="action-buttons">
-                  <button class="btn-small btn-info" onclick="window.location.href='/lecturer/{{this.id}}'">Detail</button>
-                  <button class="btn-small btn-warning" onclick="window.location.href='/lecturer/{{this.id}}/edit'">Edit</button>
-                  <button class="btn-small btn-danger" onclick="deleteLecturer('{{this.id}}', '{{this.full_name}}')">Hapus</button>
-                </div>
-              </td>
-            </tr>
+            <div class="lecturer-item">
+              <div class="lecturer-info">
+                <div class="lecturer-icon"></div>
+                <span class="lecturer-name">{{this.full_name}}</span>
+              </div>
+              <div class="lecturer-actions">
+                <button class="lecturer-btn lecturer-btn-edit" onclick="openEditLecturerModal('{{this.id}}', '{{this.full_name}}', '{{this.expertise}}', '{{this.phone}}', '{{this.email}}')">Edit</button>
+                <button class="lecturer-btn lecturer-btn-hapus" onclick="deleteLecturer('{{this.id}}', '{{this.full_name}}')">Hapus</button>
+              </div>
+            </div>
             {{/each}}
-          </tbody>
-        </table>
+          </div>
+          {{else}}
+          <div class="empty-courses empty-centered">
+            <p class="empty-message">Belum ada lecturer terdaftar</p>
+            <p class="empty-sub">Klik "Tambah Data" untuk menambahkan lecturer baru</p>
+          </div>
+          {{/if}}
+        </div>
       </div>
-      {{else}}
-      <div class="empty-state">
-        <img src="/img/empty-lecturer.png" alt="No lecturers" class="empty-icon" />
-        <h3>Belum Ada Lecturer</h3>
-        <p>Mulai tambahkan lecturer untuk platform Anda</p>
-        <button class="btn-primary" onclick="window.location.href='/lecturer/create'">Tambah Lecturer Pertama</button>
-      </div>
-      {{/if}}
     </div>
   </section>
 </main>
 
+<!-- Modal Tambah Lecturer -->
+<div id="tambahLecturerModal" class="kursus-modal">
+  <div class="kursus-modal-content">
+    <div class="modal-logo">
+      <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="modal-logo-img"/>
+      <h2>Pluvia Academy</h2>
+    </div>
+    
+    <h3 class="modal-title">Tambah Lecturer</h3>
+    
+    <form id="tambahLecturerForm" method="POST" action="/lecturer/create">
+      <input type="text" name="full_name" placeholder="Nama Lengkap" required class="modal-input"/>
+      
+      <input type="text" name="expertise" placeholder="Riwayat Pendidikan" class="modal-input"/>
+      
+      <input type="tel" name="phone" placeholder="Nomor Hp" required class="modal-input"/>
+      
+      <input type="email" name="email" placeholder="Email" required class="modal-input"/>
+      
+      <input type="password" name="password" placeholder="Password" required class="modal-input"/>
+      
+      <div class="modal-actions">
+        <button type="submit" class="modal-btn modal-btn-tambah">Tambah</button>
+        <button type="button" class="modal-btn modal-btn-batal" onclick="closeTambahLecturerModal()">Batal</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Edit Lecturer -->
+<div id="editLecturerModal" class="kursus-modal">
+  <div class="kursus-modal-content">
+    <div class="modal-logo">
+      <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="modal-logo-img"/>
+      <h2>Pluvia Academy</h2>
+    </div>
+    
+    <h3 class="modal-title">Edit Lecturer</h3>
+    
+    <form id="editLecturerForm" method="POST">
+      <input type="text" id="editFullName" name="full_name" placeholder="Nama Lengkap" required class="modal-input"/>
+      
+      <input type="text" id="editExpertise" name="expertise" placeholder="Riwayat Pendidikan" class="modal-input"/>
+      
+      <input type="tel" id="editPhone" name="phone" placeholder="Nomor Hp" required class="modal-input"/>
+      
+      <input type="email" id="editEmail" name="email" placeholder="Email" required class="modal-input"/>
+      
+      <input type="password" id="editPassword" name="password" placeholder="Password (kosongkan jika tidak diubah)" class="modal-input"/>
+      
+      <div class="modal-actions">
+        <button type="submit" class="modal-btn modal-btn-edit">Edit</button>
+        <button type="button" class="modal-btn modal-btn-batal" onclick="closeEditLecturerModal()">Batal</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
+function openTambahLecturerModal() {
+  document.getElementById('tambahLecturerModal').style.display = 'flex';
+}
+
+function closeTambahLecturerModal() {
+  document.getElementById('tambahLecturerModal').style.display = 'none';
+}
+
+function openEditLecturerModal(id, fullName, expertise, phone, email) {
+  const modal = document.getElementById('editLecturerModal');
+  const form = document.getElementById('editLecturerForm');
+  
+  form.action = `/lecturer/${id}/edit`;
+  document.getElementById('editFullName').value = fullName || '';
+  document.getElementById('editExpertise').value = expertise || '';
+  document.getElementById('editPhone').value = phone || '';
+  document.getElementById('editEmail').value = email || '';
+  document.getElementById('editPassword').value = '';
+  
+  modal.style.display = 'flex';
+}
+
+function closeEditLecturerModal() {
+  document.getElementById('editLecturerModal').style.display = 'none';
+}
+
 function deleteLecturer(id, name) {
   if (confirm(`Apakah Anda yakin ingin menghapus lecturer "${name}"?`)) {
     fetch(`/lecturer/${id}`, {
@@ -96,8 +143,20 @@ function deleteLecturer(id, name) {
     })
     .catch(error => {
       console.error('Error:', error);
-      alert('Terjadi kesalahan saat menghapus lecturer');
+      alert('Terjadi kesalahan');
     });
+  }
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+  const tambahModal = document.getElementById('tambahLecturerModal');
+  const editModal = document.getElementById('editLecturerModal');
+  if (event.target === tambahModal) {
+    closeTambahLecturerModal();
+  }
+  if (event.target === editModal) {
+    closeEditLecturerModal();
   }
 }
 </script>
