@@ -1,0 +1,141 @@
+{{> head}}
+{{> header}}
+
+<main class="site-root">
+  <section class="management-page">
+    <div class="container">
+      <div class="form-container">
+        <div class="form-header">
+          <h1>{{#if lecturer}}Edit Lecturer{{else}}Tambah Lecturer Baru{{/if}}</h1>
+          <p class="form-subtitle">Kelola informasi pengajar</p>
+        </div>
+
+        {{#if error}}
+        <div class="alert alert-error">
+          <p>{{error}}</p>
+        </div>
+        {{/if}}
+
+        <form method="POST" action="{{#if lecturer}}/lecturer/{{lecturer.id}}/edit{{else}}/lecturer/create{{/if}}" class="admin-form">
+          <div class="form-group">
+            <label for="full_name">Nama Lengkap <span class="required">*</span></label>
+            <input 
+              type="text" 
+              id="full_name" 
+              name="full_name" 
+              value="{{lecturer.full_name}}" 
+              placeholder="Contoh: Dr. John Doe" 
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="username">Username <span class="required">*</span></label>
+            <input 
+              type="text" 
+              id="username" 
+              name="username" 
+              value="{{lecturer.username}}" 
+              placeholder="johndoe" 
+              required
+              {{#if lecturer}}disabled{{/if}}
+            />
+            {{#if lecturer}}
+            <small class="form-hint">Username tidak dapat diubah</small>
+            {{/if}}
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email <span class="required">*</span></label>
+            <input 
+              type="email" 
+              id="email" 
+              name="email" 
+              value="{{lecturer.email}}" 
+              placeholder="john@example.com" 
+              required
+            />
+          </div>
+
+          {{#unless lecturer}}
+          <div class="form-group">
+            <label for="password">Password <span class="required">*</span></label>
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              placeholder="Minimal 6 karakter" 
+              minlength="6"
+              required
+            />
+          </div>
+          {{/unless}}
+
+          <div class="form-group">
+            <label for="phone">Nomor Telepon</label>
+            <input 
+              type="tel" 
+              id="phone" 
+              name="phone" 
+              value="{{lecturer.phone}}" 
+              placeholder="08123456789"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="expertise">Bidang Keahlian</label>
+            <input 
+              type="text" 
+              id="expertise" 
+              name="expertise" 
+              value="{{lecturer.expertise}}" 
+              placeholder="Contoh: Web Development, Data Science"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="bio">Bio/Deskripsi</label>
+            <textarea 
+              id="bio" 
+              name="bio" 
+              rows="4" 
+              placeholder="Ceritakan tentang pengalaman dan keahlian..."
+            >{{lecturer.bio}}</textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="avatar_url">URL Foto Profil</label>
+            <input 
+              type="url" 
+              id="avatar_url" 
+              name="avatar_url" 
+              value="{{lecturer.avatar_url}}" 
+              placeholder="https://example.com/photo.jpg"
+            />
+          </div>
+
+          <div class="form-group checkbox-group">
+            <label>
+              <input 
+                type="checkbox" 
+                name="is_active" 
+                value="true"
+                {{#if lecturer.is_active}}checked{{else}}checked{{/if}}
+              />
+              <span>Aktifkan akun lecturer</span>
+            </label>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn-secondary" onclick="window.history.back()">Batal</button>
+            <button type="submit" class="btn-primary">
+              {{#if lecturer}}Simpan Perubahan{{else}}Tambah Lecturer{{/if}}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+
+{{> footer}}

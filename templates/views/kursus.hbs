@@ -5,27 +5,203 @@
   <section class="my-courses-section">
     <div class="container">
       <div class="courses-panel">
-        <h2 class="my-courses-title">Kelas Yang Anda Jalani</h2>
-        {{#if courses.length}}
-        <div class="my-courses-grid">
-        {{#each courses}}
-        <div class="my-course-box">
-          <!-- placeholder content; replace with real thumbnail or title as needed -->
-          <div class="box-inner"></div>
-          <div class="course-title">{{this.title}}</div>
-        </div>
-        {{/each}}
-        </div>
+        {{#if isAdmin}}
+          <!-- Admin View - Manajemen Kursus -->
+          <div class="kursus-admin-container">
+            <div class="kursus-header">
+              <h2 class="kursus-admin-title">Manajemen Kursus</h2>
+              <button class="kursus-tambah-btn" onclick="openTambahModal()">
+                <span class="plus-icon">⊕</span> Tambah Data
+              </button>
+            </div>
+
+            {{#if courses.length}}
+            <div class="kursus-card">
+              {{#each courses}}
+              <div class="kursus-item">
+                <div class="kursus-info">
+                  <div class="kursus-icon"></div>
+                  <div class="kursus-content">
+                    <h3 class="kursus-title">{{this.title}}</h3>
+                    <p class="kursus-desc">{{this.description}}</p>
+                  </div>
+                </div>
+                <div class="kursus-actions">
+                  <button class="kursus-btn kursus-btn-student" onclick="window.location.href='/kursus/{{this.id}}/students'">Student</button>
+                  <button class="kursus-btn kursus-btn-edit" onclick="openEditModal('{{this.id}}', '{{this.title}}', '{{this.description}}', '{{this.meet_link}}', '{{this.thumbnail}}')">Edit</button>
+                  <button class="kursus-btn kursus-btn-hapus" onclick="deleteCourse('{{this.id}}', '{{this.title}}')">Hapus</button>
+                </div>
+              </div>
+              {{/each}}
+            </div>
+            {{else}}
+            <div class="empty-courses empty-centered">
+              <p class="empty-message">Belum ada kursus yang ditambahkan.</p>
+              <p class="empty-sub">Mulai tambahkan kursus untuk platform Anda</p>
+              <button class="btn-primary empty-cta" onclick="openTambahModal()">Tambah Kursus Pertama</button>
+            </div>
+            {{/if}}
+          </div>
+
         {{else}}
-        <div class="empty-courses empty-centered">
-          <p class="empty-message">Anda belum mengikuti kursus apa pun saat ini.</p>
-          <p class="empty-sub">Pilih paket untuk memulai pembelajaran Anda di Pluvia Academy.</p>
-          <a href="/paket_kursus" class="btn-primary empty-cta">Beli Paket</a>
-        </div>
+          <!-- Member View - Kursus Yang Diikuti -->
+          <h2 class="my-courses-title">Kelas Yang Anda Jalani</h2>
+          {{#if courses.length}}
+          <div class="my-courses-grid">
+          {{#each courses}}
+          <div class="my-course-box">
+            <!-- placeholder content; replace with real thumbnail or title as needed -->
+            <div class="box-inner"></div>
+            <div class="course-title">{{this.title}}</div>
+          </div>
+          {{/each}}
+          </div>
+          {{else}}
+          <div class="empty-courses empty-centered">
+            <p class="empty-message">Anda belum mengikuti kursus apa pun saat ini.</p>
+            <p class="empty-sub">Pilih paket untuk memulai pembelajaran Anda di Pluvia Academy.</p>
+            <a href="/paket_kursus" class="btn-primary empty-cta">Beli Paket</a>
+          </div>
+          {{/if}}
         {{/if}}
       </div>
     </div>
   </section>
 </main>
+
+<!-- Modal Tambah Kursus -->
+<div id="tambahKursusModal" class="kursus-modal">
+  <div class="kursus-modal-content">
+    <div class="modal-logo">
+      <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="modal-logo-img"/>
+      <h2>Pluvia Academy</h2>
+    </div>
+    <h3 class="modal-title">Tambah Kursus</h3>
+    
+    <form id="tambahKursusForm" method="POST" action="/kursus/create">
+      <input type="text" name="title" placeholder="Nama Kursus" required class="modal-input"/>
+      
+      <select name="instructor_id" class="modal-select" required>
+        <option value="">Nama Lecturer</option>
+        {{#each lecturers}}
+        <option value="{{this.id}}">{{this.full_name}}</option>
+        {{/each}}
+      </select>
+      
+      <input type="text" name="description" placeholder="Deskripsi" class="modal-input"/>
+      
+      <input type="url" name="meet_link" placeholder="Link Meet Kursus" class="modal-input"/>
+      
+      <div class="file-input-wrapper">
+        <input type="file" id="thumbnailInput" accept="image/*" class="modal-file-input"/>
+        <label for="thumbnailInput" class="file-input-label">
+          <span>Pilih Gambar</span>
+          <span class="file-icon">🖼️</span>
+        </label>
+      </div>
+      <input type="hidden" name="thumbnail" id="thumbnailUrl"/>
+      
+      <div class="modal-actions">
+        <button type="submit" class="modal-btn modal-btn-tambah">Tambah</button>
+        <button type="button" class="modal-btn modal-btn-batal" onclick="closeTambahModal()">Batal</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Edit Kursus -->
+<div id="editKursusModal" class="kursus-modal">
+  <div class="kursus-modal-content">
+    <div class="modal-logo">
+      <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="modal-logo-img"/>
+      <h2>Pluvia Academy</h2>
+    </div>
+    <h3 class="modal-title">Edit Kursus</h3>
+    
+    <form id="editKursusForm" method="POST">
+      <input type="text" name="title" id="editTitle" placeholder="Nama Kursus" required class="modal-input"/>
+      
+      <input type="text" name="description" id="editDescription" placeholder="Deskripsi" class="modal-input"/>
+      
+      <input type="url" name="meet_link" id="editMeetLink" placeholder="Link Meet Kursus" class="modal-input"/>
+      
+      <div class="file-input-wrapper">
+        <input type="file" id="editThumbnailInput" accept="image/*" class="modal-file-input"/>
+        <label for="editThumbnailInput" class="file-input-label">
+          <span>Pilih Gambar</span>
+          <span class="file-icon">🖼️</span>
+        </label>
+      </div>
+      <input type="hidden" name="thumbnail" id="editThumbnailUrl"/>
+      
+      <div class="modal-actions">
+        <button type="submit" class="modal-btn modal-btn-edit">Edit</button>
+        <button type="button" class="modal-btn modal-btn-batal" onclick="closeEditModal()">Batal</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openTambahModal() {
+  document.getElementById('tambahKursusModal').style.display = 'flex';
+}
+
+function closeTambahModal() {
+  document.getElementById('tambahKursusModal').style.display = 'none';
+}
+
+function openEditModal(id, title, description, meetLink, thumbnail) {
+  const modal = document.getElementById('editKursusModal');
+  const form = document.getElementById('editKursusForm');
+  
+  form.action = `/kursus/${id}/edit`;
+  document.getElementById('editTitle').value = title || '';
+  document.getElementById('editDescription').value = description || '';
+  document.getElementById('editMeetLink').value = meetLink || '';
+  document.getElementById('editThumbnailUrl').value = thumbnail || '';
+  
+  modal.style.display = 'flex';
+}
+
+function closeEditModal() {
+  document.getElementById('editKursusModal').style.display = 'none';
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+  const tambahModal = document.getElementById('tambahKursusModal');
+  const editModal = document.getElementById('editKursusModal');
+  if (event.target === tambahModal) {
+    closeTambahModal();
+  }
+  if (event.target === editModal) {
+    closeEditModal();
+  }
+}
+
+function deleteCourse(id, title) {
+  if (confirm(`Apakah Anda yakin ingin menghapus kursus "${title}"?`)) {
+    fetch(`/kursus/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(response => {
+      if (response.ok) {
+        alert('Kursus berhasil dihapus');
+        window.location.reload();
+      } else {
+        alert('Gagal menghapus kursus');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Terjadi kesalahan saat menghapus kursus');
+    });
+  }
+}
+</script>
 
 {{> footer}}

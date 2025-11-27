@@ -1,0 +1,66 @@
+{{> head}}
+{{> header}}
+
+<main class="site-root">
+  <section class="my-courses-section">
+    <div class="container">
+      <div class="courses-panel">
+        <div class="akses-materi-container">
+          <h2 class="akses-materi-title">Akses Materi</h2>
+          <h3 class="akses-materi-subtitle">{{studentName}} - {{courseName}}</h3>
+
+          {{#if materials.length}}
+          <div class="materi-grid">
+            {{#each materials}}
+            <div class="materi-card-item {{#unless this.is_unlocked}}locked{{/unless}}" data-material-id="{{this.id}}" onclick="toggleMaterialAccess('{{this.id}}', {{this.is_unlocked}})">
+              <div class="materi-lock-icon">
+                {{#if this.is_unlocked}}
+                🔓
+                {{else}}
+                🔒
+                {{/if}}
+              </div>
+              <p class="materi-card-title">{{this.title}}</p>
+            </div>
+            {{/each}}
+          </div>
+          {{else}}
+          <div class="empty-courses empty-centered">
+            <p class="empty-message">Belum ada materi tersedia</p>
+            <p class="empty-sub">Materi akan ditambahkan oleh pengajar</p>
+          </div>
+          {{/if}}
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+function toggleMaterialAccess(materialId, currentlyUnlocked) {
+  const action = currentlyUnlocked ? 'mengunci' : 'membuka';
+  if (confirm(`Apakah Anda yakin ingin ${action} akses materi ini?`)) {
+    fetch(`/kursus/{{courseId}}/students/{{studentId}}/materi/${materialId}/toggle`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert(data.message);
+        window.location.reload();
+      } else {
+        alert(data.message || 'Gagal mengubah akses materi');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Terjadi kesalahan');
+    });
+  }
+}
+</script>
+
+{{> footer}}
