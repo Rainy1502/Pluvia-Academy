@@ -1,9 +1,40 @@
 const express = require('express');
 const { join } = require('path');
 const { create } = require('express-handlebars');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Configure multer for file upload
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = join(__dirname, '..', 'public', 'uploads', 'avatars');
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'avatar-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: function (req, file, cb) {
+    const allowedTypes = /jpeg|jpg|png|gif/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'));
+    }
+  }
+});
 
 // Simple request logger to help diagnose 404s during fast navigation
 app.use((req, _res, next) => {
@@ -667,6 +698,19 @@ app.get('/profile', async (req, res) => {
 
     user.role_name = role ? role.name : 'member';
 
+    // Format tanggal ke YYYY-MM-DD
+    if (user.created_at) {
+      // Ambil hanya bagian tanggal dari string (YYYY-MM-DD)
+      user.created_at = user.created_at.split('T')[0];
+    }
+    if (user.last_login) {
+      // Ambil hanya bagian tanggal dari string (YYYY-MM-DD)
+      user.last_login = user.last_login.split('T')[0];
+    }
+
+    // Ambil huruf awal dari email
+    user.initial = user.email ? user.email.charAt(0).toUpperCase() : 'U';
+
     return res.render('profile', { 
       title: 'Profile', 
       profile: user 
@@ -676,6 +720,115 @@ app.get('/profile', async (req, res) => {
     return res.redirect('/kursus');
   }
 });
+
+// GET /profile/edit - halaman edit profile
+app.get('/profile/edit', async (req, res) => {
+  if (!res.locals || !res.locals.user) {
+    return res.redirect('/login');
+  }
+
+  try {
+    // Ambil data user lengkap dari database
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('id, full_name, username, email, phone, avatar_url')
+      .eq('id', res.locals.user.id)
+      .single();
+
+    if (error || !user) {
+      console.error('Error fetching user for edit:', error);
+      return res.redirect('/login');
+    }
+
+    // Ambil huruf awal dari email
+    user.initial = user.email ? user.email.charAt(0).toUpperCase() : 'U';
+
+    return res.render('edit_profile', { 
+      title: 'Edit Profile', 
+      profile: user 
+    });
+  } catch (error) {
+    console.error('Error loading edit profile:', error);
+    return res.redirect('/profile');
+  }
+});
+
+// POST /profile/edit - update profile
+app.post('/profile/edit', upload.single('profilePicture'), async (req, res) => {
+  if (!res.locals || !res.locals.user) {
+    return res.status(401).json({ success: false, message: 'Unauthorized' });
+  }
+
+  try {
+    const { fullName, phone, email, password, removeAvatar } = req.body;
+    const userId = res.locals.user.id;
+
+    // Prepare update data
+    const updateData = {
+      full_name: fullName,
+      phone: phone,
+      email: email
+    };
+
+    // Get current user data
+    const { data: oldUser } = await supabase
+      .from('users')
+      .select('avatar_url')
+      .eq('id', userId)
+      .single();
+
+    // Handle avatar removal (user clicked remove button)
+    if (removeAvatar === 'true' && !req.file) {
+      // Delete old avatar file if exists
+      if (oldUser && oldUser.avatar_url) {
+        const oldPath = join(__dirname, '..', 'public', oldUser.avatar_url);
+        if (fs.existsSync(oldPath)) {
+          fs.unlinkSync(oldPath);
+        }
+      }
+      // Set avatar_url to null
+      updateData.avatar_url = null;
+    }
+    // Handle new avatar upload
+    else if (req.file) {
+      // Delete old avatar if exists
+      if (oldUser && oldUser.avatar_url) {
+        const oldPath = join(__dirname, '..', 'public', oldUser.avatar_url);
+        if (fs.existsSync(oldPath)) {
+          fs.unlinkSync(oldPath);
+        }
+      }
+      // Save new avatar path
+      updateData.avatar_url = '/uploads/avatars/' + req.file.filename;
+    }
+
+    // Only update password if provided
+    if (password && password.trim() !== '') {
+      // TODO: Hash password before storing (use bcrypt or similar)
+      updateData.password = password;
+    }
+
+    // Update user data
+    const { data, error } = await supabase
+      .from('users')
+      .update(updateData)
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating profile:', error);
+      return res.status(500).json({ success: false, message: 'Gagal update profile' });
+    }
+
+    // Redirect to profile page
+    return res.redirect('/profile');
+  } catch (error) {
+    console.error('Error in profile update:', error);
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 
 // Simple logout route: clear `user_id` cookie and redirect home
 app.get('/logout', (req, res) => {
