@@ -5,21 +5,23 @@
   <section class="profile-page">
     <div class="container">
       <div class="profile-card">
-        <div class="profile-header">
-          <div class="profile-avatar">
-            {{#if profile.avatar_url}}
-              <img src="{{profile.avatar_url}}" alt="{{profile.full_name}}" class="avatar-img" />
-            {{else}}
-              <div class="avatar-placeholder">
-                <img src="/img/nav-user.png" alt="user" />
-              </div>
-            {{/if}}
-          </div>
-          <div class="profile-info">
-            <h1>{{profile.full_name}}</h1>
-            <p class="profile-role">{{profile.role_name}}</p>
-          </div>
+        <div class="profile-brand">
+          <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="brand-logo" />
+          <h2 class="brand-name">Pluvia Academy</h2>
         </div>
+
+        <div class="profile-avatar-center">
+          {{#if profile.avatar_url}}
+            <img src="{{profile.avatar_url}}" alt="{{profile.full_name}}" class="avatar-img" />
+          {{else}}
+            <div class="avatar-placeholder">
+              <span class="avatar-initial">{{profile.initial}}</span>
+            </div>
+          {{/if}}
+        </div>
+
+        <h2 class="profile-name">{{profile.full_name}}</h2>
+        <p class="profile-role">{{profile.role_name}}</p>
 
         <div class="profile-details">
           <h2>Informasi Akun</h2>
@@ -55,8 +57,8 @@
         </div>
 
         <div class="profile-actions">
-          <a href="/kursus" class="btn-primary">Lihat Kursus Saya</a>
-          <a href="/logout" class="btn-secondary">Logout</a>
+          <a href="/profile/edit" class="btn-edit">Edit Profile</a>
+          <a href="/logout" class="btn-logout">Log Out</a>
         </div>
       </div>
     </div>
