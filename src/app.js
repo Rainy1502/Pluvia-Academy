@@ -245,11 +245,17 @@ app.get('/paket_kursus', async (req, res) => {
         .select('id, title, description, thumbnail, material_count, duration, price')
         .order('created_at', { ascending: false });
 
+      const { data: courses, error: coursesError } = await supabase
+        .from('courses')
+        .select('id, title')
+        .order('title', { ascending: true });
+
       if (error) throw error;
 
       return res.render('admin/manajemen_paket_kursus', { 
         title: 'Manajemen Paket', 
         packages: packages || [],
+        courses: courses || [],
         isAdmin: true 
       });
     } catch (error) {
@@ -257,6 +263,7 @@ app.get('/paket_kursus', async (req, res) => {
       return res.render('admin/manajemen_paket_kursus', { 
         title: 'Manajemen Paket', 
         packages: [],
+        courses: [],
         isAdmin: true 
       });
     }

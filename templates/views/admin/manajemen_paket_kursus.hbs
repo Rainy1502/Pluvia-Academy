@@ -62,7 +62,28 @@
       
       <input type="text" name="duration" placeholder="Durasi (contoh: 6 Bulan)" class="modal-input"/>
       
-      <input type="number" name="material_count" placeholder="Jumlah Materi" class="modal-input"/>
+      <div class="course-selection-container">
+        <div class="course-selection-box">
+          <span class="course-placeholder">Pilih Kursus</span>
+          <button type="button" class="add-course-btn" onclick="toggleCourseList('tambah')">⊕</button>
+        </div>
+        <div class="course-checkbox-list" id="tambahCourseList" style="display:none;">
+          {{#if courses}}
+            {{#if courses.length}}
+              {{#each courses}}
+              <label class="course-checkbox-item">
+                <input type="checkbox" name="course_ids[]" value="{{this.id}}" class="course-checkbox"/>
+                <span class="course-name">{{this.title}}</span>
+              </label>
+              {{/each}}
+            {{else}}
+              <p class="empty-courses-msg">Belum ada kursus tersedia</p>
+            {{/if}}
+          {{else}}
+            <p class="empty-courses-msg">Belum ada kursus tersedia</p>
+          {{/if}}
+        </div>
+      </div>
       
       <div class="file-input-wrapper">
         <input type="file" id="paketThumbnailInput" accept="image/*" class="modal-file-input"/>
@@ -99,7 +120,28 @@
       
       <input type="text" name="duration" id="editPaketDuration" placeholder="Durasi (contoh: 6 Bulan)" class="modal-input"/>
       
-      <input type="number" name="material_count" id="editPaketMaterialCount" placeholder="Jumlah Materi" class="modal-input"/>
+      <div class="course-selection-container">
+        <div class="course-selection-box">
+          <span class="course-placeholder">Pilih Kursus</span>
+          <button type="button" class="add-course-btn" onclick="toggleCourseList('edit')">⊕</button>
+        </div>
+        <div class="course-checkbox-list" id="editCourseList" style="display:none;">
+          {{#if courses}}
+            {{#if courses.length}}
+              {{#each courses}}
+              <label class="course-checkbox-item">
+                <input type="checkbox" name="course_ids[]" value="{{this.id}}" class="course-checkbox edit-course-checkbox"/>
+                <span class="course-name">{{this.title}}</span>
+              </label>
+              {{/each}}
+            {{else}}
+              <p class="empty-courses-msg">Belum ada kursus tersedia</p>
+            {{/if}}
+          {{else}}
+            <p class="empty-courses-msg">Belum ada kursus tersedia</p>
+          {{/if}}
+        </div>
+      </div>
       
       <div class="file-input-wrapper">
         <input type="file" id="editPaketThumbnailInput" accept="image/*" class="modal-file-input"/>
@@ -119,8 +161,15 @@
 </div>
 
 <script>
+function toggleCourseList(type) {
+  const listId = type === 'tambah' ? 'tambahCourseList' : 'editCourseList';
+  const list = document.getElementById(listId);
+  list.style.display = list.style.display === 'none' ? 'block' : 'none';
+}
+
 function openTambahPaketModal() {
   document.getElementById('tambahPaketModal').style.display = 'flex';
+  document.getElementById('tambahCourseList').style.display = 'none';
 }
 
 function closeTambahPaketModal() {
@@ -132,9 +181,9 @@ function openEditPaketModal(id, title, description, price, duration, material_co
   document.getElementById('editPaketDescription').value = description || '';
   document.getElementById('editPaketPrice').value = price || '';
   document.getElementById('editPaketDuration').value = duration || '';
-  document.getElementById('editPaketMaterialCount').value = material_count || '';
   document.getElementById('editPaketThumbnailUrl').value = thumbnail || '';
   document.getElementById('editPaketForm').action = `/paket_kursus/${id}/edit`;
+  document.getElementById('editCourseList').style.display = 'none';
   document.getElementById('editPaketModal').style.display = 'flex';
 }
 

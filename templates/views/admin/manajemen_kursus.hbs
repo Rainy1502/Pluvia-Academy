@@ -27,7 +27,7 @@
               </div>
               <div class="kursus-actions">
                 <button class="kursus-btn kursus-btn-student" onclick="window.location.href='/kursus/{{this.id}}/students'">Siswa</button>
-                <button class="kursus-btn kursus-btn-edit" onclick="openEditModal('{{this.id}}', '{{this.title}}', '{{this.description}}', '{{this.meet_link}}', '{{this.thumbnail}}')">Edit</button>
+                <button class="kursus-btn kursus-btn-edit" onclick="openEditModal('{{this.id}}', '{{this.title}}', '{{this.description}}', '{{this.schedule_day}}', '{{this.schedule_time_start}}', '{{this.schedule_time_end}}', '{{this.meet_link}}', '{{this.thumbnail}}')">Edit</button>
                 <button class="kursus-btn kursus-btn-hapus" onclick="deleteCourse('{{this.id}}', '{{this.title}}')">Hapus</button>
               </div>
             </div>
@@ -66,6 +66,20 @@
       
       <input type="text" name="description" placeholder="Deskripsi" class="modal-input"/>
       
+      <input type="text" name="schedule_day" placeholder="Hari" class="modal-input"/>
+      
+      <div class="time-range-input">
+        <div class="time-input-group">
+          <label class="time-label">Mulai</label>
+          <input type="time" name="schedule_time_start" class="time-input"/>
+        </div>
+        <span class="time-separator">-</span>
+        <div class="time-input-group">
+          <label class="time-label">Selesai</label>
+          <input type="time" name="schedule_time_end" class="time-input"/>
+        </div>
+      </div>
+      
       <input type="url" name="meet_link" placeholder="Link Meet Kursus" class="modal-input"/>
       
       <div class="file-input-wrapper">
@@ -99,6 +113,20 @@
       
       <input type="text" name="description" id="editDescription" placeholder="Deskripsi" class="modal-input"/>
       
+      <input type="text" name="schedule_day" id="editScheduleDay" placeholder="Hari" class="modal-input"/>
+      
+      <div class="time-range-input">
+        <div class="time-input-group">
+          <label class="time-label">Mulai</label>
+          <input type="time" name="schedule_time_start" id="editScheduleTimeStart" class="time-input"/>
+        </div>
+        <span class="time-separator">-</span>
+        <div class="time-input-group">
+          <label class="time-label">Selesai</label>
+          <input type="time" name="schedule_time_end" id="editScheduleTimeEnd" class="time-input"/>
+        </div>
+      </div>
+      
       <input type="url" name="meet_link" id="editMeetLink" placeholder="Link Meet Kursus" class="modal-input"/>
       
       <div class="file-input-wrapper">
@@ -127,13 +155,16 @@ function closeTambahModal() {
   document.getElementById('tambahKursusModal').style.display = 'none';
 }
 
-function openEditModal(id, title, description, meetLink, thumbnail) {
+function openEditModal(id, title, description, scheduleDay, scheduleTimeStart, scheduleTimeEnd, meetLink, thumbnail) {
   const modal = document.getElementById('editKursusModal');
   const form = document.getElementById('editKursusForm');
   
   form.action = `/kursus/${id}/edit`;
   document.getElementById('editTitle').value = title || '';
   document.getElementById('editDescription').value = description || '';
+  document.getElementById('editScheduleDay').value = scheduleDay || '';
+  document.getElementById('editScheduleTimeStart').value = scheduleTimeStart || '';
+  document.getElementById('editScheduleTimeEnd').value = scheduleTimeEnd || '';
   document.getElementById('editMeetLink').value = meetLink || '';
   document.getElementById('editThumbnailUrl').value = thumbnail || '';
   
