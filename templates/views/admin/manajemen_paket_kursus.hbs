@@ -33,6 +33,8 @@
                 data-duration="{{this.duration}}" 
                 data-course-ids="{{this.course_ids}}" 
                 data-thumbnail="{{this.thumbnail}}"
+                data-is-banner="{{this.is_banner}}"
+                data-banner-image="{{this.banner_image}}"
                 onclick="openEditPaketModalData(this)">
                 Edit
               </button>
@@ -95,11 +97,21 @@
       <div class="file-input-wrapper">
         <input type="file" id="paketThumbnailInput" accept="image/*" class="modal-file-input"/>
         <label for="paketThumbnailInput" class="file-input-label">
-          <span>Pilih Gambar</span>
+          <span>Pilih Thumbnail (Gambar Paket)</span>
           <span class="file-icon">🖼️</span>
         </label>
       </div>
       <input type="hidden" name="thumbnail" id="paketThumbnailUrl"/>
+      <input type="hidden" name="is_banner" value="true"/>
+      
+      <div class="file-input-wrapper">
+        <input type="file" id="paketBannerInput" accept="image/*" class="modal-file-input"/>
+        <label for="paketBannerInput" class="file-input-label">
+          <span>Pilih Banner (Gambar Landscape/Wide)</span>
+          <span class="file-icon">🎨</span>
+        </label>
+      </div>
+      <input type="hidden" name="banner_image" id="paketBannerUrl"/>
       
       <div class="modal-actions">
         <button type="submit" class="modal-btn modal-btn-tambah">Tambah</button>
@@ -145,11 +157,21 @@
       <div class="file-input-wrapper">
         <input type="file" id="editPaketThumbnailInput" accept="image/*" class="modal-file-input"/>
         <label for="editPaketThumbnailInput" class="file-input-label">
-          <span>Pilih Gambar</span>
+          <span>Pilih Thumbnail (Gambar Paket)</span>
           <span class="file-icon">🖼️</span>
         </label>
       </div>
       <input type="hidden" name="thumbnail" id="editPaketThumbnailUrl"/>
+      <input type="hidden" name="is_banner" value="true"/>
+      
+      <div class="file-input-wrapper">
+        <input type="file" id="editPaketBannerInput" accept="image/*" class="modal-file-input"/>
+        <label for="editPaketBannerInput" class="file-input-label">
+          <span>Pilih Banner (Gambar Landscape/Wide)</span>
+          <span class="file-icon">🎨</span>
+        </label>
+      </div>
+      <input type="hidden" name="banner_image" id="editPaketBannerImageUrl"/>
       
       <div class="modal-actions">
         <button type="submit" class="modal-btn modal-btn-edit">Edit</button>
@@ -159,8 +181,52 @@
   </div>
 </div>
 
+<!-- Modal Konfirmasi Hapus -->
+<div id="deletePaketModal" class="kursus-modal">
+  <div class="kursus-modal-content logout-modal-content">
+    <div class="modal-logo">
+      <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="modal-logo-img"/>
+      <h2>Pluvia Academy</h2>
+    </div>
+    <h3 class="modal-title">Konfirmasi Hapus</h3>
+    <p class="logout-message" id="deletePaketMessage">Apakah Anda yakin ingin menghapus paket ini?</p>
+    
+    <div class="modal-actions">
+      <button type="button" class="modal-btn modal-btn-logout" onclick="confirmDeletePaket()">Ya, Hapus</button>
+      <button type="button" class="modal-btn modal-btn-batal" onclick="closeDeletePaketModal()">Batal</button>
+    </div>
+  </div>
+</div>
+
 <script>
-// Upload file to Supabase Storage
+let deletePaketTarget = { id: null, title: null };
+
+// Upload file to server
+async function uploadToServer(file, folder = 'packages') {
+  try {
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('folder', folder);
+
+    const response = await fetch('/api/upload/upload', {
+      method: 'POST',
+      body: formData
+    });
+
+    const result = await response.json();
+
+    if (!result.success) {
+      throw new Error(result.message || 'Upload failed');
+    }
+
+    return result.url;
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    throw error;
+  }
+}
+
+// Upload file to Supabase Storage (fallback)
 async function uploadToSupabase(file, folder = 'packages') {
   try {
     const fileExt = file.name.split('.').pop();
@@ -189,7 +255,7 @@ async function uploadToSupabase(file, folder = 'packages') {
 
 // Wait for DOM to be ready
 document.addEventListener('DOMContentLoaded', function() {
-  // Handle file input label change for Tambah modal
+  // Handle file input label change for Tambah modal (thumbnail)
   const tambahFileInput = document.getElementById('paketThumbnailInput');
   if (tambahFileInput) {
     tambahFileInput.addEventListener('change', function(e) {
@@ -197,12 +263,25 @@ document.addEventListener('DOMContentLoaded', function() {
       if (this.files.length > 0) {
         label.textContent = this.files[0].name;
       } else {
-        label.textContent = 'Pilih Gambar';
+        label.textContent = 'Pilih Thumbnail (Gambar Paket)';
       }
     });
   }
 
-  // Handle file input label change for Edit modal
+  // Handle file input label change for Tambah modal (banner)
+  const tambahBannerInput = document.getElementById('paketBannerInput');
+  if (tambahBannerInput) {
+    tambahBannerInput.addEventListener('change', function(e) {
+      const label = this.nextElementSibling.querySelector('span:first-child');
+      if (this.files.length > 0) {
+        label.textContent = this.files[0].name;
+      } else {
+        label.textContent = 'Pilih Banner (Gambar Landscape/Wide)';
+      }
+    });
+  }
+
+  // Handle file input label change for Edit modal (thumbnail)
   const editFileInput = document.getElementById('editPaketThumbnailInput');
   if (editFileInput) {
     editFileInput.addEventListener('change', function(e) {
@@ -210,7 +289,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (this.files.length > 0) {
         label.textContent = this.files[0].name;
       } else {
-        label.textContent = 'Pilih Gambar';
+        label.textContent = 'Pilih Thumbnail (Gambar Paket)';
       }
     });
   }
@@ -221,18 +300,26 @@ document.addEventListener('DOMContentLoaded', function() {
     tambahForm.addEventListener('submit', async function(e) {
       e.preventDefault();
       
-      const fileInput = document.getElementById('paketThumbnailInput');
+      const thumbnailInput = document.getElementById('paketThumbnailInput');
       const thumbnailUrlInput = document.getElementById('paketThumbnailUrl');
+      const bannerInput = document.getElementById('paketBannerInput');
+      const bannerUrlInput = document.getElementById('paketBannerUrl');
       const submitBtn = this.querySelector('button[type="submit"]');
       
       try {
         submitBtn.disabled = true;
         submitBtn.textContent = 'Mengunggah...';
         
-        // Upload file if selected
-        if (fileInput.files.length > 0) {
-          const publicUrl = await uploadToSupabase(fileInput.files[0], 'packages');
-          thumbnailUrlInput.value = publicUrl;
+        // Upload thumbnail if selected
+        if (thumbnailInput.files.length > 0) {
+          const thumbnailUrl = await uploadToServer(thumbnailInput.files[0], 'packages');
+          thumbnailUrlInput.value = thumbnailUrl;
+        }
+        
+        // Upload banner if file selected
+        if (bannerInput.files.length > 0) {
+          const bannerUrl = await uploadToServer(bannerInput.files[0], 'banners');
+          bannerUrlInput.value = bannerUrl;
         }
         
         // Submit form
@@ -251,18 +338,26 @@ document.addEventListener('DOMContentLoaded', function() {
     editForm.addEventListener('submit', async function(e) {
       e.preventDefault();
       
-      const fileInput = document.getElementById('editPaketThumbnailInput');
+      const thumbnailInput = document.getElementById('editPaketThumbnailInput');
+      const bannerInput = document.getElementById('editPaketBannerInput');
       const thumbnailUrlInput = document.getElementById('editPaketThumbnailUrl');
+      const bannerImageInput = document.getElementById('editPaketBannerImageUrl');
       const submitBtn = this.querySelector('button[type="submit"]');
       
       try {
         submitBtn.disabled = true;
         submitBtn.textContent = 'Mengunggah...';
         
-        // Upload file if new file selected
-        if (fileInput.files.length > 0) {
-          const publicUrl = await uploadToSupabase(fileInput.files[0], 'packages');
+        // Upload thumbnail if new file selected
+        if (thumbnailInput.files.length > 0) {
+          const publicUrl = await uploadToServer(thumbnailInput.files[0], 'packages');
           thumbnailUrlInput.value = publicUrl;
+        }
+        
+        // Upload banner if new file selected
+        if (bannerInput.files.length > 0) {
+          const bannerUrl = await uploadToServer(bannerInput.files[0], 'banners');
+          bannerImageInput.value = bannerUrl;
         }
         
         // Submit form
@@ -322,9 +417,27 @@ document.addEventListener('click', function(event) {
 
 function openTambahPaketModal() {
   document.getElementById('tambahPaketModal').style.display = 'flex';
-  // Reset file label
-  const label = document.querySelector('#paketThumbnailInput + .file-input-label span:first-child');
-  if (label) label.textContent = 'Pilih Gambar';
+  
+  // Reset thumbnail file label
+  const thumbnailLabel = document.querySelector('#paketThumbnailInput + .file-input-label span:first-child');
+  if (thumbnailLabel) thumbnailLabel.textContent = 'Pilih Thumbnail (Gambar Paket)';
+  
+  // Reset banner file label
+  const bannerLabel = document.querySelector('#paketBannerInput + .file-input-label span:first-child');
+  if (bannerLabel) bannerLabel.textContent = 'Pilih Banner (Gambar Landscape/Wide)';
+  
+  // Reset file inputs
+  const thumbnailInput = document.getElementById('paketThumbnailInput');
+  const bannerInput = document.getElementById('paketBannerInput');
+  if (thumbnailInput) thumbnailInput.value = '';
+  if (bannerInput) bannerInput.value = '';
+  
+  // Reset hidden fields
+  const thumbnailUrl = document.getElementById('paketThumbnailUrl');
+  const bannerUrl = document.getElementById('paketBannerUrl');
+  if (thumbnailUrl) thumbnailUrl.value = '';
+  if (bannerUrl) bannerUrl.value = '';
+  
   // Reset selections
   document.querySelectorAll('#tambahCourseDropdown input[type="checkbox"]').forEach(cb => cb.checked = false);
   updateSelectedCoursesText('tambah');
@@ -343,19 +456,22 @@ function openEditPaketModalData(button) {
   const duration = button.getAttribute('data-duration');
   const courseIds = button.getAttribute('data-course-ids');
   const thumbnail = button.getAttribute('data-thumbnail');
+  const isBanner = button.getAttribute('data-is-banner');
+  const bannerImage = button.getAttribute('data-banner-image');
   
-  openEditPaketModal(id, title, description, price, duration, courseIds, thumbnail);
+  openEditPaketModal(id, title, description, price, duration, courseIds, thumbnail, isBanner, bannerImage);
 }
 
-function openEditPaketModal(id, title, description, price, duration, courseIds, thumbnail) {
+function openEditPaketModal(id, title, description, price, duration, courseIds, thumbnail, isBanner, bannerImage) {
   document.getElementById('editPaketTitle').value = title || '';
   document.getElementById('editPaketDescription').value = description || '';
   document.getElementById('editPaketPrice').value = price || '';
   document.getElementById('editPaketDuration').value = duration || '';
   document.getElementById('editPaketThumbnailUrl').value = thumbnail || '';
+  document.getElementById('editPaketBannerImageUrl').value = bannerImage || '';
   document.getElementById('editPaketForm').action = `/paket_kursus/${id}/edit`;
   
-  // Reset file label or show existing filename
+  // Reset thumbnail file label or show existing filename
   const fileLabel = document.querySelector('#editPaketThumbnailInput + .file-input-label span:first-child');
   const fileInput = document.getElementById('editPaketThumbnailInput');
   
@@ -371,9 +487,31 @@ function openEditPaketModal(id, title, description, price, duration, courseIds, 
       // Decode URL encoding
       filename = decodeURIComponent(filename);
       
-      fileLabel.textContent = filename || 'Pilih Gambar';
+      fileLabel.textContent = filename || 'Pilih Thumbnail (Gambar Paket)';
     } else {
-      fileLabel.textContent = 'Pilih Gambar';
+      fileLabel.textContent = 'Pilih Thumbnail (Gambar Paket)';
+    }
+  }
+  
+  // Reset banner file label or show existing filename
+  const bannerFileLabel = document.querySelector('#editPaketBannerInput + .file-input-label span:first-child');
+  const bannerFileInput = document.getElementById('editPaketBannerInput');
+  
+  if (bannerFileLabel && bannerFileInput) {
+    // Clear previous file selection
+    bannerFileInput.value = '';
+    
+    if (bannerImage && bannerImage.trim() !== '') {
+      // Extract filename from URL or path
+      let filename = bannerImage.split('/').pop();
+      // Remove query parameters if any
+      filename = filename.split('?')[0];
+      // Decode URL encoding
+      filename = decodeURIComponent(filename);
+      
+      bannerFileLabel.textContent = filename || 'Pilih Banner (Gambar Landscape/Wide)';
+    } else {
+      bannerFileLabel.textContent = 'Pilih Banner (Gambar Landscape/Wide)';
     }
   }
   
@@ -390,6 +528,25 @@ function openEditPaketModal(id, title, description, price, duration, courseIds, 
   }
   
   updateSelectedCoursesText('edit');
+  
+  // Setup file input listener for banner in edit form
+  const editBannerInput = document.getElementById('editPaketBannerInput');
+  if (editBannerInput) {
+    // Remove old listener if any
+    const newEditBannerInput = editBannerInput.cloneNode(true);
+    editBannerInput.parentNode.replaceChild(newEditBannerInput, editBannerInput);
+    
+    // Add new listener
+    newEditBannerInput.addEventListener('change', function(e) {
+      const label = this.nextElementSibling.querySelector('span:first-child');
+      if (this.files.length > 0) {
+        label.textContent = this.files[0].name;
+      } else {
+        label.textContent = 'Pilih Banner (Gambar Landscape/Wide)';
+      }
+    });
+  }
+  
   document.getElementById('editPaketModal').style.display = 'flex';
 }
 
@@ -413,29 +570,51 @@ window.onclick = function(event) {
 function deletePackageData(button) {
   const id = button.getAttribute('data-id');
   const title = button.getAttribute('data-title');
-  deletePackage(id, title);
+  showDeletePaketConfirm(id, title);
 }
 
-function deletePackage(id, title) {
-  if (confirm(`Apakah Anda yakin ingin menghapus paket "${title}"?`)) {
-    fetch(`/paket_kursus/${id}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    .then(response => {
-      if (response.ok) {
-        alert('Paket berhasil dihapus');
-        window.location.reload();
-      } else {
-        alert('Gagal menghapus paket');
-      }
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      alert('Terjadi kesalahan saat menghapus paket');
-    });
+function showDeletePaketConfirm(id, title) {
+  deletePaketTarget = { id, title };
+  document.getElementById('deletePaketMessage').textContent = `Apakah Anda yakin ingin menghapus paket "${title}"?`;
+  document.getElementById('deletePaketModal').style.display = 'flex';
+}
+
+function closeDeletePaketModal() {
+  document.getElementById('deletePaketModal').style.display = 'none';
+  deletePaketTarget = { id: null, title: null };
+}
+
+function confirmDeletePaket() {
+  if (!deletePaketTarget.id) return;
+  
+  fetch(`/paket_kursus/${deletePaketTarget.id}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(response => {
+    if (response.ok) {
+      window.location.reload();
+    } else {
+      console.error('Failed to delete package');
+      window.location.reload();
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    window.location.reload();
+  })
+  .finally(() => {
+    closeDeletePaketModal();
+  });
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+  const deletePaketModal = document.getElementById('deletePaketModal');
+  if (event.target === deletePaketModal) {
+    closeDeletePaketModal();
   }
 }
 </script>

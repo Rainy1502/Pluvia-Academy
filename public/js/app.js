@@ -261,10 +261,14 @@ document.addEventListener('DOMContentLoaded',function(){
 		});
 	}
 	
-	// Handle remove image
+	// Handle remove image - disabled, using modal confirmation in edit_profile.hbs instead
 	function handleRemoveImage(e){
 		e.stopPropagation();
-		if(confirm('Hapus gambar profile?')){
+		// Modal confirmation handled by edit_profile.hbs showDeletePhotoConfirm()
+		return;
+		
+		// Old code below - kept for reference but not executed
+		if(false){
 			// Set hidden input to indicate avatar should be removed
 			const removeAvatarInput = document.getElementById('removeAvatar');
 			if(removeAvatarInput) removeAvatarInput.value = 'true';

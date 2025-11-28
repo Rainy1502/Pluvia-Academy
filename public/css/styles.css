@@ -565,9 +565,9 @@ body{background:var(--bg);color:var(--text);line-height:1.55;font-size:16px}
 .package-badge{position:absolute;right:14px;top:-12px;background:var(--primary);color:#fff;padding:6px 10px;border-radius:8px;font-weight:800;font-size:13px}
 .package-title{font-size:18px;margin:0 0 6px}
 .package-desc{color:var(--muted);font-size:14px;margin:0 0 12px}
-.package-footer{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.package-footer{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:12px}
 .package-price{font-weight:900;font-size:16px}
-.package-card .btn-primary{width:auto;padding:8px 12px}
+.package-card .btn-primary{width:auto;padding:8px 12px;text-decoration:none;text-align:center;margin-top:0}
 
 @media(max-width:860px){
 	.package-grid{flex-direction:column;align-items:center}

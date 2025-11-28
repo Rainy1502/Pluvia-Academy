@@ -78,6 +78,9 @@ app.use(express.static(join(__dirname, '..', 'public')));
 // make year available in all templates
 app.use((_req, res, next) => {
   res.locals.year = new Date().getFullYear();
+  // Expose Supabase credentials to templates for client-side upload
+  res.locals.supabaseUrl = process.env.SUPABASE_URL || '';
+  res.locals.supabaseAnonKey = process.env.SUPABASE_KEY || '';
   next();
 });
 
@@ -86,6 +89,7 @@ const supabase = require('./supabaseClient').default;
 const courseData = require('./utils/courseData');
 const materiData = require('./utils/materiData');
 const otpRoutes = require('./routes/otp');
+const uploadRoutes = require('./routes/upload');
 
 // expose whether courses exist to templates so header can adapt links
 app.use((req, res, next) => {
@@ -145,9 +149,33 @@ const requireAdmin = (req, res, next) => {
 // API routes untuk OTP
 app.use('/api/otp', otpRoutes);
 
+// API routes untuk Upload
+app.use('/api/upload', uploadRoutes);
+
 // Homepage - akan menampilkan menu sesuai status login berkat middleware di atas
-app.get('/', (_req, res) => {
-  res.render('index', { title: 'Pluvia Academy' });
+app.get('/', async (_req, res) => {
+  try {
+    // Fetch packages with banner images
+    const { data: banners, error } = await supabase
+      .from('packages')
+      .select('id, title, description, banner_image')
+      .eq('is_banner', true)
+      .not('banner_image', 'is', null)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    res.render('index', { 
+      title: 'Pluvia Academy',
+      banners: banners || []
+    });
+  } catch (error) {
+    console.error('Error fetching banners:', error);
+    res.render('index', { 
+      title: 'Pluvia Academy',
+      banners: []
+    });
+  }
 });
 
   // Courses page: shows courses the user is enrolled in or management view for admin
@@ -264,7 +292,7 @@ app.get('/paket_kursus', async (req, res) => {
       const [packagesResult, coursesResult] = await Promise.all([
         supabase
           .from('packages')
-          .select('id, title, description, thumbnail, duration, price')
+          .select('id, title, description, thumbnail, duration, price, is_banner, banner_image')
           .order('created_at', { ascending: false }),
         supabase
           .from('courses')
@@ -309,12 +337,27 @@ app.get('/paket_kursus', async (req, res) => {
     }
   } else {
     // Member view: show available packages for purchase
-    const packagesToRender = [];
-    return res.render('member/paket', { 
-      title: 'Paket Kursus', 
-      packages: packagesToRender,
-      isAdmin: false 
-    });
+    try {
+      const { data: packages, error } = await supabase
+        .from('packages')
+        .select('id, title, description, thumbnail, price, duration')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      return res.render('member/paket', { 
+        title: 'Paket Kursus', 
+        packages: packages || [],
+        isAdmin: false 
+      });
+    } catch (error) {
+      console.error('Error fetching packages for member:', error);
+      return res.render('member/paket', { 
+        title: 'Paket Kursus', 
+        packages: [],
+        isAdmin: false 
+      });
+    }
   }
 });
 
@@ -883,13 +926,13 @@ app.get('/profile/edit', async (req, res) => {
 });
 
 // POST /profile/edit - update profile
-app.post('/profile/edit', upload.single('profilePicture'), async (req, res) => {
+app.post('/profile/edit', express.urlencoded({ extended: true }), async (req, res) => {
   if (!res.locals || !res.locals.user) {
     return res.status(401).json({ success: false, message: 'Unauthorized' });
   }
 
   try {
-    const { fullName, phone, email, password, removeAvatar } = req.body;
+    const { fullName, phone, email, password, removeAvatar, avatar_url } = req.body;
     const userId = res.locals.user.id;
 
     // Prepare update data
@@ -906,29 +949,57 @@ app.post('/profile/edit', upload.single('profilePicture'), async (req, res) => {
       .eq('id', userId)
       .single();
 
+    const { createClient } = require('@supabase/supabase-js');
+    const supabaseAdmin = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+
     // Handle avatar removal (user clicked remove button)
-    if (removeAvatar === 'true' && !req.file) {
-      // Delete old avatar file if exists
+    if (removeAvatar === 'true') {
+      // Delete old avatar from storage if exists
       if (oldUser && oldUser.avatar_url) {
-        const oldPath = join(__dirname, '..', 'public', oldUser.avatar_url);
-        if (fs.existsSync(oldPath)) {
-          fs.unlinkSync(oldPath);
+        try {
+          const url = new URL(oldUser.avatar_url);
+          const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/course-images\/(.+)$/);
+          
+          if (pathMatch) {
+            const filePath = pathMatch[1];
+            await supabaseAdmin.storage
+              .from('course-images')
+              .remove([filePath]);
+            
+            console.log('Old avatar deleted:', filePath);
+          }
+        } catch (storageError) {
+          console.error('Error deleting old avatar:', storageError);
         }
       }
       // Set avatar_url to null
       updateData.avatar_url = null;
     }
-    // Handle new avatar upload
-    else if (req.file) {
-      // Delete old avatar if exists
-      if (oldUser && oldUser.avatar_url) {
-        const oldPath = join(__dirname, '..', 'public', oldUser.avatar_url);
-        if (fs.existsSync(oldPath)) {
-          fs.unlinkSync(oldPath);
+    // Handle new avatar upload (URL provided from client-side upload)
+    else if (avatar_url && avatar_url !== oldUser?.avatar_url) {
+      // Delete old avatar from storage if exists and different from new
+      if (oldUser && oldUser.avatar_url && oldUser.avatar_url !== avatar_url) {
+        try {
+          const url = new URL(oldUser.avatar_url);
+          const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/course-images\/(.+)$/);
+          
+          if (pathMatch) {
+            const filePath = pathMatch[1];
+            await supabaseAdmin.storage
+              .from('course-images')
+              .remove([filePath]);
+            
+            console.log('Old avatar deleted:', filePath);
+          }
+        } catch (storageError) {
+          console.error('Error deleting old avatar:', storageError);
         }
       }
-      // Save new avatar path
-      updateData.avatar_url = '/uploads/avatars/' + req.file.filename;
+      // Save new avatar URL
+      updateData.avatar_url = avatar_url;
     }
 
     // Only update password if provided
@@ -975,12 +1046,47 @@ app.delete('/kursus/:id', requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     
-    const { error } = await supabase
+    // Get course data to find thumbnail path
+    const { data: course, error: fetchError } = await supabase
+      .from('courses')
+      .select('thumbnail')
+      .eq('id', id)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    // Delete from database
+    const { error: deleteError } = await supabase
       .from('courses')
       .delete()
       .eq('id', id);
 
-    if (error) throw error;
+    if (deleteError) throw deleteError;
+
+    // Delete thumbnail from storage if exists
+    if (course && course.thumbnail) {
+      try {
+        const url = new URL(course.thumbnail);
+        const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/course-images\/(.+)$/);
+        
+        if (pathMatch) {
+          const filePath = pathMatch[1];
+          const { createClient } = require('@supabase/supabase-js');
+          const supabaseAdmin = createClient(
+            process.env.SUPABASE_URL,
+            process.env.SUPABASE_SERVICE_ROLE_KEY
+          );
+          
+          await supabaseAdmin.storage
+            .from('course-images')
+            .remove([filePath]);
+          
+          console.log('Thumbnail deleted from storage:', filePath);
+        }
+      } catch (storageError) {
+        console.error('Error deleting thumbnail from storage:', storageError);
+      }
+    }
 
     return res.status(200).json({ success: true, message: 'Kursus berhasil dihapus' });
   } catch (error) {
@@ -994,12 +1100,49 @@ app.delete('/materi/:id', requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     
-    const { error } = await supabase
+    // Get material data to find thumbnail path
+    const { data: material, error: fetchError } = await supabase
+      .from('materials')
+      .select('thumbnail')
+      .eq('id', id)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    // Delete from database
+    const { error: deleteError } = await supabase
       .from('materials')
       .delete()
       .eq('id', id);
 
-    if (error) throw error;
+    if (deleteError) throw deleteError;
+
+    // Delete thumbnail from storage if exists
+    if (material && material.thumbnail) {
+      try {
+        // Extract file path from URL
+        const url = new URL(material.thumbnail);
+        const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/course-images\/(.+)$/);
+        
+        if (pathMatch) {
+          const filePath = pathMatch[1];
+          const { createClient } = require('@supabase/supabase-js');
+          const supabaseAdmin = createClient(
+            process.env.SUPABASE_URL,
+            process.env.SUPABASE_SERVICE_ROLE_KEY
+          );
+          
+          await supabaseAdmin.storage
+            .from('course-images')
+            .remove([filePath]);
+          
+          console.log('Thumbnail deleted from storage:', filePath);
+        }
+      } catch (storageError) {
+        console.error('Error deleting thumbnail from storage:', storageError);
+        // Don't fail the request if storage deletion fails
+      }
+    }
 
     return res.status(200).json({ success: true, message: 'Materi berhasil dihapus' });
   } catch (error) {
@@ -1013,12 +1156,66 @@ app.delete('/paket_kursus/:id', requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     
-    const { error } = await supabase
+    // Get package data to find thumbnail and banner paths
+    const { data: package, error: fetchError } = await supabase
+      .from('packages')
+      .select('thumbnail, banner_image')
+      .eq('id', id)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    // Delete from database
+    const { error: deleteError } = await supabase
       .from('packages')
       .delete()
       .eq('id', id);
 
-    if (error) throw error;
+    if (deleteError) throw deleteError;
+
+    const { createClient } = require('@supabase/supabase-js');
+    const supabaseAdmin = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+
+    // Delete thumbnail from storage if exists
+    if (package && package.thumbnail) {
+      try {
+        const url = new URL(package.thumbnail);
+        const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/course-images\/(.+)$/);
+        
+        if (pathMatch) {
+          const filePath = pathMatch[1];
+          await supabaseAdmin.storage
+            .from('course-images')
+            .remove([filePath]);
+          
+          console.log('Thumbnail deleted from storage:', filePath);
+        }
+      } catch (storageError) {
+        console.error('Error deleting thumbnail from storage:', storageError);
+      }
+    }
+
+    // Delete banner from storage if exists
+    if (package && package.banner_image) {
+      try {
+        const url = new URL(package.banner_image);
+        const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/course-images\/(.+)$/);
+        
+        if (pathMatch) {
+          const filePath = pathMatch[1];
+          await supabaseAdmin.storage
+            .from('course-images')
+            .remove([filePath]);
+          
+          console.log('Banner deleted from storage:', filePath);
+        }
+      } catch (storageError) {
+        console.error('Error deleting banner from storage:', storageError);
+      }
+    }
 
     return res.status(200).json({ success: true, message: 'Paket berhasil dihapus' });
   } catch (error) {
@@ -1126,10 +1323,18 @@ app.post('/materi/create', requireAdmin, express.urlencoded({ extended: true }),
       });
     }
 
+    // Generate slug from title
+    const slug = title.toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+
     const { error } = await supabase
       .from('materials')
       .insert({
         title,
+        slug,
         description: description || null,
         ordinal: parseInt(ordinal),
         thumbnail: thumbnail || null,
@@ -1152,7 +1357,7 @@ app.post('/materi/create', requireAdmin, express.urlencoded({ extended: true }),
 // POST Create Paket
 app.post('/paket_kursus/create', requireAdmin, express.urlencoded({ extended: true }), async (req, res) => {
   try {
-    const { title, description, price, duration, thumbnail } = req.body;
+    const { title, description, price, duration, thumbnail, banner_image, is_banner } = req.body;
     const courseIds = req.body['course_ids[]'];
 
     if (!title || !description || !price) {
@@ -1171,6 +1376,8 @@ app.post('/paket_kursus/create', requireAdmin, express.urlencoded({ extended: tr
         price: parseInt(price),
         duration: duration || null,
         thumbnail: thumbnail || null,
+        banner_image: banner_image || null,
+        is_banner: is_banner === 'true',
         created_at: new Date().toISOString()
       })
       .select()
@@ -1309,6 +1516,39 @@ app.post('/kursus/:id/edit', requireAdmin, express.urlencoded({ extended: true }
       });
     }
 
+    // If new thumbnail provided, delete old one
+    if (thumbnail) {
+      const { data: oldCourse } = await supabase
+        .from('courses')
+        .select('thumbnail')
+        .eq('id', id)
+        .single();
+
+      if (oldCourse && oldCourse.thumbnail && oldCourse.thumbnail !== thumbnail) {
+        try {
+          const url = new URL(oldCourse.thumbnail);
+          const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/course-images\/(.+)$/);
+          
+          if (pathMatch) {
+            const filePath = pathMatch[1];
+            const { createClient } = require('@supabase/supabase-js');
+            const supabaseAdmin = createClient(
+              process.env.SUPABASE_URL,
+              process.env.SUPABASE_SERVICE_ROLE_KEY
+            );
+            
+            await supabaseAdmin.storage
+              .from('course-images')
+              .remove([filePath]);
+            
+            console.log('Old thumbnail deleted:', filePath);
+          }
+        } catch (storageError) {
+          console.error('Error deleting old thumbnail:', storageError);
+        }
+      }
+    }
+
     const { error } = await supabase
       .from('courses')
       .update({
@@ -1350,10 +1590,51 @@ app.post('/materi/:id/edit', requireAdmin, express.urlencoded({ extended: true }
       });
     }
 
+    // If new thumbnail provided, delete old one
+    if (thumbnail) {
+      const { data: oldMaterial } = await supabase
+        .from('materials')
+        .select('thumbnail')
+        .eq('id', id)
+        .single();
+
+      if (oldMaterial && oldMaterial.thumbnail && oldMaterial.thumbnail !== thumbnail) {
+        try {
+          const url = new URL(oldMaterial.thumbnail);
+          const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/course-images\/(.+)$/);
+          
+          if (pathMatch) {
+            const filePath = pathMatch[1];
+            const { createClient } = require('@supabase/supabase-js');
+            const supabaseAdmin = createClient(
+              process.env.SUPABASE_URL,
+              process.env.SUPABASE_SERVICE_ROLE_KEY
+            );
+            
+            await supabaseAdmin.storage
+              .from('course-images')
+              .remove([filePath]);
+            
+            console.log('Old thumbnail deleted:', filePath);
+          }
+        } catch (storageError) {
+          console.error('Error deleting old thumbnail:', storageError);
+        }
+      }
+    }
+
+    // Generate slug from title
+    const slug = title.toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+
     const { error } = await supabase
       .from('materials')
       .update({
         title,
+        slug,
         description: description || null,
         ordinal: parseInt(ordinal),
         thumbnail: thumbnail || null,
@@ -1377,7 +1658,7 @@ app.post('/materi/:id/edit', requireAdmin, express.urlencoded({ extended: true }
 app.post('/paket_kursus/:id/edit', requireAdmin, express.urlencoded({ extended: true }), async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, price, duration, thumbnail } = req.body;
+    const { title, description, price, duration, thumbnail, banner_image, is_banner } = req.body;
     const courseIds = req.body['course_ids[]'];
 
     if (!title || !description || !price) {
@@ -1385,6 +1666,57 @@ app.post('/paket_kursus/:id/edit', requireAdmin, express.urlencoded({ extended: 
         success: false,
         message: 'Nama paket, deskripsi, dan harga wajib diisi'
       });
+    }
+
+    // Get old package data
+    const { data: oldPackage } = await supabase
+      .from('packages')
+      .select('thumbnail, banner_image')
+      .eq('id', id)
+      .single();
+
+    const { createClient } = require('@supabase/supabase-js');
+    const supabaseAdmin = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+
+    // If new thumbnail provided, delete old one
+    if (thumbnail && oldPackage && oldPackage.thumbnail && oldPackage.thumbnail !== thumbnail) {
+      try {
+        const url = new URL(oldPackage.thumbnail);
+        const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/course-images\/(.+)$/);
+        
+        if (pathMatch) {
+          const filePath = pathMatch[1];
+          await supabaseAdmin.storage
+            .from('course-images')
+            .remove([filePath]);
+          
+          console.log('Old thumbnail deleted:', filePath);
+        }
+      } catch (storageError) {
+        console.error('Error deleting old thumbnail:', storageError);
+      }
+    }
+
+    // If new banner provided, delete old one
+    if (banner_image && oldPackage && oldPackage.banner_image && oldPackage.banner_image !== banner_image) {
+      try {
+        const url = new URL(oldPackage.banner_image);
+        const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/course-images\/(.+)$/);
+        
+        if (pathMatch) {
+          const filePath = pathMatch[1];
+          await supabaseAdmin.storage
+            .from('course-images')
+            .remove([filePath]);
+          
+          console.log('Old banner deleted:', filePath);
+        }
+      } catch (storageError) {
+        console.error('Error deleting old banner:', storageError);
+      }
     }
 
     // Update package
@@ -1396,6 +1728,8 @@ app.post('/paket_kursus/:id/edit', requireAdmin, express.urlencoded({ extended: 
         price: parseInt(price),
         duration: duration || null,
         thumbnail: thumbnail || null,
+        banner_image: banner_image || null,
+        is_banner: is_banner === 'true',
         updated_at: new Date().toISOString()
       })
       .eq('id', id);

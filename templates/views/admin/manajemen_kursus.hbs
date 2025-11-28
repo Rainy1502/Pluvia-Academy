@@ -187,28 +187,45 @@
   </div>
 </div>
 
-<script>
-// Upload file to Supabase Storage
-async function uploadToSupabase(file, folder = 'thumbnails') {
-  try {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+<!-- Modal Konfirmasi Hapus -->
+<div id="deleteModal" class="kursus-modal">
+  <div class="kursus-modal-content logout-modal-content">
+    <div class="modal-logo">
+      <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="modal-logo-img"/>
+      <h2>Pluvia Academy</h2>
+    </div>
+    <h3 class="modal-title">Konfirmasi Hapus</h3>
+    <p class="logout-message" id="deleteMessage">Apakah Anda yakin ingin menghapus kursus ini?</p>
     
-    const { data, error } = await supabaseClient.storage
-      .from('course-images')
-      .upload(fileName, file, {
-        cacheControl: '3600',
-        upsert: false
-      });
+    <div class="modal-actions">
+      <button type="button" class="modal-btn modal-btn-logout" onclick="confirmDelete()">Ya, Hapus</button>
+      <button type="button" class="modal-btn modal-btn-batal" onclick="closeDeleteModal()">Batal</button>
+    </div>
+  </div>
+</div>
 
-    if (error) throw error;
+<script>
+let deleteTarget = { id: null, title: null };
 
-    // Get public URL
-    const { data: { publicUrl } } = supabaseClient.storage
-      .from('course-images')
-      .getPublicUrl(fileName);
+// Upload file to server (which handles Supabase upload)
+async function uploadToServer(file, folder = 'thumbnails') {
+  try {
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('folder', folder);
 
-    return publicUrl;
+    const response = await fetch('/api/upload/upload', {
+      method: 'POST',
+      body: formData
+    });
+
+    const result = await response.json();
+
+    if (!result.success) {
+      throw new Error(result.message || 'Upload failed');
+    }
+
+    return result.url;
   } catch (error) {
     console.error('Error uploading file:', error);
     throw error;
@@ -257,13 +274,11 @@ document.addEventListener('DOMContentLoaded', function() {
         submitBtn.disabled = true;
         submitBtn.textContent = 'Mengunggah...';
         
-        // Upload file if selected
-        if (fileInput.files.length > 0) {
-          const publicUrl = await uploadToSupabase(fileInput.files[0], 'thumbnails');
-          thumbnailUrlInput.value = publicUrl;
-        }
-        
-        // Submit form
+    // Upload file if selected
+    if (fileInput.files.length > 0) {
+      const publicUrl = await uploadToServer(fileInput.files[0], 'thumbnails');
+      thumbnailUrlInput.value = publicUrl;
+    }        // Submit form
         this.submit();
       } catch (error) {
         alert('Gagal mengunggah gambar: ' + error.message);
@@ -287,13 +302,11 @@ document.addEventListener('DOMContentLoaded', function() {
         submitBtn.disabled = true;
         submitBtn.textContent = 'Mengunggah...';
         
-        // Upload file if new file selected
-        if (fileInput.files.length > 0) {
-          const publicUrl = await uploadToSupabase(fileInput.files[0], 'thumbnails');
-          thumbnailUrlInput.value = publicUrl;
-        }
-        
-        // Submit form
+    // Upload file if new file selected
+    if (fileInput.files.length > 0) {
+      const publicUrl = await uploadToServer(fileInput.files[0], 'thumbnails');
+      thumbnailUrlInput.value = publicUrl;
+    }        // Submit form
         this.submit();
       } catch (error) {
         alert('Gagal mengunggah gambar: ' + error.message);
@@ -391,29 +404,51 @@ window.onclick = function(event) {
 function deleteCourseData(button) {
   const id = button.getAttribute('data-id');
   const title = button.getAttribute('data-title');
-  deleteCourse(id, title);
+  showDeleteConfirm(id, title);
 }
 
-function deleteCourse(id, title) {
-  if (confirm(`Apakah Anda yakin ingin menghapus kursus "${title}"?`)) {
-    fetch(`/kursus/${id}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    .then(response => {
-      if (response.ok) {
-        alert('Kursus berhasil dihapus');
-        window.location.reload();
-      } else {
-        alert('Gagal menghapus kursus');
-      }
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      alert('Terjadi kesalahan saat menghapus kursus');
-    });
+function showDeleteConfirm(id, title) {
+  deleteTarget = { id, title };
+  document.getElementById('deleteMessage').textContent = `Apakah Anda yakin ingin menghapus kursus "${title}"?`;
+  document.getElementById('deleteModal').style.display = 'flex';
+}
+
+function closeDeleteModal() {
+  document.getElementById('deleteModal').style.display = 'none';
+  deleteTarget = { id: null, title: null };
+}
+
+function confirmDelete() {
+  if (!deleteTarget.id) return;
+  
+  fetch(`/kursus/${deleteTarget.id}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(response => {
+    if (response.ok) {
+      window.location.reload();
+    } else {
+      console.error('Failed to delete course');
+      window.location.reload();
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    window.location.reload();
+  })
+  .finally(() => {
+    closeDeleteModal();
+  });
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+  const deleteModal = document.getElementById('deleteModal');
+  if (event.target === deleteModal) {
+    closeDeleteModal();
   }
 }
 </script>

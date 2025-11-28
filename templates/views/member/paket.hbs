@@ -11,18 +11,24 @@
         <div class="my-courses-grid">
           {{#each packages}}
           <div class="my-course-box package-card">
-            {{#if this.badge}}<div class="package-badge">{{this.badge}}</div>{{/if}}
             <div class="box-inner">
+              {{#if this.thumbnail}}
+              <img src="{{this.thumbnail}}" alt="{{this.title}}" loading="lazy" decoding="async" style="width: 100%; height: 200px; object-fit: cover;"/>
+              {{else}}
               <img src="/img/banner.png" alt="{{this.title}}" loading="lazy" decoding="async"/>
+              {{/if}}
             </div>
             <div class="course-desc">
               <div class="course-title">{{this.title}}</div>
               <p class="package-desc">{{this.description}}</p>
+              {{#if this.duration}}
+              <p class="package-duration" style="color: #666; font-size: 14px; margin-top: 8px;">⏱️ {{this.duration}}</p>
+              {{/if}}
             </div>
             <div class="package-footer">
-              <div class="package-price">{{this.price}}</div>
-              <a href="/register" class="btn-primary">Beli Paket</a>
+              <div class="package-price">Rp {{this.price}}</div>
             </div>
+            <a href="#" class="btn-primary" style="text-decoration: none; text-align: center;" onclick="alert('Fitur pembelian akan segera hadir!'); return false;">Beli Paket</a>
           </div>
           {{/each}}
         </div>

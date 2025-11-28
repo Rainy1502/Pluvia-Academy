@@ -13,12 +13,14 @@
   <link rel="icon" href="/img/favicon.png" />
   <!-- Supabase JS Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/js/supabaseConfig.js"></script>
+  {{#if supabaseUrl}}
   <script>
-    // Initialize Supabase client if config exists
-    if (typeof SUPABASE_CONFIG !== 'undefined') {
-      window.supabaseClient = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
-    }
+    // Initialize Supabase client from server-side env
+    window.supabaseClient = supabase.createClient(
+      '{{supabaseUrl}}',
+      '{{supabaseAnonKey}}'
+    );
   </script>
+  {{/if}}
 </head>
 <body>
