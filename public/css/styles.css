@@ -2208,7 +2208,7 @@ body{background:var(--bg);color:var(--text);line-height:1.55;font-size:16px}
 }
 
 .modal-btn-logout{
-	background:#f44242;
+	background:#22c55e;
 	color:#fff;
 	text-decoration:none;
 	display:inline-flex;
