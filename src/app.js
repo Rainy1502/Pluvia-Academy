@@ -288,8 +288,9 @@ app.get('/lecturer', async (req, res) => {
   try {
     const { data: lecturers, error } = await supabase
       .from('users')
-      .select('id, full_name, email, avatar_url, is_active')
-      .eq('role_id', 5) // Assuming role_id 5 is for lecturers
+      .select('id, full_name, email, phone, expertise, is_active')
+      .eq('role_id', 5)
+      .eq('is_active', true)
       .order('full_name', { ascending: true });
 
     if (error) throw error;
@@ -627,9 +628,11 @@ app.post('/login', express.urlencoded({ extended: true }), async (req, res) => {
       });
     }
 
-    // Validasi password (dalam produksi gunakan bcrypt.compare)
-    // Untuk sementara plain text comparison (TIDAK AMAN - hanya untuk demo)
-    if (user.password_hash !== password) {
+    // Validasi password dengan bcrypt
+    const bcrypt = require('bcrypt');
+    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+    
+    if (!isPasswordValid) {
       return res.status(400).render('login', {
         title: 'Masuk',
         error: 'Email atau password salah',
@@ -718,9 +721,10 @@ app.post('/register', express.urlencoded({ extended: true }), async (req, res) =
       });
     }
 
-    // Hash password (dalam produksi gunakan bcrypt)
-    // Untuk sementara simpan plain text (TIDAK AMAN - hanya untuk demo)
-    const passwordHash = password; // TODO: gunakan bcrypt.hash(password, 10)
+    // Hash password dengan bcrypt
+    const bcrypt = require('bcrypt');
+    const saltRounds = 10;
+    const passwordHash = await bcrypt.hash(password, saltRounds);
 
     // Buat user baru
     const { data: newUser, error: createError } = await supabase
@@ -929,6 +933,61 @@ app.get('/logout', (req, res) => {
   // Clear cookie by setting expired Set-Cookie header
   res.setHeader('Set-Cookie', 'user_id=; Max-Age=0; Path=/; HttpOnly');
   return res.redirect('/');
+});
+
+// TEMPORARY: Migrate plain text passwords to bcrypt
+// Akses: http://localhost:3000/migrate-passwords?secret=your-secret-key
+// HAPUS ROUTE INI SETELAH MIGRASI SELESAI!
+app.get('/migrate-passwords', async (req, res) => {
+  const secret = req.query.secret;
+  
+  // Security: hanya bisa diakses dengan secret key
+  if (secret !== 'pluvia-migrate-2025') {
+    return res.status(403).send('Forbidden');
+  }
+
+  try {
+    const bcrypt = require('bcrypt');
+    const saltRounds = 10;
+    
+    // Get all users
+    const { data: users, error } = await supabase
+      .from('users')
+      .select('id, email, password_hash');
+
+    if (error) throw error;
+
+    let migrated = 0;
+    let skipped = 0;
+
+    for (const user of users) {
+      // Check if password is already bcrypt hash (starts with $2b$ or $2a$)
+      if (user.password_hash && user.password_hash.startsWith('$2')) {
+        skipped++;
+        continue;
+      }
+
+      // Hash the plain text password
+      const hashedPassword = await bcrypt.hash(user.password_hash, saltRounds);
+      
+      // Update user
+      await supabase
+        .from('users')
+        .update({ password_hash: hashedPassword })
+        .eq('id', user.id);
+      
+      migrated++;
+    }
+
+    res.json({
+      success: true,
+      message: `Migration complete! Migrated: ${migrated}, Skipped (already hashed): ${skipped}`,
+      total: users.length
+    });
+  } catch (error) {
+    console.error('Migration error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
 });
 
 // ========================================
@@ -1150,7 +1209,7 @@ app.post('/paket_kursus/create', requireAdmin, express.urlencoded({ extended: tr
 // POST Create Lecturer
 app.post('/lecturer/create', requireAdmin, express.urlencoded({ extended: true }), async (req, res) => {
   try {
-    const { full_name, email, password, phone } = req.body;
+    const { full_name, email, password, phone, expertise, keahlian } = req.body;
 
     if (!full_name || !email || !password || !phone) {
       return res.status(400).json({
@@ -1189,6 +1248,8 @@ app.post('/lecturer/create', requireAdmin, express.urlencoded({ extended: true }
         email,
         password_hash,
         phone,
+        expertise: expertise || null,
+        keahlian: keahlian || null,
         role_id: 5, // Lecturer role
         is_active: true,
         is_verified: true,
@@ -1351,7 +1412,7 @@ app.post('/paket_kursus/:id/edit', requireAdmin, express.urlencoded({ extended: 
 app.post('/lecturer/:id/edit', requireAdmin, express.urlencoded({ extended: true }), async (req, res) => {
   try {
     const { id } = req.params;
-    const { full_name, email, phone, password } = req.body;
+    const { full_name, email, phone, password, expertise, keahlian } = req.body;
 
     if (!full_name || !email || !phone) {
       return res.status(400).json({
@@ -1364,6 +1425,8 @@ app.post('/lecturer/:id/edit', requireAdmin, express.urlencoded({ extended: true
       full_name,
       email,
       phone,
+      expertise: expertise || null,
+      keahlian: keahlian || null,
       updated_at: new Date().toISOString()
     };
 

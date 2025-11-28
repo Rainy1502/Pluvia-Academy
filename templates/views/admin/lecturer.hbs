@@ -19,7 +19,10 @@
             <div class="lecturer-item">
               <div class="lecturer-info">
                 <div class="lecturer-icon"></div>
-                <span class="lecturer-name">{{this.full_name}}</span>
+                <div class="lecturer-content">
+                  <h3 class="lecturer-name">{{this.full_name}}</h3>
+                  <p class="lecturer-email">{{this.email}}</p>
+                </div>
               </div>
               <div class="lecturer-actions">
                 <button class="lecturer-btn lecturer-btn-edit" onclick="openEditLecturerModal('{{this.id}}', '{{this.full_name}}', '{{this.expertise}}', '{{this.phone}}', '{{this.email}}')">Edit</button>
@@ -50,16 +53,20 @@
     
     <h3 class="modal-title">Tambah Lecturer</h3>
     
-    <form id="tambahLecturerForm" method="POST" action="/lecturer/create">
+    <form id="tambahLecturerForm" method="POST" action="/lecturer/create" onsubmit="return validateTambahForm()">
       <input type="text" name="full_name" placeholder="Nama Lengkap" required class="modal-input"/>
       
       <input type="text" name="expertise" placeholder="Riwayat Pendidikan" class="modal-input"/>
       
-      <input type="tel" name="phone" placeholder="Nomor Hp" required class="modal-input"/>
+      <input type="tel" name="phone" placeholder="Nomor HP" required class="modal-input"/>
       
       <input type="email" name="email" placeholder="Email" required class="modal-input"/>
       
-      <input type="password" name="password" placeholder="Password" required class="modal-input"/>
+      <input type="password" id="tambahPassword" name="password" placeholder="Password" required class="modal-input"/>
+      
+      <input type="password" id="tambahPasswordConfirm" placeholder="Konfirmasi Password" required class="modal-input"/>
+      
+      <input type="text" name="keahlian" placeholder="Keahlian" class="modal-input"/>
       
       <div class="modal-actions">
         <button type="submit" class="modal-btn modal-btn-tambah">Tambah</button>
@@ -79,16 +86,20 @@
     
     <h3 class="modal-title">Edit Lecturer</h3>
     
-    <form id="editLecturerForm" method="POST">
+    <form id="editLecturerForm" method="POST" onsubmit="return validateEditForm()">
       <input type="text" id="editFullName" name="full_name" placeholder="Nama Lengkap" required class="modal-input"/>
       
       <input type="text" id="editExpertise" name="expertise" placeholder="Riwayat Pendidikan" class="modal-input"/>
       
-      <input type="tel" id="editPhone" name="phone" placeholder="Nomor Hp" required class="modal-input"/>
+      <input type="tel" id="editPhone" name="phone" placeholder="Nomor HP" required class="modal-input"/>
       
       <input type="email" id="editEmail" name="email" placeholder="Email" required class="modal-input"/>
       
       <input type="password" id="editPassword" name="password" placeholder="Password (kosongkan jika tidak diubah)" class="modal-input"/>
+      
+      <input type="password" id="editPasswordConfirm" placeholder="Konfirmasi Password (kosongkan jika tidak diubah)" class="modal-input"/>
+      
+      <input type="text" id="editKeahlian" name="keahlian" placeholder="Keahlian" class="modal-input"/>
       
       <div class="modal-actions">
         <button type="submit" class="modal-btn modal-btn-edit">Edit</button>
@@ -107,6 +118,31 @@ function closeTambahLecturerModal() {
   document.getElementById('tambahLecturerModal').style.display = 'none';
 }
 
+function validateTambahForm() {
+  const password = document.getElementById('tambahPassword').value;
+  const confirmPassword = document.getElementById('tambahPasswordConfirm').value;
+  
+  if (password !== confirmPassword) {
+    alert('Password dan Konfirmasi Password tidak cocok!');
+    return false;
+  }
+  return true;
+}
+
+function validateEditForm() {
+  const password = document.getElementById('editPassword').value;
+  const confirmPassword = document.getElementById('editPasswordConfirm').value;
+  
+  // Only validate if password is filled
+  if (password || confirmPassword) {
+    if (password !== confirmPassword) {
+      alert('Password dan Konfirmasi Password tidak cocok!');
+      return false;
+    }
+  }
+  return true;
+}
+
 function openEditLecturerModal(id, fullName, expertise, phone, email) {
   const modal = document.getElementById('editLecturerModal');
   const form = document.getElementById('editLecturerForm');
@@ -117,6 +153,7 @@ function openEditLecturerModal(id, fullName, expertise, phone, email) {
   document.getElementById('editPhone').value = phone || '';
   document.getElementById('editEmail').value = email || '';
   document.getElementById('editPassword').value = '';
+  document.getElementById('editPasswordConfirm').value = '';
   
   modal.style.display = 'flex';
 }
