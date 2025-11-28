@@ -150,11 +150,19 @@ app.get('/', (_req, res) => {
 });
 
   // Courses page: shows courses the user is enrolled in or management view for admin
+  // Kursus page - Member view only
   app.get('/kursus', async (req, res) => {
-  const isAdmin = res.locals.user && res.locals.user.role_id === 10;
-  
-  if (isAdmin) {
-    // Admin view: show all courses with management options
+    // Member view: show enrolled courses
+    const simulateEmpty = req.query && (req.query.empty === '1' || req.query.empty === 'true');
+    const coursesToRender = simulateEmpty ? [] : (Array.isArray(courseData) ? courseData : []);
+    return res.render('member/kursus', { 
+      title: 'Kursus', 
+      courses: coursesToRender
+    });
+  });
+
+  // Manajemen Kursus - Admin only
+  app.get('/manajemen_kursus', requireAdmin, async (req, res) => {
     try {
       const [coursesResult, lecturersResult] = await Promise.all([
         supabase
@@ -170,32 +178,20 @@ app.get('/', (_req, res) => {
 
       if (coursesResult.error) throw coursesResult.error;
       
-      return res.render('kursus', { 
+      return res.render('admin/manajemen_kursus', { 
         title: 'Manajemen Kursus', 
         courses: coursesResult.data || [],
-        lecturers: lecturersResult.data || [],
-        isAdmin: true 
+        lecturers: lecturersResult.data || []
       });
     } catch (error) {
       console.error('Error fetching courses:', error);
-      return res.render('kursus', { 
+      return res.render('admin/manajemen_kursus', { 
         title: 'Manajemen Kursus', 
         courses: [],
-        lecturers: [],
-        isAdmin: true 
+        lecturers: []
       });
     }
-  } else {
-    // Member view: show enrolled courses
-    const simulateEmpty = req.query && (req.query.empty === '1' || req.query.empty === 'true');
-    const coursesToRender = simulateEmpty ? [] : (Array.isArray(courseData) ? courseData : []);
-    return res.render('kursus', { 
-      title: 'Kursus', 
-      courses: coursesToRender,
-      isAdmin: false 
-    });
-  }
-});
+  });
 
 // Materi page: shows available materials or management view for admin
 app.get('/materi', async (req, res) => {
@@ -211,14 +207,14 @@ app.get('/materi', async (req, res) => {
 
       if (error) throw error;
 
-      return res.render('materi', { 
+      return res.render('admin/manajemen_materi', { 
         title: 'Manajemen Materi', 
         materials: materials || [],
         isAdmin: true 
       });
     } catch (error) {
       console.error('Error fetching materials:', error);
-      return res.render('materi', { 
+      return res.render('admin/manajemen_materi', { 
         title: 'Manajemen Materi', 
         materials: [],
         isAdmin: true 
@@ -228,7 +224,7 @@ app.get('/materi', async (req, res) => {
     // Member view: show purchased materials
     const purchased = req.query && (req.query.paket === '1' || req.query.bought === '1' || req.query.purchased === '1');
     const materialsToRender = purchased ? (Array.isArray(materiData) ? materiData : []) : [];
-    return res.render('materi', { 
+    return res.render('member/materi', { 
       title: 'Materi', 
       materials: materialsToRender, 
       hasPackage: Boolean(purchased),
@@ -251,14 +247,14 @@ app.get('/paket_kursus', async (req, res) => {
 
       if (error) throw error;
 
-      return res.render('paket_kursus', { 
+      return res.render('admin/manajemen_paket_kursus', { 
         title: 'Manajemen Paket', 
         packages: packages || [],
         isAdmin: true 
       });
     } catch (error) {
       console.error('Error fetching packages:', error);
-      return res.render('paket_kursus', { 
+      return res.render('admin/manajemen_paket_kursus', { 
         title: 'Manajemen Paket', 
         packages: [],
         isAdmin: true 
@@ -267,7 +263,7 @@ app.get('/paket_kursus', async (req, res) => {
   } else {
     // Member view: show available packages for purchase
     const packagesToRender = [];
-    return res.render('paket_kursus', { 
+    return res.render('member/paket', { 
       title: 'Paket Kursus', 
       packages: packagesToRender,
       isAdmin: false 
@@ -291,13 +287,13 @@ app.get('/lecturer', async (req, res) => {
 
     if (error) throw error;
 
-    return res.render('lecturer', { 
+    return res.render('admin/lecturer', { 
       title: 'Manajemen Lecturer', 
       lecturers: lecturers || []
     });
   } catch (error) {
     console.error('Error fetching lecturers:', error);
-    return res.render('lecturer', { 
+    return res.render('admin/lecturer', { 
       title: 'Manajemen Lecturer', 
       lecturers: []
     });
@@ -347,8 +343,8 @@ app.get('/kursus/:id/students', requireAdmin, async (req, res) => {
       avatar_url: enrollment.users.avatar_url
     }));
 
-    return res.render('students', {
-      title: `Daftar Student - ${course.title}`,
+    return res.render('admin/siswa', {
+      title: `Daftar Siswa - ${course.title}`,
       courseId: course.id,
       courseName: course.title,
       students
@@ -409,7 +405,7 @@ app.get('/kursus/:courseId/students/:studentId/materi', requireAdmin, async (req
       is_unlocked: progressMap[material.id] !== undefined
     }));
 
-    return res.render('akses_materi', {
+    return res.render('admin/akses_materi', {
       title: `Akses Materi - ${studentResult.data.full_name}`,
       courseId,
       courseName: courseResult.data.title,
@@ -448,6 +444,97 @@ app.delete('/kursus/:courseId/students/:studentId', requireAdmin, async (req, re
   } catch (error) {
     console.error('Error removing student:', error);
     return res.status(500).json({ success: false, message: 'Gagal mengeluarkan student' });
+  }
+});
+
+// Get students for a specific material (Admin only)
+app.get('/materi/:id/students', requireAdmin, async (req, res) => {
+  const materialId = req.params.id;
+
+  try {
+    // Get material details
+    const { data: material, error: materialError } = await supabase
+      .from('materials')
+      .select('id, title, course_id')
+      .eq('id', materialId)
+      .single();
+
+    if (materialError) throw materialError;
+    if (!material) {
+      return res.status(404).render('404', { title: '404 - Tidak Ditemukan' });
+    }
+
+    // Get enrolled students for the course that owns this material
+    const { data: enrollments, error: enrollError } = await supabase
+      .from('enrollments')
+      .select(`
+        id,
+        user_id,
+        users:user_id (
+          id,
+          full_name,
+          email,
+          avatar_url
+        )
+      `)
+      .eq('course_id', material.course_id)
+      .order('enrolled_at', { ascending: false });
+
+    if (enrollError) throw enrollError;
+
+    // Transform data for easier template rendering
+    const students = (enrollments || []).map(enrollment => ({
+      id: enrollment.users.id,
+      full_name: enrollment.users.full_name,
+      email: enrollment.users.email,
+      avatar_url: enrollment.users.avatar_url
+    }));
+
+    return res.render('admin/materi_siswa', {
+      title: `Daftar Siswa - ${material.title}`,
+      materialId: material.id,
+      materialName: material.title,
+      students
+    });
+  } catch (error) {
+    console.error('Error fetching material students:', error);
+    return res.status(500).render('material_students', {
+      title: 'Daftar Siswa',
+      materialId,
+      materialName: 'Materi',
+      students: [],
+      error: 'Gagal memuat daftar siswa'
+    });
+  }
+});
+
+// Delete student from material (Admin only)
+app.delete('/materi/:materialId/students/:studentId', requireAdmin, async (req, res) => {
+  const { materialId, studentId } = req.params;
+
+  try {
+    // Get material's course_id
+    const { data: material, error: materialError } = await supabase
+      .from('materials')
+      .select('course_id')
+      .eq('id', materialId)
+      .single();
+
+    if (materialError) throw materialError;
+
+    // Remove student from course (which removes access to all materials)
+    const { error: deleteError } = await supabase
+      .from('enrollments')
+      .delete()
+      .eq('course_id', material.course_id)
+      .eq('user_id', studentId);
+
+    if (deleteError) throw deleteError;
+
+    return res.json({ success: true, message: 'Siswa berhasil dikeluarkan' });
+  } catch (error) {
+    console.error('Error removing student from material:', error);
+    return res.status(500).json({ success: false, message: 'Gagal mengeluarkan siswa' });
   }
 });
 

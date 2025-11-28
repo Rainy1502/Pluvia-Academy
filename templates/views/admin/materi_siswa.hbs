@@ -1,0 +1,64 @@
+{{> head}}
+{{> header}}
+
+<main class="site-root">
+  <section class="my-courses-section">
+    <div class="container">
+      <div class="courses-panel">
+        <div class="students-admin-container">
+          <h2 class="students-title">Daftar Siswa</h2>
+          <h3 class="students-subtitle">{{materialName}}</h3>
+
+          {{#if students.length}}
+          <div class="students-card">
+            {{#each students}}
+            <div class="student-item">
+              <div class="student-info">
+                <div class="student-icon"></div>
+                <span class="student-name">{{this.full_name}}</span>
+              </div>
+              <div class="student-actions">
+                <button class="student-btn student-btn-akses" onclick="window.location.href='/materi/{{../materialId}}/students/{{this.id}}/progress'">Akses Materi</button>
+                <button class="student-btn student-btn-keluarkan" onclick="removeStudent('{{this.id}}', '{{this.full_name}}')">Keluarkan</button>
+              </div>
+            </div>
+            {{/each}}
+          </div>
+          {{else}}
+          <div class="empty-courses empty-centered">
+            <p class="empty-message">Belum ada siswa terdaftar</p>
+            <p class="empty-sub">Siswa akan muncul setelah mendaftar ke kursus yang memiliki materi ini</p>
+          </div>
+          {{/if}}
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+function removeStudent(studentId, studentName) {
+  if (confirm(`Apakah Anda yakin ingin mengeluarkan ${studentName} dari materi ini?`)) {
+    fetch(`/materi/{{materialId}}/students/${studentId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(response => {
+      if (response.ok) {
+        alert('Siswa berhasil dikeluarkan');
+        window.location.reload();
+      } else {
+        alert('Gagal mengeluarkan siswa');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Terjadi kesalahan');
+    });
+  }
+}
+</script>
+
+{{> footer}}

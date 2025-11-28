@@ -5,73 +5,40 @@
   <section class="my-courses-section">
     <div class="container">
       <div class="courses-panel">
-        {{#if isAdmin}}
-          <!-- Admin View - Manajemen Paket -->
-          <div class="paket-admin-container">
-            <div class="paket-header">
-              <h2 class="paket-admin-title">Manajemen Paket Kursus</h2>
-              <button class="paket-tambah-btn" onclick="openTambahPaketModal()">
-                <span class="plus-icon">⊕</span> Tambah Data
-              </button>
-            </div>
-
-            {{#if packages.length}}
-            <div class="paket-card">
-              {{#each packages}}
-              <div class="paket-item">
-                <div class="paket-info">
-                  <div class="paket-icon"></div>
-                  <div class="paket-content">
-                    <h3 class="paket-title">{{this.title}}</h3>
-                    <p class="paket-desc">{{this.description}}</p>
-                  </div>
-                </div>
-                <div class="paket-actions">
-                  <button class="paket-btn paket-btn-edit" onclick="openEditPaketModal('{{this.id}}', '{{this.title}}', '{{this.description}}', '{{this.price}}', '{{this.duration}}', '{{this.material_count}}', '{{this.thumbnail}}')">Edit</button>
-                  <button class="paket-btn paket-btn-hapus" onclick="deletePackage('{{this.id}}', '{{this.title}}')">Hapus</button>
-                </div>
-              </div>
-              {{/each}}
-            </div>
-            {{else}}
-            <div class="empty-courses empty-centered">
-              <p class="empty-message">Belum ada paket yang ditambahkan.</p>
-              <p class="empty-sub">Mulai tambahkan paket untuk platform Anda</p>
-              <button class="btn-primary empty-cta" onclick="openTambahPaketModal()">Tambah Paket Pertama</button>
-            </div>
-            {{/if}}
+        <!-- Admin View - Manajemen Paket -->
+        <div class="paket-admin-container">
+          <div class="paket-header">
+            <h2 class="paket-admin-title">Manajemen Paket Kursus</h2>
+            <button class="paket-tambah-btn" onclick="openTambahPaketModal()">
+              <span class="plus-icon">⊕</span> Tambah Data
+            </button>
           </div>
 
-        {{else}}
-          <!-- Member View - Paket Kursus untuk Dibeli -->
-          <h2 class="my-courses-title">Paket Kursus</h2>
           {{#if packages.length}}
-          <div class="my-courses-grid">
+          <div class="paket-card">
             {{#each packages}}
-            <div class="my-course-box package-card">
-              {{#if this.badge}}<div class="package-badge">{{this.badge}}</div>{{/if}}
-              <div class="box-inner">
-                <img src="/img/banner.png" alt="{{this.title}}" loading="lazy" decoding="async"/>
+            <div class="paket-item">
+              <div class="paket-info">
+                <div class="paket-icon"></div>
+                <div class="paket-content">
+                  <h3 class="paket-title">{{this.title}}</h3>
+                  <p class="paket-desc">{{this.description}}</p>
+                </div>
               </div>
-              <div class="course-desc">
-                <div class="course-title">{{this.title}}</div>
-                <p class="package-desc">{{this.description}}</p>
-              </div>
-              <div class="package-footer">
-                <div class="package-price">{{this.price}}</div>
-                <a href="/register" class="btn-primary">Beli Paket</a>
+              <div class="paket-actions">
+                <button class="paket-btn paket-btn-edit" onclick="openEditPaketModal('{{this.id}}', '{{this.title}}', '{{this.description}}', '{{this.price}}', '{{this.duration}}', '{{this.material_count}}', '{{this.thumbnail}}')">Edit</button>
+                <button class="paket-btn paket-btn-hapus" onclick="deletePackage('{{this.id}}', '{{this.title}}')">Hapus</button>
               </div>
             </div>
             {{/each}}
           </div>
           {{else}}
           <div class="empty-courses empty-centered">
-            <p class="empty-message">Belum ada paket kursus yang ditambahkan.</p>
-            <p class="empty-sub">Silakan cek kembali nanti atau hubungi administrator untuk menambahkan.</p>
-            <a href="/" class="btn-primary empty-cta">Home</a>
+            <p class="empty-message">Belum ada paket terdaftar</p>
+            <p class="empty-sub">Klik "Tambah Data" untuk menambahkan paket baru</p>
           </div>
           {{/if}}
-        {{/if}}
+        </div>
       </div>
     </div>
   </section>

@@ -5,65 +5,41 @@
   <section class="my-courses-section">
     <div class="container">
       <div class="courses-panel">
-        {{#if isAdmin}}
-          <!-- Admin View - Manajemen Kursus -->
-          <div class="kursus-admin-container">
-            <div class="kursus-header">
-              <h2 class="kursus-admin-title">Manajemen Kursus</h2>
-              <button class="kursus-tambah-btn" onclick="openTambahModal()">
-                <span class="plus-icon">⊕</span> Tambah Data
-              </button>
-            </div>
+        <!-- Admin View - Manajemen Kursus -->
+        <div class="kursus-admin-container">
+          <div class="kursus-header">
+            <h2 class="kursus-admin-title">Manajemen Kursus</h2>
+            <button class="kursus-tambah-btn" onclick="openTambahModal()">
+              <span class="plus-icon">⊕</span> Tambah Data
+            </button>
+          </div>
 
-            {{#if courses.length}}
-            <div class="kursus-card">
-              {{#each courses}}
-              <div class="kursus-item">
-                <div class="kursus-info">
-                  <div class="kursus-icon"></div>
-                  <div class="kursus-content">
-                    <h3 class="kursus-title">{{this.title}}</h3>
-                    <p class="kursus-desc">{{this.description}}</p>
-                  </div>
-                </div>
-                <div class="kursus-actions">
-                  <button class="kursus-btn kursus-btn-student" onclick="window.location.href='/kursus/{{this.id}}/students'">Student</button>
-                  <button class="kursus-btn kursus-btn-edit" onclick="openEditModal('{{this.id}}', '{{this.title}}', '{{this.description}}', '{{this.meet_link}}', '{{this.thumbnail}}')">Edit</button>
-                  <button class="kursus-btn kursus-btn-hapus" onclick="deleteCourse('{{this.id}}', '{{this.title}}')">Hapus</button>
+          {{#if courses.length}}
+          <div class="kursus-card">
+            {{#each courses}}
+            <div class="kursus-item">
+              <div class="kursus-info">
+                <div class="kursus-icon"></div>
+                <div class="kursus-content">
+                  <h3 class="kursus-title">{{this.title}}</h3>
+                  <p class="kursus-desc">{{this.description}}</p>
                 </div>
               </div>
-              {{/each}}
+              <div class="kursus-actions">
+                <button class="kursus-btn kursus-btn-student" onclick="window.location.href='/kursus/{{this.id}}/students'">Siswa</button>
+                <button class="kursus-btn kursus-btn-edit" onclick="openEditModal('{{this.id}}', '{{this.title}}', '{{this.description}}', '{{this.meet_link}}', '{{this.thumbnail}}')">Edit</button>
+                <button class="kursus-btn kursus-btn-hapus" onclick="deleteCourse('{{this.id}}', '{{this.title}}')">Hapus</button>
+              </div>
             </div>
-            {{else}}
-            <div class="empty-courses empty-centered">
-              <p class="empty-message">Belum ada kursus yang ditambahkan.</p>
-              <p class="empty-sub">Mulai tambahkan kursus untuk platform Anda</p>
-              <button class="btn-primary empty-cta" onclick="openTambahModal()">Tambah Kursus Pertama</button>
-            </div>
-            {{/if}}
-          </div>
-
-        {{else}}
-          <!-- Member View - Kursus Yang Diikuti -->
-          <h2 class="my-courses-title">Kelas Yang Anda Jalani</h2>
-          {{#if courses.length}}
-          <div class="my-courses-grid">
-          {{#each courses}}
-          <div class="my-course-box">
-            <!-- placeholder content; replace with real thumbnail or title as needed -->
-            <div class="box-inner"></div>
-            <div class="course-title">{{this.title}}</div>
-          </div>
-          {{/each}}
+            {{/each}}
           </div>
           {{else}}
           <div class="empty-courses empty-centered">
-            <p class="empty-message">Anda belum mengikuti kursus apa pun saat ini.</p>
-            <p class="empty-sub">Pilih paket untuk memulai pembelajaran Anda di Pluvia Academy.</p>
-            <a href="/paket_kursus" class="btn-primary empty-cta">Beli Paket</a>
+            <p class="empty-message">Belum ada kursus terdaftar</p>
+            <p class="empty-sub">Klik "Tambah Data" untuk menambahkan kursus baru</p>
           </div>
           {{/if}}
-        {{/if}}
+        </div>
       </div>
     </div>
   </section>
