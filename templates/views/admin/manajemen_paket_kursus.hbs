@@ -14,28 +14,43 @@
             </button>
           </div>
 
-          {{#if packages.length}}
-          <div class="paket-card">
-            {{#each packages}}
-            <div class="paket-item">
-              <div class="paket-info">
-                <div class="paket-icon"></div>
-                <div class="paket-content">
-                  <h3 class="paket-title">{{this.title}}</h3>
-                  <p class="paket-desc">{{this.description}}</p>
-                </div>
-              </div>
-              <div class="paket-actions">
-                <button class="paket-btn paket-btn-edit" onclick="openEditPaketModal('{{this.id}}', '{{this.title}}', '{{this.description}}', '{{this.price}}', '{{this.duration}}', '{{this.material_count}}', '{{this.thumbnail}}')">Edit</button>
-                <button class="paket-btn paket-btn-hapus" onclick="deletePackage('{{this.id}}', '{{this.title}}')">Hapus</button>
+        {{#if packages.length}}
+        <div class="paket-card">
+          {{#each packages}}
+          <div class="paket-item">
+            <div class="paket-info">
+              <div class="paket-icon"></div>
+              <div class="paket-content">
+                <h3 class="paket-title">{{this.title}}</h3>
               </div>
             </div>
-            {{/each}}
+            <div class="paket-actions">
+              <button class="kursus-btn kursus-btn-edit" 
+                data-id="{{this.id}}" 
+                data-title="{{this.title}}" 
+                data-description="{{this.description}}" 
+                data-price="{{this.price}}" 
+                data-duration="{{this.duration}}" 
+                data-course-ids="{{this.course_ids}}" 
+                data-thumbnail="{{this.thumbnail}}"
+                onclick="openEditPaketModalData(this)">
+                Edit
+              </button>
+              <button class="kursus-btn kursus-btn-hapus" 
+                data-id="{{this.id}}" 
+                data-title="{{this.title}}"
+                onclick="deletePackageData(this)">
+                Hapus
+              </button>
+            </div>
           </div>
-          {{else}}
+          {{/each}}
+        </div>
+        {{else}}
           <div class="empty-courses empty-centered">
-            <p class="empty-message">Belum ada paket terdaftar</p>
-            <p class="empty-sub">Klik "Tambah Data" untuk menambahkan paket baru</p>
+            <p class="empty-message">Belum ada paket yang ditambahkan.</p>
+            <p class="empty-sub">Mulai tambahkan paket untuk platform Anda</p>
+            <button class="btn-primary empty-cta" onclick="openTambahPaketModal()">Tambah Paket Pertama</button>
           </div>
           {{/if}}
         </div>
@@ -56,32 +71,24 @@
     <form id="tambahPaketForm" method="POST" action="/paket_kursus/create">
       <input type="text" name="title" placeholder="Nama Paket" required class="modal-input"/>
       
-      <input type="text" name="description" placeholder="Deskripsi" required class="modal-input"/>
+      <textarea name="description" placeholder="Deskripsi" required class="modal-input" rows="3"></textarea>
       
       <input type="number" name="price" placeholder="Harga" required class="modal-input"/>
       
       <input type="text" name="duration" placeholder="Durasi (contoh: 6 Bulan)" class="modal-input"/>
       
-      <div class="course-selection-container">
-        <div class="course-selection-box">
-          <span class="course-placeholder">Pilih Kursus</span>
-          <button type="button" class="add-course-btn" onclick="toggleCourseList('tambah')">⊕</button>
+      <div class="course-select-wrapper">
+        <div class="course-select-header" onclick="toggleCourseDropdown('tambah')">
+          <span id="tambahSelectedText">Pilih Kursus</span>
+          <span class="dropdown-icon">⊕</span>
         </div>
-        <div class="course-checkbox-list" id="tambahCourseList" style="display:none;">
-          {{#if courses}}
-            {{#if courses.length}}
-              {{#each courses}}
-              <label class="course-checkbox-item">
-                <input type="checkbox" name="course_ids[]" value="{{this.id}}" class="course-checkbox"/>
-                <span class="course-name">{{this.title}}</span>
-              </label>
-              {{/each}}
-            {{else}}
-              <p class="empty-courses-msg">Belum ada kursus tersedia</p>
-            {{/if}}
-          {{else}}
-            <p class="empty-courses-msg">Belum ada kursus tersedia</p>
-          {{/if}}
+        <div id="tambahCourseDropdown" class="course-dropdown">
+          {{#each courses}}
+          <label class="course-checkbox-label">
+            <input type="checkbox" name="course_ids[]" value="{{this.id}}" class="course-checkbox"/>
+            <span>{{this.title}}</span>
+          </label>
+          {{/each}}
         </div>
       </div>
       
@@ -114,32 +121,24 @@
     <form id="editPaketForm" method="POST">
       <input type="text" name="title" id="editPaketTitle" placeholder="Nama Paket" required class="modal-input"/>
       
-      <input type="text" name="description" id="editPaketDescription" placeholder="Deskripsi" required class="modal-input"/>
+      <textarea name="description" id="editPaketDescription" placeholder="Deskripsi" required class="modal-input" rows="3"></textarea>
       
       <input type="number" name="price" id="editPaketPrice" placeholder="Harga" required class="modal-input"/>
       
       <input type="text" name="duration" id="editPaketDuration" placeholder="Durasi (contoh: 6 Bulan)" class="modal-input"/>
       
-      <div class="course-selection-container">
-        <div class="course-selection-box">
-          <span class="course-placeholder">Pilih Kursus</span>
-          <button type="button" class="add-course-btn" onclick="toggleCourseList('edit')">⊕</button>
+      <div class="course-select-wrapper">
+        <div class="course-select-header" onclick="toggleCourseDropdown('edit')">
+          <span id="editSelectedText">Pilih Kursus</span>
+          <span class="dropdown-icon">⊕</span>
         </div>
-        <div class="course-checkbox-list" id="editCourseList" style="display:none;">
-          {{#if courses}}
-            {{#if courses.length}}
-              {{#each courses}}
-              <label class="course-checkbox-item">
-                <input type="checkbox" name="course_ids[]" value="{{this.id}}" class="course-checkbox edit-course-checkbox"/>
-                <span class="course-name">{{this.title}}</span>
-              </label>
-              {{/each}}
-            {{else}}
-              <p class="empty-courses-msg">Belum ada kursus tersedia</p>
-            {{/if}}
-          {{else}}
-            <p class="empty-courses-msg">Belum ada kursus tersedia</p>
-          {{/if}}
+        <div id="editCourseDropdown" class="course-dropdown">
+          {{#each courses}}
+          <label class="course-checkbox-label">
+            <input type="checkbox" name="course_ids[]" value="{{this.id}}" class="course-checkbox" data-course-id="{{this.id}}"/>
+            <span>{{this.title}}</span>
+          </label>
+          {{/each}}
         </div>
       </div>
       
@@ -161,29 +160,236 @@
 </div>
 
 <script>
-function toggleCourseList(type) {
-  const listId = type === 'tambah' ? 'tambahCourseList' : 'editCourseList';
-  const list = document.getElementById(listId);
-  list.style.display = list.style.display === 'none' ? 'block' : 'none';
+// Upload file to Supabase Storage
+async function uploadToSupabase(file, folder = 'packages') {
+  try {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    
+    const { data, error } = await supabaseClient.storage
+      .from('course-images')
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (error) throw error;
+
+    // Get public URL
+    const { data: { publicUrl } } = supabaseClient.storage
+      .from('course-images')
+      .getPublicUrl(fileName);
+
+    return publicUrl;
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    throw error;
+  }
 }
+
+// Wait for DOM to be ready
+document.addEventListener('DOMContentLoaded', function() {
+  // Handle file input label change for Tambah modal
+  const tambahFileInput = document.getElementById('paketThumbnailInput');
+  if (tambahFileInput) {
+    tambahFileInput.addEventListener('change', function(e) {
+      const label = this.nextElementSibling.querySelector('span:first-child');
+      if (this.files.length > 0) {
+        label.textContent = this.files[0].name;
+      } else {
+        label.textContent = 'Pilih Gambar';
+      }
+    });
+  }
+
+  // Handle file input label change for Edit modal
+  const editFileInput = document.getElementById('editPaketThumbnailInput');
+  if (editFileInput) {
+    editFileInput.addEventListener('change', function(e) {
+      const label = this.nextElementSibling.querySelector('span:first-child');
+      if (this.files.length > 0) {
+        label.textContent = this.files[0].name;
+      } else {
+        label.textContent = 'Pilih Gambar';
+      }
+    });
+  }
+
+  // Handle form submission for Tambah with file upload
+  const tambahForm = document.getElementById('tambahPaketForm');
+  if (tambahForm) {
+    tambahForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const fileInput = document.getElementById('paketThumbnailInput');
+      const thumbnailUrlInput = document.getElementById('paketThumbnailUrl');
+      const submitBtn = this.querySelector('button[type="submit"]');
+      
+      try {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Mengunggah...';
+        
+        // Upload file if selected
+        if (fileInput.files.length > 0) {
+          const publicUrl = await uploadToSupabase(fileInput.files[0], 'packages');
+          thumbnailUrlInput.value = publicUrl;
+        }
+        
+        // Submit form
+        this.submit();
+      } catch (error) {
+        alert('Gagal mengunggah gambar: ' + error.message);
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Tambah';
+      }
+    });
+  }
+
+  // Handle form submission for Edit with file upload
+  const editForm = document.getElementById('editPaketForm');
+  if (editForm) {
+    editForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const fileInput = document.getElementById('editPaketThumbnailInput');
+      const thumbnailUrlInput = document.getElementById('editPaketThumbnailUrl');
+      const submitBtn = this.querySelector('button[type="submit"]');
+      
+      try {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Mengunggah...';
+        
+        // Upload file if new file selected
+        if (fileInput.files.length > 0) {
+          const publicUrl = await uploadToSupabase(fileInput.files[0], 'packages');
+          thumbnailUrlInput.value = publicUrl;
+        }
+        
+        // Submit form
+        this.submit();
+      } catch (error) {
+        alert('Gagal mengunggah gambar: ' + error.message);
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Edit';
+      }
+    });
+  }
+});
+
+// Toggle course dropdown
+function toggleCourseDropdown(type) {
+  const dropdown = document.getElementById(type + 'CourseDropdown');
+  dropdown.classList.toggle('show');
+}
+
+// Update selected courses text
+function updateSelectedCoursesText(type) {
+  const checkboxes = document.querySelectorAll(`#${type}CourseDropdown input[type="checkbox"]:checked`);
+  const selectedText = document.getElementById(type + 'SelectedText');
+  
+  if (checkboxes.length === 0) {
+    selectedText.textContent = 'Pilih Kursus';
+  } else if (checkboxes.length === 1) {
+    selectedText.textContent = checkboxes[0].nextElementSibling.textContent;
+  } else {
+    selectedText.textContent = `${checkboxes.length} Kursus Dipilih`;
+  }
+}
+
+// Add event listeners to checkboxes
+document.addEventListener('DOMContentLoaded', function() {
+  // For tambah modal
+  const tambahCheckboxes = document.querySelectorAll('#tambahCourseDropdown input[type="checkbox"]');
+  tambahCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', () => updateSelectedCoursesText('tambah'));
+  });
+  
+  // For edit modal
+  const editCheckboxes = document.querySelectorAll('#editCourseDropdown input[type="checkbox"]');
+  editCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', () => updateSelectedCoursesText('edit'));
+  });
+});
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(event) {
+  if (!event.target.closest('.course-select-wrapper')) {
+    document.querySelectorAll('.course-dropdown').forEach(dropdown => {
+      dropdown.classList.remove('show');
+    });
+  }
+});
 
 function openTambahPaketModal() {
   document.getElementById('tambahPaketModal').style.display = 'flex';
-  document.getElementById('tambahCourseList').style.display = 'none';
+  // Reset file label
+  const label = document.querySelector('#paketThumbnailInput + .file-input-label span:first-child');
+  if (label) label.textContent = 'Pilih Gambar';
+  // Reset selections
+  document.querySelectorAll('#tambahCourseDropdown input[type="checkbox"]').forEach(cb => cb.checked = false);
+  updateSelectedCoursesText('tambah');
 }
 
 function closeTambahPaketModal() {
   document.getElementById('tambahPaketModal').style.display = 'none';
 }
 
-function openEditPaketModal(id, title, description, price, duration, material_count, thumbnail) {
+// Helper function using data attributes
+function openEditPaketModalData(button) {
+  const id = button.getAttribute('data-id');
+  const title = button.getAttribute('data-title');
+  const description = button.getAttribute('data-description');
+  const price = button.getAttribute('data-price');
+  const duration = button.getAttribute('data-duration');
+  const courseIds = button.getAttribute('data-course-ids');
+  const thumbnail = button.getAttribute('data-thumbnail');
+  
+  openEditPaketModal(id, title, description, price, duration, courseIds, thumbnail);
+}
+
+function openEditPaketModal(id, title, description, price, duration, courseIds, thumbnail) {
   document.getElementById('editPaketTitle').value = title || '';
   document.getElementById('editPaketDescription').value = description || '';
   document.getElementById('editPaketPrice').value = price || '';
   document.getElementById('editPaketDuration').value = duration || '';
   document.getElementById('editPaketThumbnailUrl').value = thumbnail || '';
   document.getElementById('editPaketForm').action = `/paket_kursus/${id}/edit`;
-  document.getElementById('editCourseList').style.display = 'none';
+  
+  // Reset file label or show existing filename
+  const fileLabel = document.querySelector('#editPaketThumbnailInput + .file-input-label span:first-child');
+  const fileInput = document.getElementById('editPaketThumbnailInput');
+  
+  if (fileLabel && fileInput) {
+    // Clear previous file selection
+    fileInput.value = '';
+    
+    if (thumbnail && thumbnail.trim() !== '') {
+      // Extract filename from URL or path
+      let filename = thumbnail.split('/').pop();
+      // Remove query parameters if any
+      filename = filename.split('?')[0];
+      // Decode URL encoding
+      filename = decodeURIComponent(filename);
+      
+      fileLabel.textContent = filename || 'Pilih Gambar';
+    } else {
+      fileLabel.textContent = 'Pilih Gambar';
+    }
+  }
+  
+  // Reset all checkboxes first
+  document.querySelectorAll('#editCourseDropdown input[type="checkbox"]').forEach(cb => cb.checked = false);
+  
+  // Check the selected courses
+  if (courseIds) {
+    const selectedIds = courseIds.split(',').filter(id => id.trim() !== '');
+    selectedIds.forEach(courseId => {
+      const checkbox = document.querySelector(`#editCourseDropdown input[value="${courseId.trim()}"]`);
+      if (checkbox) checkbox.checked = true;
+    });
+  }
+  
+  updateSelectedCoursesText('edit');
   document.getElementById('editPaketModal').style.display = 'flex';
 }
 
@@ -201,6 +407,13 @@ window.onclick = function(event) {
   if (event.target === editModal) {
     closeEditPaketModal();
   }
+}
+
+// Helper function using data attributes
+function deletePackageData(button) {
+  const id = button.getAttribute('data-id');
+  const title = button.getAttribute('data-title');
+  deletePackage(id, title);
 }
 
 function deletePackage(id, title) {

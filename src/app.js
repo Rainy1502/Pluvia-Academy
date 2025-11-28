@@ -63,7 +63,8 @@ const hbs = create({
   // Add helpers for template conditions
   helpers: {
     eq: (a, b) => a === b,
-    neq: (a, b) => a !== b
+    neq: (a, b) => a !== b,
+    json: (context) => JSON.stringify(context)
   }
 });
 app.engine('hbs', hbs.engine);
@@ -150,24 +151,16 @@ app.get('/', (_req, res) => {
 });
 
   // Courses page: shows courses the user is enrolled in or management view for admin
-  // Kursus page - Member view only
   app.get('/kursus', async (req, res) => {
-    // Member view: show enrolled courses
-    const simulateEmpty = req.query && (req.query.empty === '1' || req.query.empty === 'true');
-    const coursesToRender = simulateEmpty ? [] : (Array.isArray(courseData) ? courseData : []);
-    return res.render('member/kursus', { 
-      title: 'Kursus', 
-      courses: coursesToRender
-    });
-  });
-
-  // Manajemen Kursus - Admin only
-  app.get('/manajemen_kursus', requireAdmin, async (req, res) => {
+  const isAdmin = res.locals.user && res.locals.user.role_id === 10;
+  
+  if (isAdmin) {
+    // Admin view: show all courses with management options
     try {
       const [coursesResult, lecturersResult] = await Promise.all([
         supabase
           .from('courses')
-          .select('id, title, description, instructor_id, meet_link, thumbnail')
+          .select('id, title, description, instructor_id, meet_link, thumbnail, schedule_day, schedule_time_start, schedule_time_end')
           .order('created_at', { ascending: false }),
         supabase
           .from('users')
@@ -181,42 +174,70 @@ app.get('/', (_req, res) => {
       return res.render('admin/manajemen_kursus', { 
         title: 'Manajemen Kursus', 
         courses: coursesResult.data || [],
-        lecturers: lecturersResult.data || []
+        lecturers: lecturersResult.data || [],
+        isAdmin: true 
       });
     } catch (error) {
       console.error('Error fetching courses:', error);
       return res.render('admin/manajemen_kursus', { 
         title: 'Manajemen Kursus', 
         courses: [],
-        lecturers: []
+        lecturers: [],
+        isAdmin: true 
       });
     }
-  });
+  } else {
+    // Member view: show enrolled courses
+    const simulateEmpty = req.query && (req.query.empty === '1' || req.query.empty === 'true');
+    const coursesToRender = simulateEmpty ? [] : (Array.isArray(courseData) ? courseData : []);
+    return res.render('member/kursus', { 
+      title: 'Kursus', 
+      courses: coursesToRender,
+      isAdmin: false 
+    });
+  }
+});
 
 // Materi page: shows available materials or management view for admin
 app.get('/materi', async (req, res) => {
   const isAdmin = res.locals.user && res.locals.user.role_id === 10;
   
   if (isAdmin) {
-    // Admin view: show all materials with management options
+    // Admin view: show all courses with their materials
     try {
-      const { data: materials, error } = await supabase
-        .from('materials')
-        .select('id, title, course_id, thumbnail, description, ordinal')
-        .order('ordinal', { ascending: true });
+      const { data: courses, error: coursesError } = await supabase
+        .from('courses')
+        .select('id, title')
+        .order('title', { ascending: true });
 
-      if (error) throw error;
+      if (coursesError) throw coursesError;
+
+      // Fetch materials for each course
+      const coursesWithMaterials = await Promise.all(
+        (courses || []).map(async (course) => {
+          const { data: materials } = await supabase
+            .from('materials')
+            .select('id, title, description, thumbnail, ordinal')
+            .eq('course_id', course.id)
+            .order('ordinal', { ascending: true });
+          
+          return {
+            ...course,
+            materials: materials || []
+          };
+        })
+      );
 
       return res.render('admin/manajemen_materi', { 
         title: 'Manajemen Materi', 
-        materials: materials || [],
+        courses: coursesWithMaterials,
         isAdmin: true 
       });
     } catch (error) {
       console.error('Error fetching materials:', error);
       return res.render('admin/manajemen_materi', { 
         title: 'Manajemen Materi', 
-        materials: [],
+        courses: [],
         isAdmin: true 
       });
     }
@@ -240,22 +261,41 @@ app.get('/paket_kursus', async (req, res) => {
   if (isAdmin) {
     // Admin view: show all packages with management options
     try {
-      const { data: packages, error } = await supabase
-        .from('packages')
-        .select('id, title, description, thumbnail, material_count, duration, price')
-        .order('created_at', { ascending: false });
+      const [packagesResult, coursesResult] = await Promise.all([
+        supabase
+          .from('packages')
+          .select('id, title, description, thumbnail, duration, price')
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('courses')
+          .select('id, title')
+          .order('title', { ascending: true })
+      ]);
 
-      const { data: courses, error: coursesError } = await supabase
-        .from('courses')
-        .select('id, title')
-        .order('title', { ascending: true });
+      if (packagesResult.error) throw packagesResult.error;
 
-      if (error) throw error;
+      // Fetch package_courses relationships for each package
+      const packagesWithCourses = await Promise.all(
+        (packagesResult.data || []).map(async (pkg) => {
+          const { data: packageCourses } = await supabase
+            .from('package_courses')
+            .select('course_id')
+            .eq('package_id', pkg.id);
+          
+          // Convert to comma-separated string for compatibility with existing code
+          const courseIds = (packageCourses || []).map(pc => pc.course_id).join(',');
+          
+          return {
+            ...pkg,
+            course_ids: courseIds
+          };
+        })
+      );
 
       return res.render('admin/manajemen_paket_kursus', { 
         title: 'Manajemen Paket', 
-        packages: packages || [],
-        courses: courses || [],
+        packages: packagesWithCourses,
+        courses: coursesResult.data || [],
         isAdmin: true 
       });
     } catch (error) {
@@ -288,9 +328,8 @@ app.get('/lecturer', async (req, res) => {
   try {
     const { data: lecturers, error } = await supabase
       .from('users')
-      .select('id, full_name, email, phone, expertise, is_active')
-      .eq('role_id', 5)
-      .eq('is_active', true)
+      .select('id, full_name, email, avatar_url, is_active')
+      .eq('role_id', 5) // Assuming role_id 5 is for lecturers
       .order('full_name', { ascending: true });
 
     if (error) throw error;
@@ -352,19 +391,19 @@ app.get('/kursus/:id/students', requireAdmin, async (req, res) => {
     }));
 
     return res.render('admin/siswa', {
-      title: `Daftar Siswa - ${course.title}`,
+      title: `Daftar Student - ${course.title}`,
       courseId: course.id,
       courseName: course.title,
       students
     });
   } catch (error) {
     console.error('Error fetching students:', error);
-    return res.status(500).render('students', {
-      title: 'Daftar Student',
+    return res.status(500).render('admin/siswa', {
+      title: 'Daftar Siswa',
       courseId,
       courseName: 'Kursus',
       students: [],
-      error: 'Gagal memuat daftar student'
+      error: 'Gagal memuat daftar siswa'
     });
   }
 });
@@ -423,12 +462,12 @@ app.get('/kursus/:courseId/students/:studentId/materi', requireAdmin, async (req
     });
   } catch (error) {
     console.error('Error fetching material access:', error);
-    return res.status(500).render('akses_materi', {
+    return res.status(500).render('admin/akses_materi', {
       title: 'Akses Materi',
       courseId,
       studentId,
       courseName: 'Kursus',
-      studentName: 'Student',
+      studentName: 'Siswa',
       materials: [],
       error: 'Gagal memuat akses materi'
     });
@@ -506,7 +545,7 @@ app.get('/materi/:id/students', requireAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching material students:', error);
-    return res.status(500).render('material_students', {
+    return res.status(500).render('admin/materi_siswa', {
       title: 'Daftar Siswa',
       materialId,
       materialName: 'Materi',
@@ -628,11 +667,8 @@ app.post('/login', express.urlencoded({ extended: true }), async (req, res) => {
       });
     }
 
-    // Validasi password dengan bcrypt
-    const bcrypt = require('bcrypt');
-    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
-    
-    if (!isPasswordValid) {
+    // Validasi password (plain text comparison)
+    if (user.password_hash !== password) {
       return res.status(400).render('login', {
         title: 'Masuk',
         error: 'Email atau password salah',
@@ -721,12 +757,7 @@ app.post('/register', express.urlencoded({ extended: true }), async (req, res) =
       });
     }
 
-    // Hash password dengan bcrypt
-    const bcrypt = require('bcrypt');
-    const saltRounds = 10;
-    const passwordHash = await bcrypt.hash(password, saltRounds);
-
-    // Buat user baru
+    // Buat user baru (password plain text)
     const { data: newUser, error: createError } = await supabase
       .from('users')
       .insert({
@@ -734,7 +765,7 @@ app.post('/register', express.urlencoded({ extended: true }), async (req, res) =
         username: username,
         phone: phone || null,
         email: email,
-        password_hash: passwordHash,
+        password_hash: password,
         is_verified: true, // karena sudah verifikasi OTP
         role_id: 1, // member
       })
@@ -935,61 +966,6 @@ app.get('/logout', (req, res) => {
   return res.redirect('/');
 });
 
-// TEMPORARY: Migrate plain text passwords to bcrypt
-// Akses: http://localhost:3000/migrate-passwords?secret=your-secret-key
-// HAPUS ROUTE INI SETELAH MIGRASI SELESAI!
-app.get('/migrate-passwords', async (req, res) => {
-  const secret = req.query.secret;
-  
-  // Security: hanya bisa diakses dengan secret key
-  if (secret !== 'pluvia-migrate-2025') {
-    return res.status(403).send('Forbidden');
-  }
-
-  try {
-    const bcrypt = require('bcrypt');
-    const saltRounds = 10;
-    
-    // Get all users
-    const { data: users, error } = await supabase
-      .from('users')
-      .select('id, email, password_hash');
-
-    if (error) throw error;
-
-    let migrated = 0;
-    let skipped = 0;
-
-    for (const user of users) {
-      // Check if password is already bcrypt hash (starts with $2b$ or $2a$)
-      if (user.password_hash && user.password_hash.startsWith('$2')) {
-        skipped++;
-        continue;
-      }
-
-      // Hash the plain text password
-      const hashedPassword = await bcrypt.hash(user.password_hash, saltRounds);
-      
-      // Update user
-      await supabase
-        .from('users')
-        .update({ password_hash: hashedPassword })
-        .eq('id', user.id);
-      
-      migrated++;
-    }
-
-    res.json({
-      success: true,
-      message: `Migration complete! Migrated: ${migrated}, Skipped (already hashed): ${skipped}`,
-      total: users.length
-    });
-  } catch (error) {
-    console.error('Migration error:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
 // ========================================
 // Admin CRUD Routes
 // ========================================
@@ -1086,13 +1062,13 @@ app.get('/kursus/create', requireAdmin, async (req, res) => {
       .eq('role_id', 5)
       .eq('is_active', true);
 
-    return res.render('kursus_form', { 
+    return res.render('admin/kursus_form', { 
       title: 'Tambah Kursus',
       lecturers: lecturers || []
     });
   } catch (error) {
     console.error('Error loading create form:', error);
-    return res.render('kursus_form', { 
+    return res.render('admin/kursus_form', { 
       title: 'Tambah Kursus',
       lecturers: []
     });
@@ -1102,7 +1078,7 @@ app.get('/kursus/create', requireAdmin, async (req, res) => {
 // POST Create Kursus
 app.post('/kursus/create', requireAdmin, express.urlencoded({ extended: true }), async (req, res) => {
   try {
-    const { title, description, instructor_id, meet_link, thumbnail } = req.body;
+    const { title, description, instructor_id, meet_link, thumbnail, schedule_day, schedule_time_start, schedule_time_end } = req.body;
 
     if (!title || !instructor_id) {
       return res.status(400).json({
@@ -1119,6 +1095,9 @@ app.post('/kursus/create', requireAdmin, express.urlencoded({ extended: true }),
         instructor_id,
         meet_link,
         thumbnail,
+        schedule_day,
+        schedule_time_start,
+        schedule_time_end,
         slug: title.toLowerCase().replace(/\s+/g, '-'),
         created_at: new Date().toISOString()
       });
@@ -1173,7 +1152,8 @@ app.post('/materi/create', requireAdmin, express.urlencoded({ extended: true }),
 // POST Create Paket
 app.post('/paket_kursus/create', requireAdmin, express.urlencoded({ extended: true }), async (req, res) => {
   try {
-    const { title, description, price, duration, material_count, thumbnail } = req.body;
+    const { title, description, price, duration, thumbnail } = req.body;
+    const courseIds = req.body['course_ids[]'];
 
     if (!title || !description || !price) {
       return res.status(400).json({
@@ -1182,19 +1162,45 @@ app.post('/paket_kursus/create', requireAdmin, express.urlencoded({ extended: tr
       });
     }
 
-    const { error } = await supabase
+    // Create package first
+    const { data: newPackage, error: packageError } = await supabase
       .from('packages')
       .insert({
         title,
         description,
         price: parseInt(price),
         duration: duration || null,
-        material_count: material_count ? parseInt(material_count) : 0,
         thumbnail: thumbnail || null,
         created_at: new Date().toISOString()
-      });
+      })
+      .select()
+      .single();
 
-    if (error) throw error;
+    if (packageError) throw packageError;
+
+    // Insert package_courses relationships if courses selected
+    if (courseIds && newPackage) {
+      const courseIdsArray = Array.isArray(courseIds) ? courseIds : [courseIds];
+      const packageCourses = courseIdsArray.map(courseId => ({
+        package_id: newPackage.id,
+        course_id: courseId
+      }));
+
+      const { error: relError } = await supabase
+        .from('package_courses')
+        .insert(packageCourses);
+
+      if (relError) {
+        console.error('Error creating package_courses:', relError);
+        // Continue anyway, package is created
+      }
+
+      // Update material_count based on number of courses
+      await supabase
+        .from('packages')
+        .update({ material_count: courseIdsArray.length })
+        .eq('id', newPackage.id);
+    }
 
     return res.redirect('/paket_kursus');
   } catch (error) {
@@ -1209,7 +1215,7 @@ app.post('/paket_kursus/create', requireAdmin, express.urlencoded({ extended: tr
 // POST Create Lecturer
 app.post('/lecturer/create', requireAdmin, express.urlencoded({ extended: true }), async (req, res) => {
   try {
-    const { full_name, email, password, phone, expertise, keahlian } = req.body;
+    const { full_name, email, password, phone } = req.body;
 
     if (!full_name || !email || !password || !phone) {
       return res.status(400).json({
@@ -1232,11 +1238,6 @@ app.post('/lecturer/create', requireAdmin, express.urlencoded({ extended: true }
       });
     }
 
-    // Hash password with bcrypt
-    const bcrypt = require('bcrypt');
-    const saltRounds = 10;
-    const password_hash = await bcrypt.hash(password, saltRounds);
-
     // Generate username from email
     const username = email.split('@')[0] + '_' + Date.now().toString().slice(-4);
 
@@ -1246,10 +1247,8 @@ app.post('/lecturer/create', requireAdmin, express.urlencoded({ extended: true }
         full_name,
         username,
         email,
-        password_hash,
+        password_hash: password,
         phone,
-        expertise: expertise || null,
-        keahlian: keahlian || null,
         role_id: 5, // Lecturer role
         is_active: true,
         is_verified: true,
@@ -1286,7 +1285,7 @@ app.get('/kursus/:id/edit', requireAdmin, async (req, res) => {
       return res.redirect('/kursus');
     }
 
-    return res.render('kursus_form', {
+    return res.render('admin/kursus_form', {
       title: 'Edit Kursus',
       course: courseResult.data,
       lecturers: lecturersResult.data || []
@@ -1301,7 +1300,7 @@ app.get('/kursus/:id/edit', requireAdmin, async (req, res) => {
 app.post('/kursus/:id/edit', requireAdmin, express.urlencoded({ extended: true }), async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, meet_link, thumbnail } = req.body;
+    const { title, description, instructor_id, meet_link, thumbnail, schedule_day, schedule_time_start, schedule_time_end } = req.body;
 
     if (!title) {
       return res.status(400).json({
@@ -1315,8 +1314,12 @@ app.post('/kursus/:id/edit', requireAdmin, express.urlencoded({ extended: true }
       .update({
         title,
         description,
+        instructor_id,
         meet_link,
         thumbnail,
+        schedule_day,
+        schedule_time_start,
+        schedule_time_end,
         slug: title.toLowerCase().replace(/\s+/g, '-'),
         updated_at: new Date().toISOString()
       })
@@ -1374,7 +1377,8 @@ app.post('/materi/:id/edit', requireAdmin, express.urlencoded({ extended: true }
 app.post('/paket_kursus/:id/edit', requireAdmin, express.urlencoded({ extended: true }), async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, price, duration, material_count, thumbnail } = req.body;
+    const { title, description, price, duration, thumbnail } = req.body;
+    const courseIds = req.body['course_ids[]'];
 
     if (!title || !description || !price) {
       return res.status(400).json({
@@ -1383,25 +1387,61 @@ app.post('/paket_kursus/:id/edit', requireAdmin, express.urlencoded({ extended: 
       });
     }
 
-    const { error } = await supabase
+    // Update package
+    const { error: packageError } = await supabase
       .from('packages')
       .update({
         title,
         description,
         price: parseInt(price),
         duration: duration || null,
-        material_count: material_count ? parseInt(material_count) : 0,
         thumbnail: thumbnail || null,
         updated_at: new Date().toISOString()
       })
       .eq('id', id);
 
-    if (error) throw error;
+    if (packageError) throw packageError;
+
+    // Delete existing package_courses relationships
+    await supabase
+      .from('package_courses')
+      .delete()
+      .eq('package_id', id);
+
+    // Insert new package_courses relationships if courses selected
+    if (courseIds) {
+      const courseIdsArray = Array.isArray(courseIds) ? courseIds : [courseIds];
+      const packageCourses = courseIdsArray.map(courseId => ({
+        package_id: id,
+        course_id: courseId
+      }));
+
+      const { error: relError } = await supabase
+        .from('package_courses')
+        .insert(packageCourses);
+
+      if (relError) {
+        console.error('Error updating package_courses:', relError);
+        // Continue anyway, package is updated
+      }
+
+      // Update material_count based on number of courses
+      await supabase
+        .from('packages')
+        .update({ material_count: courseIdsArray.length })
+        .eq('id', id);
+    } else {
+      // No courses selected, set material_count to 0
+      await supabase
+        .from('packages')
+        .update({ material_count: 0 })
+        .eq('id', id);
+    }
 
     return res.redirect('/paket_kursus');
   } catch (error) {
     console.error('Error updating package:', error);
-    return res.status(500).render('paket_form', {
+    return res.status(500).render('admin/paket_form', {
       title: 'Edit Paket',
       error: 'Gagal memperbarui paket'
     });
@@ -1412,7 +1452,7 @@ app.post('/paket_kursus/:id/edit', requireAdmin, express.urlencoded({ extended: 
 app.post('/lecturer/:id/edit', requireAdmin, express.urlencoded({ extended: true }), async (req, res) => {
   try {
     const { id } = req.params;
-    const { full_name, email, phone, password, expertise, keahlian } = req.body;
+    const { full_name, email, phone, password } = req.body;
 
     if (!full_name || !email || !phone) {
       return res.status(400).json({
@@ -1425,16 +1465,12 @@ app.post('/lecturer/:id/edit', requireAdmin, express.urlencoded({ extended: true
       full_name,
       email,
       phone,
-      expertise: expertise || null,
-      keahlian: keahlian || null,
       updated_at: new Date().toISOString()
     };
 
     // Only update password if provided
     if (password && password.trim() !== '') {
-      const bcrypt = require('bcrypt');
-      const saltRounds = 10;
-      updateData.password_hash = await bcrypt.hash(password, saltRounds);
+      updateData.password_hash = password;
     }
 
     const { error } = await supabase
