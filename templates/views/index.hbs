@@ -13,9 +13,6 @@
             <img src="{{this.banner_image}}" alt="{{this.title}}" loading="{{#if @first}}eager{{else}}lazy{{/if}}" decoding="{{#if @first}}sync{{else}}async{{/if}}" />
             <div class="banner-overlay">
               <h2>{{this.title}}</h2>
-              {{#if this.description}}
-              <p>{{this.description}}</p>
-              {{/if}}
             </div>
           </div>
           {{/each}}

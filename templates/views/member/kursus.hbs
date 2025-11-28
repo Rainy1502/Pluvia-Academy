@@ -7,13 +7,39 @@
       <div class="courses-panel">
         <!-- Member View - Kursus Yang Diikuti -->
         <h2 class="my-courses-title">Kelas Yang Anda Jalani</h2>
+        {{#if enrolled}}
+        <div id="enroll-toast" class="site-toast success" style="margin-bottom:16px;">
+          <div style="padding:12px 16px;background:#dff5e6;border:1px solid #b7e2b6;border-radius:8px;color:#0a6b22;font-weight:700;">Berhasil! Anda sekarang bisa mengakses kursus dari paket yang didaftar.</div>
+        </div>
+        <script>
+          setTimeout(() => {
+            const t = document.getElementById('enroll-toast');
+            if (t) t.style.display = 'none';
+          }, 4000);
+        </script>
+        {{/if}}
         {{#if courses.length}}
         <div class="my-courses-grid">
         {{#each courses}}
         <div class="my-course-box">
-          <!-- placeholder content; replace with real thumbnail or title as needed -->
-          <div class="box-inner"></div>
-          <div class="course-title">{{this.title}}</div>
+          <div class="box-inner">
+            {{#if this.thumbnail}}
+            <img src="{{this.thumbnail}}" alt="{{this.title}}" loading="lazy" decoding="async" style="width: 100%; height: 100%; object-fit: cover;"/>
+            {{else}}
+            <img src="/img/banner.png" alt="{{this.title}}" loading="lazy" decoding="async" style="width: 100%; height: 100%; object-fit: cover;"/>
+            {{/if}}
+          </div>
+          <div class="course-desc">
+            <div class="course-title">{{this.title}}</div>
+            {{#if this.description}}
+            <p class="course-sub">{{this.description}}</p>
+            {{/if}}
+          </div>
+          {{#if this.meet_link}}
+          <div style="padding:8px 14px;">
+            <a href="{{this.meet_link}}" target="_blank" class="btn-primary" style="text-decoration:none;text-align:center;display:block;padding:8px 16px;margin:0;">Join Meeting</a>
+          </div>
+          {{/if}}
         </div>
         {{/each}}
         </div>

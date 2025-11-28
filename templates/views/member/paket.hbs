@@ -20,7 +20,6 @@
             </div>
             <div class="course-desc">
               <div class="course-title">{{this.title}}</div>
-              <p class="package-desc">{{this.description}}</p>
               {{#if this.duration}}
               <p class="package-duration" style="color: #666; font-size: 14px; margin-top: 8px;">⏱️ {{this.duration}}</p>
               {{/if}}
@@ -28,7 +27,7 @@
             <div class="package-footer">
               <div class="package-price">Rp {{this.price}}</div>
             </div>
-            <a href="#" class="btn-primary" style="text-decoration: none; text-align: center;" onclick="alert('Fitur pembelian akan segera hadir!'); return false;">Beli Paket</a>
+            <a href="/paket_kursus/{{this.id}}" class="btn-primary" style="text-decoration: none; text-align: center;">Lihat Detail</a>
           </div>
           {{/each}}
         </div>

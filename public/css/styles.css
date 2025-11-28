@@ -454,9 +454,9 @@ body{background:var(--bg);color:var(--text);line-height:1.55;font-size:16px}
 	transition:transform .18s ease,box-shadow .18s ease;
 }
 .my-course-box:hover{transform:translateY(-6px);box-shadow:0 20px 48px rgba(11,18,32,0.12)}
-.my-course-box .box-inner{width:100%;height:140px;flex:0 0 140px;background:#eee}
+.my-course-box .box-inner{width:100%;height:180px;flex:0 0 180px;background:#eee}
 .my-course-box .box-inner img{width:100%;height:100%;object-fit:cover;display:block}
-.my-course-box .course-desc{padding:12px 14px 18px;background:transparent}
+.my-course-box .course-desc{padding:30px 14px 14px;background:transparent;min-height:60px}
 .my-course-box .course-title{margin:0;font-weight:800;color:#0b1220;text-align:left;font-size:15px}
 .my-course-box .course-sub{margin-top:6px;color:rgba(11,18,32,0.66);font-size:13px;line-height:1.3}
 
@@ -2663,9 +2663,10 @@ body{background:var(--bg);color:var(--text);line-height:1.55;font-size:16px}
 .paket-item{
 	display:flex;
 	align-items:center;
-	justify-content:space-between;
+	justify-content:flex-start;
 	padding:20px 0;
 	border-bottom:1px solid #000;
+	gap:20px;
 }
 
 .paket-item:last-child{
@@ -2680,18 +2681,21 @@ body{background:var(--bg);color:var(--text);line-height:1.55;font-size:16px}
 }
 
 .paket-icon{
-	width:45px;
-	height:45px;
+	width:60px;
+	height:60px;
 	border-radius:50%;
 	background:#fff;
 	border:2px solid #000;
 	flex-shrink:0;
+	overflow:hidden;
 }
 
 .paket-content{
 	display:flex;
 	flex-direction:column;
 	gap:4px;
+	flex:1;
+	justify-content:center;
 }
 
 .paket-title{
@@ -2700,6 +2704,11 @@ body{background:var(--bg);color:var(--text);line-height:1.55;font-size:16px}
 	font-weight:700;
 	color:#000;
 	margin:0;
+	line-height:1;
+}
+
+.paket-actions{
+	margin-left:auto;
 }
 
 .paket-desc{
@@ -2952,5 +2961,120 @@ body{background:var(--bg);color:var(--text);line-height:1.55;font-size:16px}
 	
 	.kursus-modal-content{
 		padding:24px;
+	}
+}
+
+/* Paket Detail Page */
+.paket-detail-page{
+	background:var(--primary);
+	min-height:100vh;
+}
+
+.container-wide{
+	max-width:1400px;
+	margin:0 auto;
+	padding:0 20px;
+}
+
+.paket-detail-section{
+	padding:60px 0;
+}
+
+.paket-detail-content{
+	display:grid;
+	grid-template-columns:1fr 430px;
+	gap:60px;
+	align-items:start;
+}
+
+.paket-info{
+	color:#fff;
+	display:flex;
+	flex-direction:column;
+	gap:24px;
+}
+
+.paket-detail-title{
+	font-size:32px;
+	font-weight:700;
+	margin:0;
+	text-shadow:5px 5px 4px rgba(0,0,0,0.25);
+}
+
+.paket-detail-description{
+	font-size:24px;
+	line-height:1.6;
+	margin:0;
+	white-space:pre-wrap;
+}
+
+.paket-actions{
+	display:flex;
+	gap:20px;
+	align-items:center;
+	margin-top:8px;
+}
+
+.btn-register{
+	background:#ffd766;
+	color:#000;
+	border:2px solid #000;
+	padding:14px 24px;
+	border-radius:8px;
+	font-size:16px;
+	font-weight:500;
+	cursor:pointer;
+	transition:all 0.2s ease;
+}
+
+.btn-register:hover{
+	transform:translateY(-2px);
+	box-shadow:0 4px 8px rgba(0,0,0,0.2);
+}
+
+.paket-image-wrapper{
+	position:sticky;
+	top:120px;
+}
+
+.paket-detail-image{
+	width:100%;
+	height:520px;
+	object-fit:cover;
+	background:#d9d9d9;
+	border-radius:8px;
+}
+
+.paket-placeholder{
+	background:#d9d9d9;
+}
+
+@media(max-width:1024px){
+	.paket-detail-content{
+		grid-template-columns:1fr;
+		gap:40px;
+	}
+	
+	.paket-image-wrapper{
+		position:relative;
+		top:0;
+	}
+	
+	.paket-detail-image{
+		height:400px;
+	}
+}
+
+@media(max-width:768px){
+	.paket-detail-title{
+		font-size:28px;
+	}
+	
+	.paket-detail-description{
+		font-size:18px;
+	}
+	
+	.paket-detail-image{
+		height:300px;
 	}
 }

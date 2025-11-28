@@ -216,13 +216,49 @@ app.get('/', async (_req, res) => {
     }
   } else {
     // Member view: show enrolled courses
-    const simulateEmpty = req.query && (req.query.empty === '1' || req.query.empty === 'true');
-    const coursesToRender = simulateEmpty ? [] : (Array.isArray(courseData) ? courseData : []);
-    return res.render('member/kursus', { 
-      title: 'Kursus', 
-      courses: coursesToRender,
-      isAdmin: false 
-    });
+    if (!res.locals.user) {
+      return res.render('member/kursus', { 
+        title: 'Kursus', 
+        courses: [],
+        isAdmin: false 
+      });
+    }
+
+    try {
+      const { data: enrollments, error } = await supabase
+        .from('enrollments')
+        .select(`
+          course_id,
+          courses:course_id (
+            id,
+            title,
+            description,
+            thumbnail,
+            meet_link
+          )
+        `)
+        .eq('user_id', res.locals.user.id)
+        .eq('status', 'active');
+
+      if (error) throw error;
+
+      // Transform data for template
+      const courses = (enrollments || []).map(e => e.courses).filter(c => c !== null);
+
+      return res.render('member/kursus', { 
+        title: 'Kursus', 
+        courses: courses,
+        enrolled: req.query.enrolled === 'true',
+        isAdmin: false 
+      });
+    } catch (error) {
+      console.error('Error fetching enrolled courses:', error);
+      return res.render('member/kursus', { 
+        title: 'Kursus', 
+        courses: [],
+        isAdmin: false 
+      });
+    }
   }
 });
 
@@ -358,6 +394,58 @@ app.get('/paket_kursus', async (req, res) => {
         isAdmin: false 
       });
     }
+  }
+});
+
+// Package detail page (Member view)
+app.get('/paket_kursus/:id', async (req, res) => {
+  const packageId = req.params.id;
+  const userId = res.locals.user?.id;
+  
+  try {
+    const { data: packageData, error } = await supabase
+      .from('packages')
+      .select('id, title, description, thumbnail, price, duration')
+      .eq('id', packageId)
+      .single();
+
+    if (error) throw error;
+    
+    if (!packageData) {
+      return res.status(404).render('404', { title: '404 - Paket Tidak Ditemukan' });
+    }
+
+    // Check if user is already enrolled in this package
+    let isEnrolled = false;
+    if (userId) {
+      // Get courses in this package
+      const { data: packageCourses } = await supabase
+        .from('package_courses')
+        .select('course_id')
+        .eq('package_id', packageId);
+      
+      if (packageCourses && packageCourses.length > 0) {
+        // Check if user is enrolled in at least one course from this package
+        const courseIds = packageCourses.map(pc => pc.course_id);
+        const { data: enrollments } = await supabase
+          .from('enrollments')
+          .select('course_id')
+          .eq('user_id', userId)
+          .in('course_id', courseIds)
+          .limit(1);
+        
+        isEnrolled = enrollments && enrollments.length > 0;
+      }
+    }
+
+    return res.render('member/isi_paket', { 
+      title: packageData.title, 
+      package: packageData,
+      isEnrolled
+    });
+  } catch (error) {
+    console.error('Error fetching package detail:', error);
+    return res.status(404).render('404', { title: '404 - Paket Tidak Ditemukan' });
   }
 });
 
@@ -1356,9 +1444,17 @@ app.post('/materi/create', requireAdmin, express.urlencoded({ extended: true }),
 
 // POST Create Paket
 app.post('/paket_kursus/create', requireAdmin, express.urlencoded({ extended: true }), async (req, res) => {
+  console.log('========== POST /paket_kursus/create HIT ==========');
+  console.log('User:', res.locals.user?.email);
+  console.log('Body keys:', Object.keys(req.body));
+  
   try {
     const { title, description, price, duration, thumbnail, banner_image, is_banner } = req.body;
-    const courseIds = req.body['course_ids[]'];
+    // Hidden inputs create course_ids array, not course_ids[]
+    const courseIds = req.body.course_ids || req.body['course_ids[]'];
+
+    console.log('Create Package - courseIds:', courseIds);
+    console.log('Create Package - req.body:', req.body);
 
     if (!title || !description || !price) {
       return res.status(400).json({
@@ -1385,13 +1481,19 @@ app.post('/paket_kursus/create', requireAdmin, express.urlencoded({ extended: tr
 
     if (packageError) throw packageError;
 
+    console.log('Package created:', newPackage.id);
+
     // Insert package_courses relationships if courses selected
     if (courseIds && newPackage) {
       const courseIdsArray = Array.isArray(courseIds) ? courseIds : [courseIds];
+      console.log('CourseIds array:', courseIdsArray);
+      
       const packageCourses = courseIdsArray.map(courseId => ({
         package_id: newPackage.id,
         course_id: courseId
       }));
+
+      console.log('Inserting package_courses:', packageCourses);
 
       const { error: relError } = await supabase
         .from('package_courses')
@@ -1400,6 +1502,8 @@ app.post('/paket_kursus/create', requireAdmin, express.urlencoded({ extended: tr
       if (relError) {
         console.error('Error creating package_courses:', relError);
         // Continue anyway, package is created
+      } else {
+        console.log('Package courses inserted successfully');
       }
 
       // Update material_count based on number of courses
@@ -1407,6 +1511,8 @@ app.post('/paket_kursus/create', requireAdmin, express.urlencoded({ extended: tr
         .from('packages')
         .update({ material_count: courseIdsArray.length })
         .eq('id', newPackage.id);
+    } else {
+      console.log('No courseIds provided or package creation failed');
     }
 
     return res.redirect('/paket_kursus');
@@ -1654,12 +1760,70 @@ app.post('/materi/:id/edit', requireAdmin, express.urlencoded({ extended: true }
   }
 });
 
+// POST Enroll in Package (Member only)
+app.post('/paket_kursus/:id/enroll', express.urlencoded({ extended: true }), async (req, res) => {
+  const packageId = req.params.id;
+  const userId = res.locals.user?.id;
+
+  // Check if user is logged in
+  if (!userId) {
+    return res.redirect('/login');
+  }
+
+  try {
+    // Get all courses in this package
+    const { data: packageCourses, error: packageError } = await supabase
+      .from('package_courses')
+      .select('course_id')
+      .eq('package_id', packageId);
+
+    if (packageError) throw packageError;
+
+    if (!packageCourses || packageCourses.length === 0) {
+      return res.status(400).send('Paket ini belum memiliki kursus');
+    }
+
+    // Check existing enrollments
+    const courseIds = packageCourses.map(pc => pc.course_id);
+    const { data: existingEnrollments } = await supabase
+      .from('enrollments')
+      .select('course_id')
+      .eq('user_id', userId)
+      .in('course_id', courseIds);
+
+    const enrolledCourseIds = (existingEnrollments || []).map(e => e.course_id);
+    const newCourseIds = courseIds.filter(id => !enrolledCourseIds.includes(id));
+
+    // Insert new enrollments
+    if (newCourseIds.length > 0) {
+      const enrollmentsToInsert = newCourseIds.map(courseId => ({
+        user_id: userId,
+        course_id: courseId,
+        status: 'active',
+        progress: 0
+      }));
+
+      const { error: insertError } = await supabase
+        .from('enrollments')
+        .insert(enrollmentsToInsert);
+
+      if (insertError) throw insertError;
+    }
+
+    // Redirect to kursus page with success message
+    return res.redirect('/kursus?enrolled=true');
+  } catch (error) {
+    console.error('Error enrolling in package:', error);
+    return res.status(500).send('Gagal mendaftar paket. Silakan coba lagi.');
+  }
+});
+
 // POST Edit Paket
 app.post('/paket_kursus/:id/edit', requireAdmin, express.urlencoded({ extended: true }), async (req, res) => {
   try {
     const { id } = req.params;
     const { title, description, price, duration, thumbnail, banner_image, is_banner } = req.body;
-    const courseIds = req.body['course_ids[]'];
+    const courseIds = req.body.course_ids;
 
     if (!title || !description || !price) {
       return res.status(400).json({

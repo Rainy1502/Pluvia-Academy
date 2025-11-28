@@ -1,0 +1,37 @@
+{{> head}}
+{{> header}}
+
+<main class="site-root paket-detail-page">
+  <section class="paket-detail-section">
+    <div class="container-wide">
+      <div class="paket-detail-content">
+        <div class="paket-info">
+          <h1 class="paket-detail-title">{{package.title}}</h1>
+          <div class="paket-detail-description">
+            {{package.description}}
+          </div>
+          <div class="paket-actions">
+            {{#if isEnrolled}}
+            <div style="padding:12px 20px;background:#dff5e6;border:1px solid #b7e2b6;border-radius:8px;color:#0a6b22;font-weight:600;">
+              ✓ Anda sudah terdaftar di paket ini
+            </div>
+            {{else}}
+            <form method="POST" action="/paket_kursus/{{package.id}}/enroll" style="margin:0;">
+              <button type="submit" class="btn-register">Daftar Sekarang</button>
+            </form>
+            {{/if}}
+          </div>
+        </div>
+        <div class="paket-image-wrapper">
+          {{#if package.thumbnail}}
+          <img src="{{package.thumbnail}}" alt="{{package.title}}" class="paket-detail-image" loading="lazy" decoding="async"/>
+          {{else}}
+          <div class="paket-detail-image paket-placeholder"></div>
+          {{/if}}
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+{{> footer}}

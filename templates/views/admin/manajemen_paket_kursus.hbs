@@ -18,11 +18,13 @@
         <div class="paket-card">
           {{#each packages}}
           <div class="paket-item">
-            <div class="paket-info">
-              <div class="paket-icon"></div>
-              <div class="paket-content">
-                <h3 class="paket-title">{{this.title}}</h3>
-              </div>
+            <div class="paket-icon">
+              {{#if this.thumbnail}}
+              <img src="{{this.thumbnail}}" alt="{{this.title}}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" loading="lazy" decoding="async"/>
+              {{/if}}
+            </div>
+            <div class="paket-content">
+              <h3 class="paket-title">{{this.title}}</h3>
             </div>
             <div class="paket-actions">
               <button class="kursus-btn kursus-btn-edit" 
@@ -87,12 +89,13 @@
         <div id="tambahCourseDropdown" class="course-dropdown">
           {{#each courses}}
           <label class="course-checkbox-label">
-            <input type="checkbox" name="course_ids[]" value="{{this.id}}" class="course-checkbox"/>
+            <input type="checkbox" value="{{this.id}}" class="course-checkbox" data-tambah-course="true"/>
             <span>{{this.title}}</span>
           </label>
           {{/each}}
         </div>
       </div>
+      <div id="tambahHiddenCourses"></div>
       
       <div class="file-input-wrapper">
         <input type="file" id="paketThumbnailInput" accept="image/*" class="modal-file-input"/>
@@ -147,12 +150,13 @@
         <div id="editCourseDropdown" class="course-dropdown">
           {{#each courses}}
           <label class="course-checkbox-label">
-            <input type="checkbox" name="course_ids[]" value="{{this.id}}" class="course-checkbox" data-course-id="{{this.id}}"/>
+            <input type="checkbox" value="{{this.id}}" class="course-checkbox" data-course-id="{{this.id}}" data-edit-course="true"/>
             <span>{{this.title}}</span>
           </label>
           {{/each}}
         </div>
       </div>
+      <div id="editHiddenCourses"></div>
       
       <div class="file-input-wrapper">
         <input type="file" id="editPaketThumbnailInput" accept="image/*" class="modal-file-input"/>
@@ -255,9 +259,12 @@ async function uploadToSupabase(file, folder = 'packages') {
 
 // Wait for DOM to be ready
 document.addEventListener('DOMContentLoaded', function() {
+  console.log('DOM Loaded - Paket Kursus Page');
+  
   // Handle file input label change for Tambah modal (thumbnail)
   const tambahFileInput = document.getElementById('paketThumbnailInput');
   if (tambahFileInput) {
+    console.log('Thumbnail input found');
     tambahFileInput.addEventListener('change', function(e) {
       const label = this.nextElementSibling.querySelector('span:first-child');
       if (this.files.length > 0) {
@@ -296,15 +303,36 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Handle form submission for Tambah with file upload
   const tambahForm = document.getElementById('tambahPaketForm');
+  console.log('Tambah form element:', tambahForm);
+  
   if (tambahForm) {
+    console.log('Setting up form submit listener');
     tambahForm.addEventListener('submit', async function(e) {
       e.preventDefault();
+      console.log('Form submit triggered!');
       
       const thumbnailInput = document.getElementById('paketThumbnailInput');
       const thumbnailUrlInput = document.getElementById('paketThumbnailUrl');
       const bannerInput = document.getElementById('paketBannerInput');
       const bannerUrlInput = document.getElementById('paketBannerUrl');
       const submitBtn = this.querySelector('button[type="submit"]');
+      
+      // Debug: Check selected courses
+      const checkedCourses = document.querySelectorAll('#tambahCourseDropdown input[type="checkbox"]:checked');
+      console.log('Checked courses:', checkedCourses.length);
+      checkedCourses.forEach(cb => console.log('Course ID:', cb.value));
+      
+      // Create hidden inputs for selected courses
+      const hiddenContainer = document.getElementById('tambahHiddenCourses');
+      hiddenContainer.innerHTML = ''; // Clear previous
+      checkedCourses.forEach(cb => {
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = 'course_ids[]';
+        hiddenInput.value = cb.value;
+        hiddenContainer.appendChild(hiddenInput);
+        console.log('Added hidden input for course:', cb.value);
+      });
       
       try {
         submitBtn.disabled = true;
@@ -343,6 +371,18 @@ document.addEventListener('DOMContentLoaded', function() {
       const thumbnailUrlInput = document.getElementById('editPaketThumbnailUrl');
       const bannerImageInput = document.getElementById('editPaketBannerImageUrl');
       const submitBtn = this.querySelector('button[type="submit"]');
+      
+      // Create hidden inputs for selected courses
+      const checkedCourses = document.querySelectorAll('#editCourseDropdown input[type="checkbox"]:checked');
+      const hiddenContainer = document.getElementById('editHiddenCourses');
+      hiddenContainer.innerHTML = ''; // Clear previous
+      checkedCourses.forEach(cb => {
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = 'course_ids[]';
+        hiddenInput.value = cb.value;
+        hiddenContainer.appendChild(hiddenInput);
+      });
       
       try {
         submitBtn.disabled = true;
