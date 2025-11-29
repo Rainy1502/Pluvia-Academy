@@ -1,6 +1,6 @@
 # Pluvia Academy
 
-Platform kursus online untuk programmer dengan sistem manajemen admin dan lecturer. (Work In Progress)
+Platform kursus online untuk programmer dengan sistem manajemen admin dan lecturer. (WIP)
 
 ## 🚀 Fitur Utama
 
