@@ -12,16 +12,17 @@ const supabaseAdmin = createClient(
 // Configure multer to use memory storage
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit (increased for PDFs)
   fileFilter: function (req, file, cb) {
-    const allowedTypes = /jpeg|jpg|png|gif|webp/;
-    const extname = allowedTypes.test(file.originalname.toLowerCase().split('.').pop());
-    const mimetype = allowedTypes.test(file.mimetype);
+    const allowedImageTypes = /jpeg|jpg|png|gif|webp/;
+    const isPDF = file.mimetype === 'application/pdf';
+    const extname = file.originalname.toLowerCase().split('.').pop();
+    const isImage = allowedImageTypes.test(extname) && allowedImageTypes.test(file.mimetype);
     
-    if (mimetype && extname) {
+    if (isImage || isPDF) {
       return cb(null, true);
     } else {
-      cb(new Error('Only image files are allowed!'));
+      cb(new Error('Only image files (JPEG, PNG, GIF, WebP) and PDF files are allowed!'));
     }
   }
 });

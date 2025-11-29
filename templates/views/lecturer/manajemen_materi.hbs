@@ -31,7 +31,7 @@
         {{else}}
         <div class="empty-courses empty-centered">
           <p class="empty-message">Belum ada kursus terdaftar</p>
-          <p class="empty-sub">Tambahkan kursus terlebih dahulu di menu Manajemen Kursus</p>
+          <p class="empty-sub">Kursus akan muncul setelah ditambahkan di menu Manajemen Kursus</p>
         </div>
         {{/if}}
         </div>
@@ -403,7 +403,7 @@ function closeManageMateriModal() {
   document.getElementById('manageMateriModal').style.display = 'none';
 }
 
-function openEditMateriModal(id, title, description, thumbnail, ordinal, mediaUrl) {
+function openEditMateriModal(id, title, description, thumbnail, ordinal, fileUrl) {
   // Close manage modal first
   closeManageMateriModal();
   
@@ -411,7 +411,7 @@ function openEditMateriModal(id, title, description, thumbnail, ordinal, mediaUr
   document.getElementById('editMateriDescription').value = description || '';
   document.getElementById('editMateriOrdinal').value = ordinal || '';
   document.getElementById('editMateriThumbnailUrl').value = thumbnail || '';
-  document.getElementById('editMateriPdfUrl').value = mediaUrl || '';
+  document.getElementById('editMateriPdfUrl').value = fileUrl || '';
   document.getElementById('editMateriForm').action = `/materi/${id}/edit`;
   
   // Update file label with existing filename for thumbnail
@@ -425,9 +425,9 @@ function openEditMateriModal(id, title, description, thumbnail, ordinal, mediaUr
   
   // Update file label with existing filename for PDF
   const editPdfLabel = document.querySelector('#editMateriPdfInput + label span:first-child');
-  if (editPdfLabel && mediaUrl) {
-    const filename = mediaUrl.split('/').pop();
-    editPdfLabel.textContent = filename;
+  if (editPdfLabel && fileUrl) {
+    const pdfFilename = fileUrl.split('/').pop();
+    editPdfLabel.textContent = pdfFilename;
   } else if (editPdfLabel) {
     editPdfLabel.textContent = 'Pilih File PDF';
   }

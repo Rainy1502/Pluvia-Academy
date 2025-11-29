@@ -281,7 +281,7 @@ app.get('/materi', async (req, res) => {
         (courses || []).map(async (course) => {
           const { data: materials } = await supabase
             .from('materials')
-            .select('id, title, description, thumbnail, ordinal')
+            .select('id, title, description, thumbnail, media_url, ordinal')
             .eq('course_id', course.id)
             .order('ordinal', { ascending: true });
           
@@ -306,15 +306,91 @@ app.get('/materi', async (req, res) => {
       });
     }
   } else {
-    // Member view: show purchased materials
-    const purchased = req.query && (req.query.paket === '1' || req.query.bought === '1' || req.query.purchased === '1');
-    const materialsToRender = purchased ? (Array.isArray(materiData) ? materiData : []) : [];
-    return res.render('member/materi', { 
-      title: 'Materi', 
-      materials: materialsToRender, 
-      hasPackage: Boolean(purchased),
-      isAdmin: false 
-    });
+    // Member view: show course selection or materials from selected course
+    if (!res.locals.user) {
+      return res.render('member/materi', { 
+        title: 'Materi', 
+        courses: [],
+        selectedCourse: null,
+        materials: [],
+        isAdmin: false 
+      });
+    }
+
+    try {
+      // Get enrolled courses
+      const { data: enrollments, error: enrollError } = await supabase
+        .from('enrollments')
+        .select('course_id')
+        .eq('user_id', res.locals.user.id)
+        .eq('status', 'active');
+
+      if (enrollError) throw enrollError;
+
+      const courseIds = (enrollments || []).map(e => e.course_id);
+
+      if (courseIds.length === 0) {
+        return res.render('member/materi', { 
+          title: 'Materi', 
+          courses: [],
+          selectedCourse: null,
+          materials: [],
+          isAdmin: false 
+        });
+      }
+
+      // Get courses
+      const { data: courses, error: coursesError } = await supabase
+        .from('courses')
+        .select('id, title, description, thumbnail')
+        .in('id', courseIds)
+        .order('title', { ascending: true });
+
+      if (coursesError) throw coursesError;
+
+      // Check if a specific course is selected
+      const selectedCourseId = req.query.course_id;
+
+      if (selectedCourseId) {
+        // Fetch materials for the selected course
+        const { data: materials, error: materialsError } = await supabase
+          .from('materials')
+          .select('id, title, description, thumbnail, media_url, ordinal')
+          .eq('course_id', selectedCourseId)
+          .order('ordinal', { ascending: true });
+
+        if (materialsError) throw materialsError;
+
+        // Get course details
+        const selectedCourse = courses.find(c => c.id === selectedCourseId);
+
+        return res.render('member/materi', { 
+          title: 'Materi', 
+          courses: courses || [],
+          selectedCourse: selectedCourse,
+          materials: materials || [],
+          isAdmin: false 
+        });
+      }
+
+      // Show course selection
+      return res.render('member/materi', { 
+        title: 'Materi', 
+        courses: courses || [],
+        selectedCourse: null,
+        materials: [],
+        isAdmin: false 
+      });
+    } catch (error) {
+      console.error('Error fetching materials:', error);
+      return res.render('member/materi', { 
+        title: 'Materi', 
+        courses: [],
+        selectedCourse: null,
+        materials: [],
+        isAdmin: false 
+      });
+    }
   }
 });
 
@@ -930,6 +1006,47 @@ app.post('/register', express.urlencoded({ extended: true }), async (req, res) =
 
 // (routes continue below)
 
+// Live Class page: menampilkan detail kursus dan tombol join meeting
+app.get('/live_class/:courseId', async (req, res) => {
+  if (!res.locals.user) {
+    return res.redirect('/login');
+  }
+
+  try {
+    const { courseId } = req.params;
+
+    // Check if user is enrolled in this course
+    const { data: enrollment } = await supabase
+      .from('enrollments')
+      .select('id')
+      .eq('user_id', res.locals.user.id)
+      .eq('course_id', courseId)
+      .eq('status', 'active')
+      .single();
+
+    if (!enrollment) {
+      return res.redirect('/kursus');
+    }
+
+    // Get course details
+    const { data: course, error } = await supabase
+      .from('courses')
+      .select('id, title, description, thumbnail, meet_link')
+      .eq('id', courseId)
+      .single();
+
+    if (error) throw error;
+
+    return res.render('member/live_class', {
+      title: 'Live Class',
+      course: course
+    });
+  } catch (error) {
+    console.error('Error fetching live class:', error);
+    return res.redirect('/kursus');
+  }
+});
+
 // Profile page: menampilkan informasi user yang sedang login
 app.get('/profile', async (req, res) => {
   if (!res.locals || !res.locals.user) {
@@ -1402,7 +1519,7 @@ app.post('/kursus/create', requireAdmin, express.urlencoded({ extended: true }),
 // POST Create Materi
 app.post('/materi/create', requireAdmin, express.urlencoded({ extended: true }), async (req, res) => {
   try {
-    const { title, description, ordinal, thumbnail, course_id } = req.body;
+    const { title, description, ordinal, thumbnail, media_url, course_id } = req.body;
 
     if (!title || !ordinal) {
       return res.status(400).json({
@@ -1426,6 +1543,7 @@ app.post('/materi/create', requireAdmin, express.urlencoded({ extended: true }),
         description: description || null,
         ordinal: parseInt(ordinal),
         thumbnail: thumbnail || null,
+        media_url: media_url || null,
         course_id: course_id || null,
         created_at: new Date().toISOString()
       });
@@ -1687,7 +1805,7 @@ app.post('/kursus/:id/edit', requireAdmin, express.urlencoded({ extended: true }
 app.post('/materi/:id/edit', requireAdmin, express.urlencoded({ extended: true }), async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, ordinal, thumbnail } = req.body;
+    const { title, description, ordinal, thumbnail, media_url } = req.body;
 
     if (!title || !ordinal) {
       return res.status(400).json({
@@ -1744,6 +1862,7 @@ app.post('/materi/:id/edit', requireAdmin, express.urlencoded({ extended: true }
         description: description || null,
         ordinal: parseInt(ordinal),
         thumbnail: thumbnail || null,
+        media_url: media_url || null,
         updated_at: new Date().toISOString()
       })
       .eq('id', id);

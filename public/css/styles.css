@@ -462,8 +462,8 @@ body{background:var(--bg);color:var(--text);line-height:1.55;font-size:16px}
 
 /* Shadowed panel that contains the kursus content (styled to match mock) */
 .courses-panel{
-	max-width:760px;
-	width:760px;
+	max-width:1200px;
+	width:1200px;
 	margin:60px auto 128.5px auto;
 	padding:56px 48px;
 	background:#ffffff;
