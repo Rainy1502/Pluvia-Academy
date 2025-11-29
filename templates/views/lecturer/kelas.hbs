@@ -1,0 +1,30 @@
+{{> head}}
+{{> header}}
+
+<main class="site-root">
+  <section class="my-courses-section">
+    <div class="container">
+      <div class="courses-panel">
+        <!-- Lecturer View - Kelas Yang Diajar -->
+        <h2 class="my-courses-title">Kelas Yang Anda Ajar</h2>
+        {{#if courses.length}}
+        <div class="my-courses-grid">
+        {{#each courses}}
+        <div class="my-course-box">
+          <div class="box-inner"></div>
+          <div class="course-title">{{this.title}}</div>
+        </div>
+        {{/each}}
+        </div>
+        {{else}}
+        <div class="empty-courses empty-centered">
+          <p class="empty-message">Anda belum memiliki kelas yang diajar saat ini.</p>
+          <p class="empty-sub">Kelas akan muncul setelah admin menambahkan Anda sebagai pengajar.</p>
+        </div>
+        {{/if}}
+      </div>
+    </div>
+  </section>
+</main>
+
+{{> footer}}
