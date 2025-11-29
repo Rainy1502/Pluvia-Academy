@@ -1,0 +1,186 @@
+{{> head}}
+{{> header}}
+
+<style>
+  .kursus-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 30px;
+    margin-top: 30px;
+    justify-items: center;
+  }
+
+  /* Center single card */
+  .kursus-grid:has(> :only-child) {
+    grid-template-columns: minmax(320px, 400px);
+    justify-content: center;
+  }
+
+  .kursus-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+
+  .kursus-card {
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .kursus-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+  }
+
+  .kursus-thumbnail {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%; /* 16:9 aspect ratio */
+    overflow: hidden;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+
+  .kursus-thumbnail img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .kursus-card:hover .kursus-thumbnail img {
+    transform: scale(1.05);
+  }
+
+  .kursus-content {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    flex-grow: 1;
+  }
+
+  .kursus-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin-bottom: 12px;
+    line-height: 1.4;
+  }
+
+  .kursus-description {
+    color: #718096;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .kursus-badge {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(245, 87, 108, 0.3);
+  }
+
+  .page-title {
+    text-align: center;
+    font-size: 2.2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #00d4ff 0%, #007bff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 10px;
+  }
+
+  .page-subtitle {
+    text-align: center;
+    color: #718096;
+    font-size: 1.05rem;
+    margin-bottom: 40px;
+  }
+</style>
+
+<main class="site-root">
+  <section class="my-courses-section">
+    <div class="container">
+      <div class="courses-panel">
+        <!-- Page Title -->
+        <h2 class="page-title">Kelas Yang Anda Jalani</h2>
+        <p class="page-subtitle">Akses semua kursus yang telah Anda ikuti</p>
+
+        {{#if enrolled}}
+        <div id="enroll-toast" class="site-toast success" style="margin-bottom:24px;">
+          <div style="padding:14px 20px;background:linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);border:2px solid #28a745;border-radius:12px;color:#155724;font-weight:700;box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);">
+            ✅ Berhasil! Anda sekarang bisa mengakses kursus dari paket yang didaftar.
+          </div>
+        </div>
+        <script>
+          setTimeout(() => {
+            const t = document.getElementById('enroll-toast');
+            if (t) {
+              t.style.opacity = '0';
+              t.style.transition = 'opacity 0.5s ease';
+              setTimeout(() => t.style.display = 'none', 500);
+            }
+          }, 4000);
+        </script>
+        {{/if}}
+
+        {{#if courses.length}}
+        <div class="kursus-grid">
+        {{#each courses}}
+          <a href="/live_class/{{this.id}}" class="kursus-card-link">
+            <div class="kursus-card">
+              <div class="kursus-thumbnail">
+                {{#if this.thumbnail}}
+                <img src="{{this.thumbnail}}" alt="{{this.title}}" loading="lazy"/>
+                {{else}}
+                <img src="/img/banner.png" alt="{{this.title}}" loading="lazy"/>
+                {{/if}}
+                <span class="kursus-badge">Aktif</span>
+              </div>
+              <div class="kursus-content">
+                <h3 class="kursus-title">{{this.title}}</h3>
+                {{#if this.description}}
+                <p class="kursus-description">{{this.description}}</p>
+                {{/if}}
+              </div>
+            </div>
+          </a>
+        {{/each}}
+        </div>
+        {{else}}
+        <div class="empty-courses empty-centered">
+          <p class="empty-message">Anda belum mengikuti kursus apa pun saat ini.</p>
+          <p class="empty-sub">Pilih paket untuk memulai pembelajaran Anda di Pluvia Academy.</p>
+          <a href="/paket_kursus" class="btn-primary empty-cta">Beli Paket</a>
+        </div>
+        {{/if}}
+      </div>
+    </div>
+  </section>
+</main>
+
+{{> footer}}

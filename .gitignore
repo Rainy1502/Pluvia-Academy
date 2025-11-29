@@ -2,8 +2,7 @@
 node_modules/
 /.env.local
 dist/
-.DS_Storenode_modules/
 .DS_Store
-dist/
 coverage/
-db/*.sql
+db/
+docs/

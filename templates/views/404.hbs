@@ -1,7 +1,26 @@
 {{> head}}
 {{> header}}
-<main class="container">
-  <h1>404 — Halaman tidak ditemukan</h1>
-  <p>Maaf, halaman yang Anda cari tidak ada.</p>
+
+<main class="site-root">
+  <section class="error-404-section">
+    <div class="container">
+      <div class="error-404-container">
+        <div class="error-404-content">
+          <h1 class="error-404-title">
+            <span class="error-404-number">404</span> 
+            <span class="error-404-text">Tidak Ditemukan</span>
+          </h1>
+          <p class="error-404-message">
+            Sepertinya halaman yang Anda cari tidak ada atau telah dipindahkan.
+          </p>
+          <div class="error-404-actions">
+            <a href="/" class="btn-404 btn-404-primary">Kembali ke Beranda</a>
+            <a href="/contact" class="btn-404 btn-404-secondary">Butuh Bantuan?</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 </main>
+
 {{> footer}}

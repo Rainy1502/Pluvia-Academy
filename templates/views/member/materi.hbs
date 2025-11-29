@@ -1,0 +1,290 @@
+{{> head}}
+{{> header}}
+
+<style>
+  .materi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 30px;
+    margin-top: 30px;
+    justify-items: center;
+  }
+
+  /* Center single card */
+  .materi-grid:has(> :only-child) {
+    grid-template-columns: minmax(320px, 400px);
+    justify-content: center;
+  }
+
+  .materi-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    width: 100%;
+  }
+
+  .materi-card {
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .materi-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+  }
+
+  .materi-thumbnail {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%; /* 16:9 aspect ratio */
+    overflow: hidden;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  }
+
+  .materi-thumbnail img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .materi-card:hover .materi-thumbnail img {
+    transform: scale(1.05);
+  }
+
+  .materi-content {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    flex-grow: 1;
+    justify-content: center;
+  }
+
+  .materi-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0;
+    line-height: 1.4;
+  }
+
+  .materi-badge {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  }
+
+  .page-title-materi {
+    text-align: center;
+    font-size: 2.2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #00d4ff 0%, #007bff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 10px;
+  }
+
+  .page-subtitle-materi {
+    text-align: center;
+    color: #718096;
+    font-size: 1.05rem;
+    margin-bottom: 40px;
+  }
+
+  .btn-back-materi {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #fff;
+    color: #007bff;
+    border: 2px solid #007bff;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
+    margin-bottom: 20px;
+  }
+
+  .btn-back-materi:hover {
+    background: #007bff;
+    color: #fff;
+    transform: translateX(-5px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+  }
+
+  .btn-back-materi::before {
+    content: '←';
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+
+  /* Course Selection Cards */
+  .course-select-card {
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .course-select-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+  }
+
+  .course-select-thumbnail {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%;
+    overflow: hidden;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+
+  .course-select-thumbnail img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .course-select-card:hover .course-select-thumbnail img {
+    transform: scale(1.05);
+  }
+
+  .course-select-content {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    flex-grow: 1;
+  }
+
+  .course-select-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin-bottom: 12px;
+    line-height: 1.4;
+  }
+
+  .course-select-description {
+    color: #718096;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+</style>
+
+<main class="site-root">
+  <section class="my-courses-section">
+    <div class="container">
+      <div class="courses-panel">
+        {{#if selectedCourse}}
+        <!-- Tampilan Materi dari Kursus yang Dipilih -->
+        <a href="/materi" class="btn-back-materi">Kembali ke Pilihan Kursus</a>
+        
+        <h2 class="page-title-materi">{{selectedCourse.title}}</h2>
+        <p class="page-subtitle-materi">Pilih materi untuk mulai belajar</p>
+
+        {{#if materials.length}}
+        <div class="materi-grid">
+          {{#each materials}}
+          <a href="{{#if this.media_url}}{{this.media_url}}{{else}}#{{/if}}" target="_blank" class="materi-card-link">
+            <div class="materi-card">
+              <div class="materi-thumbnail">
+                {{#if this.thumbnail}}
+                <img src="{{this.thumbnail}}" alt="{{this.title}}" loading="lazy"/>
+                {{else}}
+                <img src="/img/banner.png" alt="{{this.title}}" loading="lazy"/>
+                {{/if}}
+                <span class="materi-badge">PDF</span>
+              </div>
+              <div class="materi-content">
+                <h3 class="materi-title">{{this.title}}</h3>
+              </div>
+            </div>
+          </a>
+          {{/each}}
+        </div>
+        {{else}}
+        <div class="empty-courses empty-centered">
+          <p class="empty-message">Belum ada materi untuk kursus ini.</p>
+          <p class="empty-sub">Materi akan ditambahkan oleh pengajar segera.</p>
+        </div>
+        {{/if}}
+        {{else}}
+        <!-- Tampilan Pilihan Kursus -->
+        <h2 class="page-title-materi">Mau Belajar Apa Hari Ini?</h2>
+        <p class="page-subtitle-materi">Pilih kursus yang ingin kamu pelajari</p>
+
+        {{#if courses.length}}
+        <div class="materi-grid">
+          {{#each courses}}
+          <a href="/materi?course_id={{this.id}}" class="materi-card-link">
+            <div class="course-select-card">
+              <div class="course-select-thumbnail">
+                {{#if this.thumbnail}}
+                <img src="{{this.thumbnail}}" alt="{{this.title}}" loading="lazy"/>
+                {{else}}
+                <img src="/img/banner.png" alt="{{this.title}}" loading="lazy"/>
+                {{/if}}
+              </div>
+              <div class="course-select-content">
+                <h3 class="course-select-title">{{this.title}}</h3>
+                {{#if this.description}}
+                <p class="course-select-description">{{this.description}}</p>
+                {{/if}}
+              </div>
+            </div>
+          </a>
+          {{/each}}
+        </div>
+        {{else}}
+        <div class="empty-courses empty-centered">
+          <p class="empty-message">Belum ada kursus untuk ditampilkan.</p>
+          <p class="empty-sub">Ambil kursus terlebih dahulu untuk mengakses materi pembelajaran.</p>
+          <a href="/paket_kursus" class="btn-primary empty-cta">Beli Paket</a>
+        </div>
+        {{/if}}
+        {{/if}}
+      </div>
+    </div>
+  </section>
+</main>
+
+{{> footer}}

@@ -1,0 +1,210 @@
+{{> head}}
+{{> header}}
+
+<style>
+  .students-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .students-main-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #00d4ff 0%, #007bff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+
+  .students-course-name {
+    color: #718096;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .students-count {
+    color: #4a5568;
+    font-size: 1rem;
+  }
+
+  .btn-back-students {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #fff;
+    color: #007bff;
+    border: 2px solid #007bff;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
+    margin-bottom: 30px;
+  }
+
+  .btn-back-students:hover {
+    background: #007bff;
+    color: #fff;
+    transform: translateX(-5px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+  }
+
+  .btn-back-students::before {
+    content: '←';
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+
+  .students-grid {
+    display: grid;
+    gap: 20px;
+  }
+
+  .student-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+
+  .student-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  }
+
+  .student-info-section {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+  }
+
+  .student-avatar {
+    width: 50px;
+    height: 50px;
+    min-width: 50px;
+    min-height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: 700;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    flex-shrink: 0;
+  }
+
+  .student-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1a202c;
+  }
+
+  .student-actions-section {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .btn-student-action {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-student-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .btn-access {
+    background: linear-gradient(135deg, #00d4ff 0%, #007bff 100%);
+  }
+
+  .btn-remove {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+  }
+</style>
+
+<main class="site-root">
+  <section class="my-courses-section">
+    <div class="container">
+      <div class="courses-panel">
+        <a href="/kursus" class="btn-back-students">Kembali ke Manajemen Kursus</a>
+        
+        <div class="students-header">
+          <h2 class="students-main-title">Daftar Siswa</h2>
+          <h3 class="students-course-name">{{courseName}}</h3>
+          {{#if students.length}}
+          <p class="students-count">Total: {{students.length}} siswa terdaftar</p>
+          {{/if}}
+        </div>
+
+        {{#if students.length}}
+        <div class="students-grid">
+          {{#each students}}
+          <div class="student-card">
+            <div class="student-info-section">
+              <div class="student-avatar">👤</div>
+              <span class="student-name">{{this.full_name}}</span>
+            </div>
+            <div class="student-actions-section">
+              <button class="btn-student-action btn-access" onclick="window.location.href='/kursus/{{../courseId}}/students/{{this.id}}/materi'">Akses Materi</button>
+              <button class="btn-student-action btn-remove" onclick="removeStudent('{{this.id}}', '{{this.full_name}}')">Keluarkan</button>
+            </div>
+          </div>
+          {{/each}}
+        </div>
+        {{else}}
+        <div class="empty-courses empty-centered">
+          <p class="empty-message">Belum ada siswa terdaftar</p>
+          <p class="empty-sub">Siswa akan muncul setelah mendaftar ke kursus ini</p>
+        </div>
+        {{/if}}
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+function removeStudent(studentId, studentName) {
+  if (confirm(`Apakah Anda yakin ingin mengeluarkan ${studentName} dari kursus ini?`)) {
+    fetch(`/kursus/{{courseId}}/students/${studentId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(response => {
+      if (response.ok) {
+        alert('Student berhasil dikeluarkan');
+        window.location.reload();
+      } else {
+        alert('Gagal mengeluarkan student');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Terjadi kesalahan');
+    });
+  }
+}
+</script>
+
+{{> footer}}
