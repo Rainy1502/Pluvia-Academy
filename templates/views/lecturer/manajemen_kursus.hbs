@@ -1,36 +1,160 @@
 {{> head}}
 {{> header}}
 
+<style>
+  .management-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .management-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #00d4ff 0%, #007bff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+
+  .management-subtitle {
+    color: #718096;
+    font-size: 1.05rem;
+  }
+
+  .course-grid {
+    display: grid;
+    gap: 24px;
+  }
+
+  .course-item-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+
+  .course-item-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  }
+
+  .course-item-info {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex: 1;
+  }
+
+  .course-item-icon {
+    width: 60px;
+    height: 60px;
+    min-width: 60px;
+    min-height: 60px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.8rem;
+    font-weight: 700;
+    box-shadow: 0 4px 15px rgba(240, 147, 251, 0.3);
+    flex-shrink: 0;
+  }
+
+  .course-item-content h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0 0 8px 0;
+  }
+
+  .course-item-content p {
+    color: #718096;
+    font-size: 0.95rem;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .course-item-content p::before {
+    content: '📅';
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .course-item-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .btn-action {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .btn-students {
+    background: linear-gradient(135deg, #00d4ff 0%, #007bff 100%);
+  }
+
+  .btn-edit {
+    background: linear-gradient(135deg, #ffd89b 0%, #ff9a00 100%);
+  }
+</style>
+
 <main class="site-root">
   <section class="my-courses-section">
     <div class="container">
       <div class="courses-panel">
-        <!-- Lecturer View - Manajemen Kursus -->
-        <div class="kursus-admin-container">
-          <div class="kursus-header">
-            <h2 class="kursus-admin-title">Manajemen Kursus</h2>
-          </div>
+        <div class="management-header">
+          <h2 class="management-title">Manajemen Kursus</h2>
+          <p class="management-subtitle">Kelola kursus yang Anda ajar</p>
+        </div>
 
         {{#if courses.length}}
-        <div class="kursus-card">
+        <div class="course-grid">
           {{#each courses}}
-          <div class="kursus-item">
-            <div class="kursus-info">
-              <div class="kursus-icon"></div>
-              <div class="kursus-content">
-                <h3 class="kursus-title">{{this.title}}</h3>
-                <p class="kursus-schedule">
-                  {{#if this.schedule_day}}
-                    {{this.schedule_day}}
-                    {{#if this.schedule_time_start}} - {{this.schedule_time_start}}{{/if}}
-                    {{#if this.schedule_time_end}} s/d {{this.schedule_time_end}}{{/if}}
-                  {{/if}}
+          <div class="course-item-card">
+            <div class="course-item-info">
+              <div class="course-item-icon">📚</div>
+              <div class="course-item-content">
+                <h3>{{this.title}}</h3>
+                {{#if this.schedule_day}}
+                <p>
+                  {{this.schedule_day}}
+                  {{#if this.schedule_time_start}} {{this.schedule_time_start}}{{/if}}
+                  {{#if this.schedule_time_end}} - {{this.schedule_time_end}}{{/if}}
                 </p>
+                {{/if}}
               </div>
             </div>
-            <div class="kursus-actions">
-              <button class="kursus-btn kursus-btn-student" onclick="window.location.href='/kursus/{{this.id}}/students'">Siswa</button>
-              <button class="kursus-btn kursus-btn-edit" 
+            <div class="course-item-actions">
+              <button class="btn-action btn-students" onclick="window.location.href='/kursus/{{this.id}}/students'">Siswa</button>
+              <button class="btn-action btn-edit" 
                 data-id="{{this.id}}" 
                 data-title="{{this.title}}" 
                 data-description="{{this.description}}" 
@@ -46,12 +170,11 @@
           {{/each}}
         </div>
         {{else}}
-          <div class="empty-courses empty-centered">
-            <p class="empty-message">Anda belum memiliki kursus yang diajar.</p>
-            <p class="empty-sub">Kursus akan muncul setelah admin menambahkan Anda sebagai pengajar</p>
-          </div>
-          {{/if}}
+        <div class="empty-courses empty-centered">
+          <p class="empty-message">Anda belum memiliki kursus yang diajar.</p>
+          <p class="empty-sub">Kursus akan muncul setelah admin menambahkan Anda sebagai pengajar</p>
         </div>
+        {{/if}}
       </div>
     </div>
   </section>

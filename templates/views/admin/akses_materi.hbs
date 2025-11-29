@@ -1,45 +1,304 @@
 {{> head}}
 {{> header}}
 
+<style>
+  .access-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .access-main-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #00d4ff 0%, #007bff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+
+  .access-subtitle {
+    color: #718096;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  .access-info {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    text-align: center;
+  }
+
+  .access-info-text {
+    color: #4a5568;
+    font-size: 0.95rem;
+    margin: 0;
+  }
+
+  .btn-back-access {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #fff;
+    color: #007bff;
+    border: 2px solid #007bff;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
+    margin-bottom: 30px;
+  }
+
+  .btn-back-access:hover {
+    background: #007bff;
+    color: #fff;
+    transform: translateX(-5px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+  }
+
+  .btn-back-access::before {
+    content: '←';
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+
+  .materials-access-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+    margin-top: 30px;
+  }
+
+  .material-access-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 32px 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .material-access-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, #00d4ff, #007bff);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .material-access-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+  }
+
+  .material-access-card:hover::before {
+    opacity: 1;
+  }
+
+  .material-access-card.locked {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  }
+
+  .material-access-card.locked::before {
+    background: linear-gradient(90deg, #ff6b6b, #ee5a6f);
+  }
+
+  .lock-icon-wrapper {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    transition: all 0.3s ease;
+  }
+
+  .material-access-card.unlocked .lock-icon-wrapper {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+  }
+
+  .material-access-card.locked .lock-icon-wrapper {
+    background: linear-gradient(135deg, #ffe5e5 0%, #ffd5d5 100%);
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+  }
+
+  .material-access-card:hover .lock-icon-wrapper {
+    transform: scale(1.1) rotate(10deg);
+  }
+
+  .material-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0;
+    line-height: 1.4;
+  }
+
+  .material-status-badge {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-top: 8px;
+  }
+
+  .material-access-card.unlocked .material-status-badge {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    color: #155724;
+  }
+
+  .material-access-card.locked .material-status-badge {
+    background: linear-gradient(135deg, #ffe5e5 0%, #ffd5d5 100%);
+    color: #721c24;
+  }
+
+  /* Toast Notification */
+  .toast-notification {
+    position: fixed;
+    top: 100px;
+    right: 30px;
+    background: #fff;
+    padding: 20px 24px;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    display: none;
+    align-items: center;
+    gap: 12px;
+    z-index: 1000;
+    animation: slideIn 0.3s ease-out;
+  }
+
+  @keyframes slideIn {
+    from {
+      transform: translateX(400px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  .toast-notification.success {
+    border-left: 4px solid #28a745;
+  }
+
+  .toast-notification.error {
+    border-left: 4px solid #dc3545;
+  }
+
+  .toast-icon {
+    font-size: 1.5rem;
+  }
+
+  .toast-message {
+    font-weight: 600;
+    color: #1a202c;
+  }
+</style>
+
 <main class="site-root">
   <section class="my-courses-section">
     <div class="container">
       <div class="courses-panel">
-        <div class="akses-materi-container">
-          <h2 class="akses-materi-title">Akses Materi</h2>
-          <h3 class="akses-materi-subtitle">{{studentName}} - {{courseName}}</h3>
-
-          {{#if materials.length}}
-          <div class="materi-grid">
-            {{#each materials}}
-            <div class="materi-card-item {{#unless this.is_unlocked}}locked{{/unless}}" data-material-id="{{this.id}}" onclick="toggleMaterialAccess('{{this.id}}', {{this.is_unlocked}})">
-              <div class="materi-lock-icon">
-                {{#if this.is_unlocked}}
-                🔓
-                {{else}}
-                🔒
-                {{/if}}
-              </div>
-              <p class="materi-card-title">{{this.title}}</p>
-            </div>
-            {{/each}}
-          </div>
-          {{else}}
-          <div class="empty-courses empty-centered">
-            <p class="empty-message">Belum ada materi tersedia</p>
-            <p class="empty-sub">Materi akan ditambahkan oleh pengajar</p>
-          </div>
-          {{/if}}
+        <a href="/kursus/{{courseId}}/students" class="btn-back-access">Kembali ke Daftar Siswa</a>
+        
+        <div class="access-header">
+          <h2 class="access-main-title">Kelola Akses Materi</h2>
+          <h3 class="access-subtitle">{{studentName}} • {{courseName}}</h3>
         </div>
+
+        <div class="access-info">
+          <p class="access-info-text">
+            💡 Klik pada card materi untuk membuka atau mengunci akses belajar siswa
+          </p>
+        </div>
+
+        {{#if materials.length}}
+        <div class="materials-access-grid">
+          {{#each materials}}
+          <div class="material-access-card {{#if this.is_unlocked}}unlocked{{else}}locked{{/if}}" 
+               data-material-id="{{this.id}}" 
+               onclick="toggleMaterialAccess('{{this.id}}', {{this.is_unlocked}})">
+            <div class="lock-icon-wrapper">
+              {{#if this.is_unlocked}}
+              🔓
+              {{else}}
+              🔒
+              {{/if}}
+            </div>
+            <p class="material-title">{{this.title}}</p>
+            <span class="material-status-badge">
+              {{#if this.is_unlocked}}
+              ✓ Akses Terbuka
+              {{else}}
+              ✗ Akses Terkunci
+              {{/if}}
+            </span>
+          </div>
+          {{/each}}
+        </div>
+        {{else}}
+        <div class="empty-courses empty-centered">
+          <p class="empty-message">Belum ada materi tersedia</p>
+          <p class="empty-sub">Materi akan ditambahkan oleh pengajar</p>
+        </div>
+        {{/if}}
       </div>
     </div>
   </section>
 </main>
 
+<!-- Toast Notification -->
+<div id="toastNotification" class="toast-notification">
+  <span class="toast-icon" id="toastIcon"></span>
+  <span class="toast-message" id="toastMessage"></span>
+</div>
+
 <script>
+function showToast(message, isSuccess) {
+  const toast = document.getElementById('toastNotification');
+  const icon = document.getElementById('toastIcon');
+  const messageEl = document.getElementById('toastMessage');
+  
+  toast.className = 'toast-notification ' + (isSuccess ? 'success' : 'error');
+  icon.textContent = isSuccess ? '✅' : '❌';
+  messageEl.textContent = message;
+  
+  toast.style.display = 'flex';
+  
+  setTimeout(() => {
+    toast.style.display = 'none';
+  }, 3000);
+}
+
 function toggleMaterialAccess(materialId, currentlyUnlocked) {
   const action = currentlyUnlocked ? 'mengunci' : 'membuka';
-  if (confirm(`Apakah Anda yakin ingin ${action} akses materi ini?`)) {
+  const actionText = currentlyUnlocked ? 'Mengunci' : 'Membuka';
+  const emoji = currentlyUnlocked ? '🔒' : '🔓';
+  
+  const confirmMessage = currentlyUnlocked 
+    ? `🔒 Yakin ingin mengunci akses materi ini?\n\nSiswa tidak akan bisa mengakses materi ini setelah dikunci.`
+    : `🔓 Yakin ingin membuka akses materi ini?\n\nSiswa akan bisa mengakses dan mempelajari materi ini.`;
+  
+  if (confirm(confirmMessage)) {
     fetch(`/kursus/{{courseId}}/students/{{studentId}}/materi/${materialId}/toggle`, {
       method: 'POST',
       headers: {
@@ -49,15 +308,20 @@ function toggleMaterialAccess(materialId, currentlyUnlocked) {
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        alert(data.message);
-        window.location.reload();
+        const successMessage = currentlyUnlocked 
+          ? `${emoji} Akses materi berhasil dikunci!`
+          : `${emoji} Akses materi berhasil dibuka!`;
+        showToast(successMessage, true);
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       } else {
-        alert(data.message || 'Gagal mengubah akses materi');
+        showToast(data.message || 'Gagal mengubah akses materi', false);
       }
     })
     .catch(error => {
       console.error('Error:', error);
-      alert('Terjadi kesalahan');
+      showToast('Terjadi kesalahan saat mengubah akses materi', false);
     });
   }
 }
