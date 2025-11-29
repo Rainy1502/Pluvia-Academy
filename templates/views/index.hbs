@@ -2,12 +2,36 @@
 {{> header}}
 
 <main class="site-root">
-  <!-- Banner (mirrors Figma wireframe) -->
+  <!-- Banner Slider -->
   <section class="banner-top">
     <div class="container">
-      <div class="banner-wrap">
-        <!-- Use the local banner PNG (contains its own text) -->
-        <img src="/img/banner-hero.png" alt="Hero banner" loading="eager" decoding="sync" />
+      <div class="banner-slider-wrapper">
+        {{#if banners.length}}
+        <div class="banner-slider">
+          {{#each banners}}
+          <div class="banner-slide {{#if @first}}active{{/if}}">
+            <img src="{{this.banner_image}}" alt="{{this.title}}" loading="{{#if @first}}eager{{else}}lazy{{/if}}" decoding="{{#if @first}}sync{{else}}async{{/if}}" />
+            <div class="banner-overlay">
+              <h2>{{this.title}}</h2>
+            </div>
+          </div>
+          {{/each}}
+        </div>
+        
+        <button class="slider-nav prev" onclick="moveSlide(-1)" aria-label="Previous" style="display:none;">‹</button>
+        <button class="slider-nav next" onclick="moveSlide(1)" aria-label="Next" style="display:none;">›</button>
+        
+        <div class="slider-dots" style="display:none;">
+          {{#each banners}}
+          <span class="dot {{#if @first}}active{{/if}}" onclick="currentSlide({{@index}})"></span>
+          {{/each}}
+        </div>
+        {{else}}
+        <!-- Fallback ke banner default jika tidak ada banner dari database -->
+        <div class="banner-wrap">
+          <img src="/img/banner-hero.png" alt="Hero banner" loading="eager" decoding="sync" />
+        </div>
+        {{/if}}
       </div>
     </div>
   </section>
@@ -89,5 +113,249 @@
   </section>
 
 </main>
+
+<style>
+.banner-slider-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.banner-slider {
+  position: relative;
+  width: 100%;
+  height: 400px;
+}
+
+.banner-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.banner-slide.active {
+  opacity: 1;
+}
+
+.banner-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.banner-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
+  color: white;
+  padding: 40px 30px 30px;
+  border-radius: 0 0 12px 12px;
+}
+
+.banner-overlay h2 {
+  font-size: 32px;
+  font-weight: 800;
+  margin: 0 0 10px 0;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.banner-overlay p {
+  font-size: 16px;
+  margin: 0;
+  line-height: 1.5;
+  max-width: 800px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.slider-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  color: #333;
+  font-size: 36px;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 12px 18px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  z-index: 10;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.slider-nav:hover {
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.slider-nav.prev {
+  left: 20px;
+}
+
+.slider-nav.next {
+  right: 20px;
+}
+
+.slider-dots {
+  position: absolute;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 10;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.dot:hover {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.dot.active {
+  background: rgba(255, 255, 255, 1);
+  width: 14px;
+  height: 14px;
+}
+
+@media (max-width: 768px) {
+  .banner-slider {
+    height: 300px;
+  }
+  
+  .banner-overlay h2 {
+    font-size: 24px;
+  }
+  
+  .banner-overlay p {
+    font-size: 14px;
+  }
+  
+  .slider-nav {
+    width: 40px;
+    height: 40px;
+    font-size: 28px;
+    padding: 8px 12px;
+  }
+  
+  .slider-nav.prev {
+    left: 10px;
+  }
+  
+  .slider-nav.next {
+    right: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .banner-slider {
+    height: 250px;
+  }
+  
+  .banner-overlay {
+    padding: 20px 15px 15px;
+  }
+  
+  .banner-overlay h2 {
+    font-size: 20px;
+  }
+  
+  .banner-overlay p {
+    font-size: 13px;
+  }
+}
+</style>
+
+<script>
+let currentSlideIndex = 0;
+
+function showSlide(n) {
+  const slides = document.querySelectorAll('.banner-slide');
+  const dots = document.querySelectorAll('.dot');
+  
+  if (!slides.length) return;
+  
+  if (n >= slides.length) currentSlideIndex = 0;
+  if (n < 0) currentSlideIndex = slides.length - 1;
+  
+  slides.forEach(slide => slide.classList.remove('active'));
+  dots.forEach(dot => dot.classList.remove('active'));
+  
+  slides[currentSlideIndex].classList.add('active');
+  if (dots[currentSlideIndex]) {
+    dots[currentSlideIndex].classList.add('active');
+  }
+}
+
+function moveSlide(n) {
+  currentSlideIndex += n;
+  showSlide(currentSlideIndex);
+}
+
+function currentSlide(n) {
+  currentSlideIndex = n;
+  showSlide(currentSlideIndex);
+}
+
+// Auto-slide every 5 seconds
+let autoSlideInterval;
+function startAutoSlide() {
+  autoSlideInterval = setInterval(() => {
+    currentSlideIndex++;
+    showSlide(currentSlideIndex);
+  }, 5000);
+}
+
+function stopAutoSlide() {
+  clearInterval(autoSlideInterval);
+}
+
+// Initialize slider
+document.addEventListener('DOMContentLoaded', function() {
+  const slides = document.querySelectorAll('.banner-slide');
+  
+  if (slides.length > 1) {
+    // Show navigation controls
+    document.querySelector('.slider-nav.prev').style.display = 'flex';
+    document.querySelector('.slider-nav.next').style.display = 'flex';
+    document.querySelector('.slider-dots').style.display = 'flex';
+    
+    startAutoSlide();
+    
+    // Pause auto-slide on hover
+    const sliderWrapper = document.querySelector('.banner-slider-wrapper');
+    if (sliderWrapper) {
+      sliderWrapper.addEventListener('mouseenter', stopAutoSlide);
+      sliderWrapper.addEventListener('mouseleave', startAutoSlide);
+    }
+  }
+});
+</script>
 
 {{> footer}}

@@ -1,0 +1,103 @@
+{{> head}}
+{{> header}}
+
+<main class="site-root">
+  <section class="profile-page">
+    <div class="container">
+      <div class="profile-card">
+        <div class="profile-brand">
+          <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="brand-logo" />
+          <h2 class="brand-name">Pluvia Academy</h2>
+        </div>
+
+        <div class="profile-avatar-center">
+          {{#if profile.avatar_url}}
+            <img src="{{profile.avatar_url}}" alt="{{profile.full_name}}" class="avatar-img" />
+          {{else}}
+            <div class="avatar-placeholder">
+              <span class="avatar-initial">{{profile.initial}}</span>
+            </div>
+          {{/if}}
+        </div>
+
+        <h2 class="profile-name">{{profile.full_name}}</h2>
+        <p class="profile-role">{{profile.role_name}}</p>
+
+        <div class="profile-details">
+          <h2>Informasi Akun</h2>
+          
+          <div class="detail-row">
+            <div class="detail-label">Username</div>
+            <div class="detail-value">{{profile.username}}</div>
+          </div>
+
+          <div class="detail-row">
+            <div class="detail-label">Email</div>
+            <div class="detail-value">{{profile.email}}</div>
+          </div>
+
+          {{#if profile.phone}}
+          <div class="detail-row">
+            <div class="detail-label">Nomor HP</div>
+            <div class="detail-value">{{profile.phone}}</div>
+          </div>
+          {{/if}}
+
+          <div class="detail-row">
+            <div class="detail-label">Bergabung Sejak</div>
+            <div class="detail-value">{{profile.created_at}}</div>
+          </div>
+
+          {{#if profile.last_login}}
+          <div class="detail-row">
+            <div class="detail-label">Login Terakhir</div>
+            <div class="detail-value">{{profile.last_login}}</div>
+          </div>
+          {{/if}}
+        </div>
+
+        <div class="profile-actions">
+          <a href="/profile/edit" class="btn-primary">Edit Profile</a>
+          <button onclick="showLogoutConfirm()" class="btn-secondary">Keluar</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Modal Konfirmasi Logout -->
+<div id="logoutModal" class="kursus-modal">
+  <div class="kursus-modal-content logout-modal-content">
+    <div class="modal-logo">
+      <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="modal-logo-img"/>
+      <h2>Pluvia Academy</h2>
+    </div>
+    <h3 class="modal-title">Konfirmasi Keluar</h3>
+    <p class="logout-message">Apakah Anda yakin ingin keluar dari akun Anda?</p>
+    
+    <div class="modal-actions">
+      <a href="/logout" class="modal-btn modal-btn-logout">Ya, Keluar</a>
+      <button type="button" class="modal-btn modal-btn-batal" onclick="closeLogoutModal()">Batal</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function showLogoutConfirm() {
+  document.getElementById('logoutModal').style.display = 'flex';
+}
+
+function closeLogoutModal() {
+  document.getElementById('logoutModal').style.display = 'none';
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+  const modal = document.getElementById('logoutModal');
+  if (event.target === modal) {
+    closeLogoutModal();
+  }
+}
+</script>
+
+{{> footer}}

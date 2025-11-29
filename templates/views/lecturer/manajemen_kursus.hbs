@@ -1,0 +1,263 @@
+{{> head}}
+{{> header}}
+
+<style>
+  .management-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .management-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #00d4ff 0%, #007bff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+
+  .management-subtitle {
+    color: #718096;
+    font-size: 1.05rem;
+  }
+
+  .course-grid {
+    display: grid;
+    gap: 24px;
+  }
+
+  .course-item-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+
+  .course-item-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  }
+
+  .course-item-info {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex: 1;
+  }
+
+  .course-item-icon {
+    width: 60px;
+    height: 60px;
+    min-width: 60px;
+    min-height: 60px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.8rem;
+    font-weight: 700;
+    box-shadow: 0 4px 15px rgba(240, 147, 251, 0.3);
+    flex-shrink: 0;
+  }
+
+  .course-item-content h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0 0 8px 0;
+  }
+
+  .course-item-content p {
+    color: #718096;
+    font-size: 0.95rem;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .course-item-content p::before {
+    content: '📅';
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .course-item-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .btn-action {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .btn-students {
+    background: linear-gradient(135deg, #00d4ff 0%, #007bff 100%);
+  }
+
+  .btn-edit {
+    background: linear-gradient(135deg, #ffd89b 0%, #ff9a00 100%);
+  }
+</style>
+
+<main class="site-root">
+  <section class="my-courses-section">
+    <div class="container">
+      <div class="courses-panel">
+        <div class="management-header">
+          <h2 class="management-title">Manajemen Kursus</h2>
+          <p class="management-subtitle">Kelola kursus yang Anda ajar</p>
+        </div>
+
+        {{#if courses.length}}
+        <div class="course-grid">
+          {{#each courses}}
+          <div class="course-item-card">
+            <div class="course-item-info">
+              <div class="course-item-icon">📚</div>
+              <div class="course-item-content">
+                <h3>{{this.title}}</h3>
+                {{#if this.schedule_day}}
+                <p>
+                  {{this.schedule_day}}
+                  {{#if this.schedule_time_start}} {{this.schedule_time_start}}{{/if}}
+                  {{#if this.schedule_time_end}} - {{this.schedule_time_end}}{{/if}}
+                </p>
+                {{/if}}
+              </div>
+            </div>
+            <div class="course-item-actions">
+              <button class="btn-action btn-students" onclick="window.location.href='/kursus/{{this.id}}/students'">Siswa</button>
+              <button class="btn-action btn-edit" 
+                data-id="{{this.id}}" 
+                data-title="{{this.title}}" 
+                data-description="{{this.description}}" 
+                data-meet-link="{{this.meet_link}}" 
+                data-schedule-day="{{this.schedule_day}}" 
+                data-schedule-time-start="{{this.schedule_time_start}}" 
+                data-schedule-time-end="{{this.schedule_time_end}}"
+                onclick="openEditModalData(this)">
+                Edit
+              </button>
+            </div>
+          </div>
+          {{/each}}
+        </div>
+        {{else}}
+        <div class="empty-courses empty-centered">
+          <p class="empty-message">Anda belum memiliki kursus yang diajar.</p>
+          <p class="empty-sub">Kursus akan muncul setelah admin menambahkan Anda sebagai pengajar</p>
+        </div>
+        {{/if}}
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Modal Edit Kursus -->
+<div id="editKursusModal" class="kursus-modal">
+  <div class="kursus-modal-content">
+    <div class="modal-logo">
+      <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="modal-logo-img"/>
+      <h2>Pluvia Academy</h2>
+    </div>
+    <h3 class="modal-title">Edit Kursus</h3>
+    
+    <form id="editKursusForm" method="POST">
+      <input type="text" name="title" id="editTitle" placeholder="Nama Kursus" required class="modal-input"/>
+      
+      <textarea name="description" id="editDescription" placeholder="Deskripsi" class="modal-input" rows="3"></textarea>
+      
+      <input type="url" name="meet_link" id="editMeetLink" placeholder="Link Meet Kursus" class="modal-input"/>
+      
+      <select name="schedule_day" id="editScheduleDay" class="modal-select">
+        <option value="">Pilih Hari</option>
+        <option value="Senin">Senin</option>
+        <option value="Selasa">Selasa</option>
+        <option value="Rabu">Rabu</option>
+        <option value="Kamis">Kamis</option>
+        <option value="Jumat">Jumat</option>
+        <option value="Sabtu">Sabtu</option>
+        <option value="Minggu">Minggu</option>
+      </select>
+      
+      <div class="time-input-group">
+        <div class="time-input-wrapper">
+          <label class="time-label">Mulai</label>
+          <input type="time" name="schedule_time_start" id="editScheduleStart" class="modal-input time-input"/>
+        </div>
+        <div class="time-input-wrapper">
+          <label class="time-label">Selesai</label>
+          <input type="time" name="schedule_time_end" id="editScheduleEnd" class="modal-input time-input"/>
+        </div>
+      </div>
+      
+      <div class="modal-actions">
+        <button type="submit" class="modal-btn modal-btn-edit">Edit</button>
+        <button type="button" class="modal-btn modal-btn-batal" onclick="closeEditModal()">Batal</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openEditModalData(btn) {
+  const id = btn.getAttribute('data-id');
+  const title = btn.getAttribute('data-title');
+  const description = btn.getAttribute('data-description');
+  const meetLink = btn.getAttribute('data-meet-link');
+  const scheduleDay = btn.getAttribute('data-schedule-day');
+  const scheduleStart = btn.getAttribute('data-schedule-time-start');
+  const scheduleEnd = btn.getAttribute('data-schedule-time-end');
+  
+  document.getElementById('editTitle').value = title || '';
+  document.getElementById('editDescription').value = description || '';
+  document.getElementById('editMeetLink').value = meetLink || '';
+  document.getElementById('editScheduleDay').value = scheduleDay || '';
+  document.getElementById('editScheduleStart').value = scheduleStart || '';
+  document.getElementById('editScheduleEnd').value = scheduleEnd || '';
+  
+  document.getElementById('editKursusForm').action = `/kursus/${id}/edit`;
+  document.getElementById('editKursusModal').style.display = 'flex';
+}
+
+function closeEditModal() {
+  document.getElementById('editKursusModal').style.display = 'none';
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+  const editModal = document.getElementById('editKursusModal');
+  if (event.target === editModal) {
+    closeEditModal();
+  }
+}
+</script>
+
+{{> footer}}

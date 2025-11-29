@@ -1,0 +1,627 @@
+{{> head}}
+{{> header}}
+
+<style>
+  .management-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .management-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #00d4ff 0%, #007bff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+
+  .management-subtitle {
+    color: #718096;
+    font-size: 1.05rem;
+    margin-bottom: 24px;
+  }
+
+  .btn-add-course {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 32px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-add-course::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s ease, height 0.6s ease;
+  }
+
+  .btn-add-course:hover::before {
+    width: 300px;
+    height: 300px;
+  }
+
+  .btn-add-course:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
+  }
+
+  .btn-add-course .icon {
+    font-size: 1.4rem;
+    font-weight: bold;
+  }
+
+  .course-grid {
+    display: grid;
+    gap: 24px;
+  }
+
+  .course-item-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+
+  .course-item-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  }
+
+  .course-item-info {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex: 1;
+  }
+
+  .course-item-icon {
+    width: 60px;
+    height: 60px;
+    min-width: 60px;
+    min-height: 60px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.8rem;
+    font-weight: 700;
+    box-shadow: 0 4px 15px rgba(240, 147, 251, 0.3);
+    flex-shrink: 0;
+  }
+
+  .course-item-content h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0 0 4px 0;
+  }
+
+  .course-item-content p {
+    color: #718096;
+    font-size: 0.95rem;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .course-item-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .btn-action {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .btn-students {
+    background: linear-gradient(135deg, #00d4ff 0%, #007bff 100%);
+  }
+
+  .btn-edit {
+    background: linear-gradient(135deg, #ffd89b 0%, #ff9a00 100%);
+  }
+
+  .btn-delete {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+  }
+</style>
+
+<main class="site-root">
+  <section class="my-courses-section">
+    <div class="container">
+      <div class="courses-panel">
+        <div class="management-header">
+          <h2 class="management-title">Manajemen Kursus</h2>
+          <p class="management-subtitle">Kelola dan atur semua kursus di platform</p>
+          <button class="btn-add-course" onclick="openTambahModal()">
+            <span class="icon">+</span>
+            <span>Tambah Kursus Baru</span>
+          </button>
+        </div>
+
+        {{#if courses.length}}
+        <div class="course-grid">
+          {{#each courses}}
+          <div class="course-item-card">
+            <div class="course-item-info">
+              <div class="course-item-icon">📚</div>
+              <div class="course-item-content">
+                <h3>{{this.title}}</h3>
+                {{#if this.description}}
+                <p>{{this.description}}</p>
+                {{/if}}
+              </div>
+            </div>
+            <div class="course-item-actions">
+              <button class="btn-action btn-students" onclick="window.location.href='/kursus/{{this.id}}/students'">Siswa</button>
+              <button class="btn-action btn-edit" 
+                data-id="{{this.id}}" 
+                data-title="{{this.title}}" 
+                data-description="{{this.description}}" 
+                data-instructor-id="{{this.instructor_id}}" 
+                data-meet-link="{{this.meet_link}}" 
+                data-schedule-day="{{this.schedule_day}}" 
+                data-schedule-time-start="{{this.schedule_time_start}}" 
+                data-schedule-time-end="{{this.schedule_time_end}}" 
+                data-thumbnail="{{this.thumbnail}}"
+                onclick="openEditModalData(this)">
+                Edit
+              </button>
+              <button class="btn-action btn-delete" 
+                data-id="{{this.id}}" 
+                data-title="{{this.title}}"
+                onclick="deleteCourseData(this)">
+                Hapus
+              </button>
+            </div>
+          </div>
+          {{/each}}
+        </div>
+        {{else}}
+        <div class="empty-courses empty-centered">
+          <p class="empty-message">Belum ada kursus yang ditambahkan.</p>
+          <p class="empty-sub">Mulai tambahkan kursus untuk platform Anda</p>
+          <button class="btn-primary empty-cta" onclick="openTambahModal()">Tambah Kursus Pertama</button>
+        </div>
+        {{/if}}
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Modal Tambah Kursus -->
+<div id="tambahKursusModal" class="kursus-modal">
+  <div class="kursus-modal-content">
+    <div class="modal-logo">
+      <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="modal-logo-img"/>
+      <h2>Pluvia Academy</h2>
+    </div>
+    <h3 class="modal-title">Tambah Kursus</h3>
+    
+    <form id="tambahKursusForm" method="POST" action="/kursus/create">
+      <input type="text" name="title" placeholder="Nama Kursus" required class="modal-input"/>
+      
+      <select name="instructor_id" class="modal-select" required>
+        <option value="">Nama Lecturer</option>
+        {{#each lecturers}}
+        <option value="{{this.id}}">{{this.full_name}}</option>
+        {{/each}}
+      </select>
+      
+      <textarea name="description" placeholder="Deskripsi" class="modal-input" rows="3"></textarea>
+      
+      <input type="url" name="meet_link" placeholder="Link Meet Kursus" class="modal-input"/>
+      
+      <select name="schedule_day" class="modal-select">
+        <option value="">Pilih Hari</option>
+        <option value="Senin">Senin</option>
+        <option value="Selasa">Selasa</option>
+        <option value="Rabu">Rabu</option>
+        <option value="Kamis">Kamis</option>
+        <option value="Jumat">Jumat</option>
+        <option value="Sabtu">Sabtu</option>
+        <option value="Minggu">Minggu</option>
+      </select>
+      
+      <div class="time-input-group">
+        <div class="time-input-wrapper">
+          <label class="time-label">Mulai</label>
+          <input type="time" name="schedule_time_start" class="modal-input time-input"/>
+        </div>
+        <span class="time-separator">-</span>
+        <div class="time-input-wrapper">
+          <label class="time-label">Selesai</label>
+          <input type="time" name="schedule_time_end" class="modal-input time-input"/>
+        </div>
+      </div>
+      
+      <div class="file-input-wrapper">
+        <input type="file" id="thumbnailInput" accept="image/*" class="modal-file-input"/>
+        <label for="thumbnailInput" class="file-input-label">
+          <span>Pilih Gambar</span>
+          <span class="file-icon">🖼️</span>
+        </label>
+      </div>
+      <input type="hidden" name="thumbnail" id="thumbnailUrl"/>
+      
+      <div class="modal-actions">
+        <button type="submit" class="modal-btn modal-btn-tambah">Tambah</button>
+        <button type="button" class="modal-btn modal-btn-batal" onclick="closeTambahModal()">Batal</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Edit Kursus -->
+<div id="editKursusModal" class="kursus-modal">
+  <div class="kursus-modal-content">
+    <div class="modal-logo">
+      <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="modal-logo-img"/>
+      <h2>Pluvia Academy</h2>
+    </div>
+    <h3 class="modal-title">Edit Kursus</h3>
+    
+    <form id="editKursusForm" method="POST">
+      <input type="text" name="title" id="editTitle" placeholder="Nama Kursus" required class="modal-input"/>
+      
+      <select name="instructor_id" id="editInstructorId" class="modal-select" required>
+        <option value="">Nama Lecturer</option>
+        {{#each lecturers}}
+        <option value="{{this.id}}">{{this.full_name}}</option>
+        {{/each}}
+      </select>
+      
+      <textarea name="description" id="editDescription" placeholder="Deskripsi" class="modal-input" rows="3"></textarea>
+      
+      <input type="url" name="meet_link" id="editMeetLink" placeholder="Link Meet Kursus" class="modal-input"/>
+      
+      <select name="schedule_day" id="editScheduleDay" class="modal-select">
+        <option value="">Pilih Hari</option>
+        <option value="Senin">Senin</option>
+        <option value="Selasa">Selasa</option>
+        <option value="Rabu">Rabu</option>
+        <option value="Kamis">Kamis</option>
+        <option value="Jumat">Jumat</option>
+        <option value="Sabtu">Sabtu</option>
+        <option value="Minggu">Minggu</option>
+      </select>
+      
+      <div class="time-input-group">
+        <div class="time-input-wrapper">
+          <label class="time-label">Mulai</label>
+          <input type="time" name="schedule_time_start" id="editScheduleTimeStart" class="modal-input time-input"/>
+        </div>
+        <span class="time-separator">-</span>
+        <div class="time-input-wrapper">
+          <label class="time-label">Selesai</label>
+          <input type="time" name="schedule_time_end" id="editScheduleTimeEnd" class="modal-input time-input"/>
+        </div>
+      </div>
+      
+      <div class="file-input-wrapper">
+        <input type="file" id="editThumbnailInput" accept="image/*" class="modal-file-input"/>
+        <label for="editThumbnailInput" class="file-input-label">
+          <span>Pilih Gambar</span>
+          <span class="file-icon">🖼️</span>
+        </label>
+      </div>
+      <input type="hidden" name="thumbnail" id="editThumbnailUrl"/>
+      
+      <div class="modal-actions">
+        <button type="submit" class="modal-btn modal-btn-edit">Edit</button>
+        <button type="button" class="modal-btn modal-btn-batal" onclick="closeEditModal()">Batal</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Konfirmasi Hapus -->
+<div id="deleteModal" class="kursus-modal">
+  <div class="kursus-modal-content logout-modal-content">
+    <div class="modal-logo">
+      <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="modal-logo-img"/>
+      <h2>Pluvia Academy</h2>
+    </div>
+    <h3 class="modal-title">Konfirmasi Hapus</h3>
+    <p class="logout-message" id="deleteMessage">Apakah Anda yakin ingin menghapus kursus ini?</p>
+    
+    <div class="modal-actions">
+      <button type="button" class="modal-btn modal-btn-logout" onclick="confirmDelete()">Ya, Hapus</button>
+      <button type="button" class="modal-btn modal-btn-batal" onclick="closeDeleteModal()">Batal</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let deleteTarget = { id: null, title: null };
+
+// Upload file to server (which handles Supabase upload)
+async function uploadToServer(file, folder = 'thumbnails') {
+  try {
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('folder', folder);
+
+    const response = await fetch('/api/upload/upload', {
+      method: 'POST',
+      body: formData
+    });
+
+    const result = await response.json();
+
+    if (!result.success) {
+      throw new Error(result.message || 'Upload failed');
+    }
+
+    return result.url;
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    throw error;
+  }
+}
+
+// Wrap event listeners in DOMContentLoaded to ensure DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+  // Handle file input label change for Tambah modal
+  const thumbnailInput = document.getElementById('thumbnailInput');
+  if (thumbnailInput) {
+    thumbnailInput.addEventListener('change', function(e) {
+      const label = this.nextElementSibling.querySelector('span:first-child');
+      if (this.files.length > 0) {
+        label.textContent = this.files[0].name;
+      } else {
+        label.textContent = 'Pilih Gambar';
+      }
+    });
+  }
+
+  // Handle file input label change for Edit modal
+  const editThumbnailInput = document.getElementById('editThumbnailInput');
+  if (editThumbnailInput) {
+    editThumbnailInput.addEventListener('change', function(e) {
+      const label = this.nextElementSibling.querySelector('span:first-child');
+      if (this.files.length > 0) {
+        label.textContent = this.files[0].name;
+      } else {
+        label.textContent = 'Pilih Gambar';
+      }
+    });
+  }
+
+  // Handle form submission for Tambah with file upload
+  const tambahKursusForm = document.getElementById('tambahKursusForm');
+  if (tambahKursusForm) {
+    tambahKursusForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const fileInput = document.getElementById('thumbnailInput');
+      const thumbnailUrlInput = document.getElementById('thumbnailUrl');
+      const submitBtn = this.querySelector('button[type="submit"]');
+      
+      try {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Mengunggah...';
+        
+    // Upload file if selected
+    if (fileInput.files.length > 0) {
+      const publicUrl = await uploadToServer(fileInput.files[0], 'thumbnails');
+      thumbnailUrlInput.value = publicUrl;
+    }        // Submit form
+        this.submit();
+      } catch (error) {
+        alert('Gagal mengunggah gambar: ' + error.message);
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Tambah';
+      }
+    });
+  }
+
+  // Handle form submission for Edit with file upload
+  const editKursusForm = document.getElementById('editKursusForm');
+  if (editKursusForm) {
+    editKursusForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const fileInput = document.getElementById('editThumbnailInput');
+      const thumbnailUrlInput = document.getElementById('editThumbnailUrl');
+      const submitBtn = this.querySelector('button[type="submit"]');
+      
+      try {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Mengunggah...';
+        
+    // Upload file if new file selected
+    if (fileInput.files.length > 0) {
+      const publicUrl = await uploadToServer(fileInput.files[0], 'thumbnails');
+      thumbnailUrlInput.value = publicUrl;
+    }        // Submit form
+        this.submit();
+      } catch (error) {
+        alert('Gagal mengunggah gambar: ' + error.message);
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Edit';
+      }
+    });
+  }
+});
+
+function openTambahModal() {
+  document.getElementById('tambahKursusModal').style.display = 'flex';
+  // Reset file label
+  const label = document.querySelector('#thumbnailInput + .file-input-label span:first-child');
+  if (label) label.textContent = 'Pilih Gambar';
+}
+
+function closeTambahModal() {
+  document.getElementById('tambahKursusModal').style.display = 'none';
+}
+
+// Helper function using data attributes
+function openEditModalData(button) {
+  const id = button.getAttribute('data-id');
+  const title = button.getAttribute('data-title');
+  const description = button.getAttribute('data-description');
+  const instructorId = button.getAttribute('data-instructor-id');
+  const meetLink = button.getAttribute('data-meet-link');
+  const scheduleDay = button.getAttribute('data-schedule-day');
+  const scheduleTimeStart = button.getAttribute('data-schedule-time-start');
+  const scheduleTimeEnd = button.getAttribute('data-schedule-time-end');
+  const thumbnail = button.getAttribute('data-thumbnail');
+  
+  openEditModal(id, title, description, instructorId, meetLink, scheduleDay, scheduleTimeStart, scheduleTimeEnd, thumbnail);
+}
+
+function openEditModal(id, title, description, instructorId, meetLink, scheduleDay, scheduleTimeStart, scheduleTimeEnd, thumbnail) {
+  const modal = document.getElementById('editKursusModal');
+  const form = document.getElementById('editKursusForm');
+  
+  console.log('Thumbnail value:', thumbnail); // Debug log
+  
+  form.action = `/kursus/${id}/edit`;
+  document.getElementById('editTitle').value = title || '';
+  document.getElementById('editDescription').value = description || '';
+  document.getElementById('editInstructorId').value = instructorId || '';
+  document.getElementById('editMeetLink').value = meetLink || '';
+  document.getElementById('editScheduleDay').value = scheduleDay || '';
+  document.getElementById('editScheduleTimeStart').value = scheduleTimeStart || '';
+  document.getElementById('editScheduleTimeEnd').value = scheduleTimeEnd || '';
+  document.getElementById('editThumbnailUrl').value = thumbnail || '';
+  
+  // Reset file label or show existing filename
+  const fileLabel = document.querySelector('#editThumbnailInput + .file-input-label span:first-child');
+  const fileInput = document.getElementById('editThumbnailInput');
+  
+  if (fileLabel && fileInput) {
+    // Clear previous file selection
+    fileInput.value = '';
+    
+    if (thumbnail && thumbnail.trim() !== '') {
+      // Extract filename from URL or path
+      let filename = thumbnail.split('/').pop();
+      // Remove query parameters if any
+      filename = filename.split('?')[0];
+      // Decode URL encoding
+      filename = decodeURIComponent(filename);
+      
+      fileLabel.textContent = filename || 'Pilih Gambar';
+    } else {
+      fileLabel.textContent = 'Pilih Gambar';
+    }
+  }
+  
+  modal.style.display = 'flex';
+}
+
+function closeEditModal() {
+  document.getElementById('editKursusModal').style.display = 'none';
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+  const tambahModal = document.getElementById('tambahKursusModal');
+  const editModal = document.getElementById('editKursusModal');
+  if (event.target === tambahModal) {
+    closeTambahModal();
+  }
+  if (event.target === editModal) {
+    closeEditModal();
+  }
+}
+
+// Helper function using data attributes
+function deleteCourseData(button) {
+  const id = button.getAttribute('data-id');
+  const title = button.getAttribute('data-title');
+  showDeleteConfirm(id, title);
+}
+
+function showDeleteConfirm(id, title) {
+  deleteTarget = { id, title };
+  document.getElementById('deleteMessage').textContent = `Apakah Anda yakin ingin menghapus kursus "${title}"?`;
+  document.getElementById('deleteModal').style.display = 'flex';
+}
+
+function closeDeleteModal() {
+  document.getElementById('deleteModal').style.display = 'none';
+  deleteTarget = { id: null, title: null };
+}
+
+function confirmDelete() {
+  if (!deleteTarget.id) return;
+  
+  fetch(`/kursus/${deleteTarget.id}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(response => {
+    if (response.ok) {
+      window.location.reload();
+    } else {
+      console.error('Failed to delete course');
+      window.location.reload();
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    window.location.reload();
+  })
+  .finally(() => {
+    closeDeleteModal();
+  });
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+  const deleteModal = document.getElementById('deleteModal');
+  if (event.target === deleteModal) {
+    closeDeleteModal();
+  }
+}
+</script>
+
+{{> footer}}

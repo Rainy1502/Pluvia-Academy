@@ -5,12 +5,12 @@
   <section class="my-courses-section">
     <div class="container">
       <div class="courses-panel">
-        <h2 class="my-courses-title">Kelas Yang Anda Jalani</h2>
+        <!-- Lecturer View - Kelas Yang Diajar -->
+        <h2 class="my-courses-title">Kelas Yang Anda Ajar</h2>
         {{#if courses.length}}
         <div class="my-courses-grid">
         {{#each courses}}
         <div class="my-course-box">
-          <!-- placeholder content; replace with real thumbnail or title as needed -->
           <div class="box-inner"></div>
           <div class="course-title">{{this.title}}</div>
         </div>
@@ -18,9 +18,8 @@
         </div>
         {{else}}
         <div class="empty-courses empty-centered">
-          <p class="empty-message">Anda belum mengikuti kursus apa pun saat ini.</p>
-          <p class="empty-sub">Pilih paket untuk memulai pembelajaran Anda di Pluvia Academy.</p>
-          <a href="/paket_kursus" class="btn-primary empty-cta">Beli Paket</a>
+          <p class="empty-message">Anda belum memiliki kelas yang diajar saat ini.</p>
+          <p class="empty-sub">Kelas akan muncul setelah admin menambahkan Anda sebagai pengajar.</p>
         </div>
         {{/if}}
       </div>

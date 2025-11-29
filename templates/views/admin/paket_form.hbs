@@ -1,0 +1,128 @@
+{{> head}}
+{{> header}}
+
+<main class="site-root">
+  <section class="management-page">
+    <div class="container">
+      <div class="form-container">
+        <div class="form-header">
+          <h1>{{#if package}}Edit Paket{{else}}Tambah Paket Baru{{/if}}</h1>
+          <p class="form-subtitle">Buat paket kursus untuk member</p>
+        </div>
+
+        {{#if error}}
+        <div class="alert alert-error">
+          <p>{{error}}</p>
+        </div>
+        {{/if}}
+
+        <form method="POST" action="{{#if package}}/paket_kursus/{{package.id}}/edit{{else}}/paket_kursus/create{{/if}}" class="admin-form">
+          <div class="form-group">
+            <label for="title">Nama Paket <span class="required">*</span></label>
+            <input 
+              type="text" 
+              id="title" 
+              name="title" 
+              value="{{package.title}}" 
+              placeholder="Contoh: Paket Full Stack Developer" 
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="description">Deskripsi <span class="required">*</span></label>
+            <textarea 
+              id="description" 
+              name="description" 
+              rows="4" 
+              placeholder="Jelaskan keunggulan paket ini..."
+              required
+            >{{package.description}}</textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="price">Harga (Rp) <span class="required">*</span></label>
+              <input 
+                type="number" 
+                id="price" 
+                name="price" 
+                value="{{package.price}}" 
+                placeholder="500000" 
+                min="0"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="duration">Durasi Akses</label>
+              <input 
+                type="text" 
+                id="duration" 
+                name="duration" 
+                value="{{package.duration}}" 
+                placeholder="Contoh: 6 bulan"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="material_count">Jumlah Materi</label>
+            <input 
+              type="number" 
+              id="material_count" 
+              name="material_count" 
+              value="{{package.material_count}}" 
+              placeholder="20" 
+              min="0"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="thumbnail">URL Thumbnail <span class="required">*</span></label>
+            <input 
+              type="url" 
+              id="thumbnail" 
+              name="thumbnail" 
+              value="{{package.thumbnail}}" 
+              placeholder="https://example.com/image.jpg"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="badge">Badge (Opsional)</label>
+            <input 
+              type="text" 
+              id="badge" 
+              name="badge" 
+              value="{{package.badge}}" 
+              placeholder="Contoh: POPULER, BEST VALUE"
+            />
+          </div>
+
+          <div class="form-group checkbox-group">
+            <label>
+              <input 
+                type="checkbox" 
+                name="is_active" 
+                value="true"
+                {{#if package.is_active}}checked{{/if}}
+              />
+              <span>Aktifkan paket ini</span>
+            </label>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn-secondary" onclick="window.history.back()">Batal</button>
+            <button type="submit" class="btn-primary">
+              {{#if package}}Simpan Perubahan{{else}}Tambah Paket{{/if}}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+
+{{> footer}}

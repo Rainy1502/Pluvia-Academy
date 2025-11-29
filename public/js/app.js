@@ -106,3 +106,225 @@ document.addEventListener('DOMContentLoaded',function(){
 		});
 	});
 })();
+
+// OTP Handler: Kirim kode OTP via AJAX
+(function(){
+	document.addEventListener('DOMContentLoaded', function(){
+		const otpBtn = document.querySelector('.otp-btn');
+		if(!otpBtn) return;
+
+		otpBtn.addEventListener('click', async function(e){
+			e.preventDefault();
+
+			// Ambil nilai email dan username dari form
+			const form = otpBtn.closest('form');
+			if(!form) return;
+
+			const emailInput = form.querySelector('input[name="email"]');
+			const usernameInput = form.querySelector('input[name="username"]');
+
+			if(!emailInput || !emailInput.value){
+				alert('Email wajib diisi terlebih dahulu');
+				emailInput && emailInput.focus();
+				return;
+			}
+
+			const email = emailInput.value.trim();
+			const username = usernameInput ? usernameInput.value.trim() : '';
+
+			// Disable button dan ubah text
+			otpBtn.disabled = true;
+			const originalText = otpBtn.textContent;
+			otpBtn.textContent = 'Mengirim...';
+
+			try {
+				const response = await fetch('/api/otp/send', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({ email, username }),
+				});
+
+				const data = await response.json();
+
+				if(response.ok && data.success){
+					alert('Kode OTP telah dikirim ke email Anda. Silakan cek inbox atau folder spam.');
+					// Focus ke input OTP
+					const otpInput = form.querySelector('input[name="otp"]');
+					otpInput && otpInput.focus();
+				} else {
+					alert(data.error || 'Gagal mengirim kode OTP');
+				}
+			} catch(error){
+				console.error('Error sending OTP:', error);
+				alert('Terjadi kesalahan saat mengirim OTP');
+			} finally {
+				// Re-enable button
+				otpBtn.disabled = false;
+				otpBtn.textContent = originalText;
+			}
+		});
+	});
+})();
+
+// Edit Profile Form Handler
+(function(){
+	const editForm = document.getElementById('editProfileForm');
+	if(!editForm) return;
+
+	// Toggle password visibility for edit profile form
+	const passwordToggles = editForm.querySelectorAll('.toggle-password-btn');
+	passwordToggles.forEach(function(btn){
+		btn.addEventListener('click', function(){
+			const passwordGroup = this.closest('.password-group');
+			const input = passwordGroup.querySelector('.password-field');
+			const icon = this.querySelector('.eye-icon');
+			
+			if(input.type === 'password'){
+				input.type = 'text';
+				icon.src = '/img/eye-open.png';
+				this.setAttribute('aria-label', 'Sembunyikan password');
+			} else {
+				input.type = 'password';
+				icon.src = '/img/eye-closed.png';
+				this.setAttribute('aria-label', 'Tampilkan password');
+			}
+		});
+	});
+
+	// File upload preview
+	const fileInput = document.getElementById('profilePicture');
+	const uploadText = document.querySelector('.upload-text');
+	const imagePreview = document.getElementById('imagePreview');
+	const removeImageBtn = document.getElementById('removeImageBtn');
+	const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+	const avatarPlaceholderEdit = document.getElementById('avatarPlaceholderEdit');
+	
+	// Toggle remove button on image click
+	if(imagePreviewContainer){
+		imagePreviewContainer.addEventListener('click', function(e){
+			// Don't toggle if clicking the remove button itself
+			if(e.target.id === 'removeImageBtn' || e.target.closest('#removeImageBtn')){
+				return;
+			}
+			this.classList.toggle('show-remove');
+		});
+		
+		// Close remove button when clicking outside
+		document.addEventListener('click', function(e){
+			if(!imagePreviewContainer.contains(e.target)){
+				imagePreviewContainer.classList.remove('show-remove');
+			}
+		});
+	}
+	
+	if(fileInput && uploadText){
+		fileInput.addEventListener('change', function(){
+			if(this.files && this.files[0]){
+				// Reset removeAvatar flag when new file selected
+				const removeAvatarInput = document.getElementById('removeAvatar');
+				if(removeAvatarInput) removeAvatarInput.value = 'false';
+				
+				const file = this.files[0];
+				uploadText.textContent = file.name;
+				
+				// Show image preview
+				const reader = new FileReader();
+				reader.onload = function(e){
+					// Remove existing content
+					imagePreviewContainer.innerHTML = '';
+					imagePreviewContainer.classList.remove('show-remove');
+					
+					// Create new image
+					const img = document.createElement('img');
+					img.src = e.target.result;
+					img.className = 'image-preview';
+					img.id = 'imagePreview';
+					imagePreviewContainer.appendChild(img);
+					
+					// Add remove button
+					const removeBtn = document.createElement('button');
+					removeBtn.type = 'button';
+					removeBtn.className = 'remove-image-btn';
+					removeBtn.id = 'removeImageBtn';
+					removeBtn.textContent = 'Hapus';
+					imagePreviewContainer.appendChild(removeBtn);
+					
+					// Add remove handler
+					removeBtn.addEventListener('click', handleRemoveImage);
+				};
+				reader.readAsDataURL(file);
+			} else {
+				uploadText.textContent = 'Pilih Gambar Profile';
+			}
+		});
+	}
+	
+	// Handle remove image - disabled, using modal confirmation in edit_profile.hbs instead
+	function handleRemoveImage(e){
+		e.stopPropagation();
+		// Modal confirmation handled by edit_profile.hbs showDeletePhotoConfirm()
+		return;
+		
+		// Old code below - kept for reference but not executed
+		if(false){
+			// Set hidden input to indicate avatar should be removed
+			const removeAvatarInput = document.getElementById('removeAvatar');
+			if(removeAvatarInput) removeAvatarInput.value = 'true';
+			
+			// Clear file input
+			if(fileInput) fileInput.value = '';
+			
+			// Reset upload text
+			if(uploadText) uploadText.textContent = 'Pilih Gambar Profile';
+			
+			// Reset preview to placeholder
+			imagePreviewContainer.innerHTML = '';
+			imagePreviewContainer.classList.remove('show-remove');
+			
+			const placeholder = document.createElement('div');
+			placeholder.className = 'avatar-placeholder-edit';
+			placeholder.id = 'avatarPlaceholderEdit';
+			
+			// Get initial from form (first letter of email)
+			const emailInput = document.getElementById('email');
+			const initial = emailInput && emailInput.value ? emailInput.value.charAt(0).toUpperCase() : 'U';
+			
+			placeholder.innerHTML = '<span class="avatar-initial-edit">' + initial + '</span>';
+			imagePreviewContainer.appendChild(placeholder);
+			
+			// Add remove button back (hidden)
+			const removeBtn = document.createElement('button');
+			removeBtn.type = 'button';
+			removeBtn.className = 'remove-image-btn';
+			removeBtn.id = 'removeImageBtn';
+			removeBtn.textContent = 'Hapus';
+			imagePreviewContainer.appendChild(removeBtn);
+			removeBtn.addEventListener('click', handleRemoveImage);
+		}
+	}
+	
+	// Add click handler for existing remove button
+	if(removeImageBtn){
+		removeImageBtn.addEventListener('click', handleRemoveImage);
+	}
+
+	// Form validation
+	editForm.addEventListener('submit', function(e){
+		const password = document.getElementById('password').value;
+		const confirmPassword = document.getElementById('confirmPassword').value;
+
+		// Validate password match if password is being changed
+		if(password || confirmPassword){
+			if(password !== confirmPassword){
+				e.preventDefault();
+				alert('Password dan Konfirmasi Password tidak cocok!');
+				return false;
+			}
+		}
+
+		// If validation passes, form will submit normally
+		return true;
+	});
+})();

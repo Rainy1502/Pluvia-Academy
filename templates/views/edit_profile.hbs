@@ -1,0 +1,394 @@
+{{> head}}
+{{> header}}
+
+<main class="site-root">
+  <section class="edit-profile-page">
+    <div class="container">
+      <div class="edit-profile-card">
+        <div class="profile-brand">
+          <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="brand-logo" />
+          <h2 class="brand-name">Pluvia Academy</h2>
+        </div>
+
+        <h1 class="edit-title">Edit Profile</h1>
+
+        <div class="image-preview-container" id="imagePreviewContainer">
+          {{#if profile.avatar_url}}
+            <img src="{{profile.avatar_url}}" alt="Preview" class="image-preview" id="imagePreview" />
+          {{else}}
+            <div class="avatar-placeholder-edit" id="avatarPlaceholderEdit">
+              <span class="avatar-initial-edit">{{profile.initial}}</span>
+            </div>
+          {{/if}}
+          <button type="button" class="remove-image-btn" id="removeImageBtn">
+            Hapus
+          </button>
+        </div>
+
+        <form id="editProfileForm" action="/profile/edit" method="POST" class="edit-profile-form">
+          <input type="hidden" id="removeAvatar" name="removeAvatar" value="false" />
+          <input type="hidden" id="avatarUrl" name="avatar_url" value="{{profile.avatar_url}}" />
+          
+          <div class="form-group">
+            <input 
+              type="text" 
+              id="fullName" 
+              name="fullName" 
+              class="form-input" 
+              placeholder="Nama Pengguna"
+              value="{{profile.full_name}}"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <input 
+              type="tel" 
+              id="phone" 
+              name="phone" 
+              class="form-input" 
+              placeholder="Nomor HP"
+              value="{{profile.phone}}"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <input 
+              type="email" 
+              id="email" 
+              name="email" 
+              class="form-input" 
+              placeholder="Email"
+              value="{{profile.email}}"
+              required
+            />
+          </div>
+
+          <div class="form-group password-group">
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              class="form-input password-field" 
+              placeholder="Masukkan Password Baru"
+            />
+            <button type="button" class="toggle-password-btn" aria-label="Tampilkan password">
+              <img src="/img/eye-closed.png" alt="show" class="eye-icon" />
+            </button>
+          </div>
+
+          <div class="form-group password-group">
+            <input 
+              type="password" 
+              id="confirmPassword" 
+              name="confirmPassword" 
+              class="form-input password-field" 
+              placeholder="Konfirmasi Password Baru"
+            />
+            <button type="button" class="toggle-password-btn" aria-label="Tampilkan password">
+              <img src="/img/eye-closed.png" alt="show" class="eye-icon" />
+            </button>
+          </div>
+
+          <div class="form-group file-upload-group">
+            <label for="profilePicture" class="file-upload-label">
+              <span class="upload-text">Pilih Gambar Profile</span>
+            </label>
+            <input 
+              type="file" 
+              id="profilePicture" 
+              name="profilePicture" 
+              class="file-input" 
+              accept="image/*"
+            />
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-confirm">Konfirmasi</button>
+            <a href="/profile" class="btn-cancel">Batal</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Modal Crop Image -->
+<div id="cropModal" class="kursus-modal" style="display:none;">
+  <div class="kursus-modal-content" style="max-width: 600px;">
+    <div class="modal-logo">
+      <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="modal-logo-img"/>
+      <h2>Pluvia Academy</h2>
+    </div>
+    <h3 class="modal-title">Atur Foto Profil</h3>
+    
+    <div style="max-height: 400px; overflow: hidden;">
+      <img id="cropImage" style="max-width: 100%; display: block;" />
+    </div>
+    
+    <div class="modal-actions" style="margin-top: 20px;">
+      <button type="button" class="modal-btn modal-btn-tambah" onclick="applyCrop()">Gunakan</button>
+      <button type="button" class="modal-btn modal-btn-batal" onclick="closeCropModal()">Batal</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Konfirmasi Hapus Foto -->
+<div id="deletePhotoModal" class="kursus-modal" style="display:none;">
+  <div class="kursus-modal-content logout-modal-content">
+    <div class="modal-logo">
+      <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="modal-logo-img"/>
+      <h2>Pluvia Academy</h2>
+    </div>
+    <h3 class="modal-title">Konfirmasi Hapus</h3>
+    <p class="logout-message">Apakah Anda yakin ingin menghapus foto profil?</p>
+    
+    <div class="modal-actions">
+      <button type="button" class="modal-btn modal-btn-logout" onclick="confirmDeletePhoto()">Ya, Hapus</button>
+      <button type="button" class="modal-btn modal-btn-batal" onclick="closeDeletePhotoModal()">Batal</button>
+    </div>
+  </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+
+<script>
+let cropper = null;
+let croppedBlob = null;
+
+// Upload file to server
+async function uploadToServer(file, folder = 'avatars') {
+  try {
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('folder', folder);
+
+    const response = await fetch('/api/upload/upload', {
+      method: 'POST',
+      body: formData
+    });
+
+    const result = await response.json();
+
+    if (!result.success) {
+      throw new Error(result.message || 'Upload failed');
+    }
+
+    return result.url;
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    throw error;
+  }
+}
+
+function openCropModal(file) {
+  const modal = document.getElementById('cropModal');
+  const cropImage = document.getElementById('cropImage');
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    cropImage.src = e.target.result;
+    modal.style.display = 'flex';
+    
+    // Destroy previous cropper if exists
+    if (cropper) {
+      cropper.destroy();
+    }
+    
+    // Initialize cropper
+    cropper = new Cropper(cropImage, {
+      aspectRatio: 1,
+      viewMode: 2,
+      dragMode: 'move',
+      autoCropArea: 1,
+      restore: false,
+      guides: true,
+      center: true,
+      highlight: false,
+      cropBoxMovable: true,
+      cropBoxResizable: true,
+      toggleDragModeOnDblclick: false,
+      minContainerWidth: 400,
+      minContainerHeight: 400
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+function closeCropModal() {
+  const modal = document.getElementById('cropModal');
+  modal.style.display = 'none';
+  
+  if (cropper) {
+    cropper.destroy();
+    cropper = null;
+  }
+  
+  // Reset file input
+  document.getElementById('profilePicture').value = '';
+}
+
+function applyCrop() {
+  if (!cropper) return;
+  
+  const canvas = cropper.getCroppedCanvas({
+    width: 400,
+    height: 400,
+    imageSmoothingEnabled: true,
+    imageSmoothingQuality: 'high'
+  });
+  
+  canvas.toBlob(function(blob) {
+    croppedBlob = blob;
+    
+    // Update preview
+    const imagePreview = document.getElementById('imagePreview');
+    const avatarPlaceholder = document.getElementById('avatarPlaceholderEdit');
+    const removeBtn = document.getElementById('removeImageBtn');
+    const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+    const removeAvatarInput = document.getElementById('removeAvatar');
+    
+    const url = URL.createObjectURL(blob);
+    
+    if (imagePreview) {
+      imagePreview.src = url;
+      imagePreview.style.display = 'block';
+    } else {
+      const img = document.createElement('img');
+      img.src = url;
+      img.className = 'image-preview';
+      img.id = 'imagePreview';
+      
+      if (avatarPlaceholder) {
+        avatarPlaceholder.remove();
+      }
+      
+      imagePreviewContainer.insertBefore(img, removeBtn);
+    }
+    
+    if (avatarPlaceholder) {
+      avatarPlaceholder.style.display = 'none';
+    }
+    
+    removeAvatarInput.value = 'false';
+    
+    closeCropModal();
+  }, 'image/jpeg', 0.95);
+}
+
+function showDeletePhotoConfirm() {
+  document.getElementById('deletePhotoModal').style.display = 'flex';
+}
+
+function closeDeletePhotoModal() {
+  document.getElementById('deletePhotoModal').style.display = 'none';
+}
+
+function confirmDeletePhoto() {
+  const fileInput = document.getElementById('profilePicture');
+  const imagePreview = document.getElementById('imagePreview');
+  const avatarPlaceholder = document.getElementById('avatarPlaceholderEdit');
+  const removeAvatarInput = document.getElementById('removeAvatar');
+  const avatarUrlInput = document.getElementById('avatarUrl');
+  const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+  const removeBtn = document.getElementById('removeImageBtn');
+  
+  fileInput.value = '';
+  removeAvatarInput.value = 'true';
+  avatarUrlInput.value = '';
+  croppedBlob = null;
+  
+  if (imagePreview) {
+    imagePreview.style.display = 'none';
+  }
+  
+  if (avatarPlaceholder) {
+    avatarPlaceholder.style.display = 'flex';
+  } else {
+    // Create placeholder if doesn't exist
+    const placeholder = document.createElement('div');
+    placeholder.className = 'avatar-placeholder-edit';
+    placeholder.id = 'avatarPlaceholderEdit';
+    placeholder.innerHTML = '<span class="avatar-initial-edit">{{profile.initial}}</span>';
+    imagePreviewContainer.insertBefore(placeholder, removeBtn);
+  }
+  
+  closeDeletePhotoModal();
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+  const cropModal = document.getElementById('cropModal');
+  const deleteModal = document.getElementById('deletePhotoModal');
+  
+  if (event.target === cropModal) {
+    closeCropModal();
+  }
+  if (event.target === deleteModal) {
+    closeDeletePhotoModal();
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('editProfileForm');
+  const fileInput = document.getElementById('profilePicture');
+  const imagePreview = document.getElementById('imagePreview');
+  const avatarPlaceholder = document.getElementById('avatarPlaceholderEdit');
+  const removeBtn = document.getElementById('removeImageBtn');
+  const removeAvatarInput = document.getElementById('removeAvatar');
+  const avatarUrlInput = document.getElementById('avatarUrl');
+  const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+
+  // Handle file selection - open crop modal
+  fileInput.addEventListener('change', function(e) {
+    const file = this.files[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        console.error('Hanya file gambar yang diperbolehkan');
+        this.value = '';
+        return;
+      }
+      
+      openCropModal(file);
+    }
+  });
+
+  // Handle remove button - show confirmation modal
+  removeBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    showDeletePhotoConfirm();
+  });
+
+  // Handle form submission
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    
+    try {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Mengunggah...';
+      
+      // Upload avatar if cropped image exists
+      if (croppedBlob && removeAvatarInput.value !== 'true') {
+        // Create File object from blob
+        const file = new File([croppedBlob], 'avatar.jpg', { type: 'image/jpeg' });
+        const avatarUrl = await uploadToServer(file, 'avatars');
+        avatarUrlInput.value = avatarUrl;
+      }
+      
+      // Submit form
+      this.submit();
+    } catch (error) {
+      console.error('Gagal mengunggah gambar:', error);
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalText;
+    }
+  });
+});
+</script>
+
+{{> footer}}

@@ -9,7 +9,18 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Poppins:wght@300;400;600;700;800&family=Port+Lligat+Slab&family=Odibee+Sans&display=swap" rel="stylesheet">
   <!-- Preload hero banner for faster above-the-fold render -->
   <link rel="preload" as="image" href="/img/banner-hero.png">
-  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/styles.css?v=281120254">
   <link rel="icon" href="/img/favicon.png" />
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  {{#if supabaseUrl}}
+  <script>
+    // Initialize Supabase client from server-side env
+    window.supabaseClient = supabase.createClient(
+      '{{supabaseUrl}}',
+      '{{supabaseAnonKey}}'
+    );
+  </script>
+  {{/if}}
 </head>
 <body>
