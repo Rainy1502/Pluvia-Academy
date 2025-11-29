@@ -1,0 +1,500 @@
+{{> head}}
+{{> header}}
+
+<main class="site-root">
+  <section class="my-courses-section">
+    <div class="container">
+      <div class="courses-panel">
+        <!-- Lecturer View - Manajemen Materi -->
+        <div class="materi-admin-container">
+          <div class="materi-header">
+            <h2 class="materi-admin-title">Manajemen Materi</h2>
+          </div>
+
+        {{#if courses.length}}
+        <div class="materi-card">
+          {{#each courses}}
+          <div class="materi-item">
+            <div class="materi-info">
+              <div class="materi-icon"></div>
+              <div class="materi-content">
+                <h3 class="materi-title">{{this.title}}</h3>
+              </div>
+            </div>
+            <div class="materi-actions">
+              <button class="materi-btn materi-btn-tambah" onclick="openTambahMateriModal('{{this.id}}', '{{this.title}}')">Tambah</button>
+              <button class="materi-btn materi-btn-edit" onclick="openManageMateriModal('{{this.id}}', '{{this.title}}')">Edit</button>
+            </div>
+          </div>
+          {{/each}}
+        </div>
+        {{else}}
+        <div class="empty-courses empty-centered">
+          <p class="empty-message">Belum ada kursus yang Anda ajar</p>
+          <p class="empty-sub">Kursus akan muncul setelah admin menambahkan Anda sebagai pengajar</p>
+        </div>
+        {{/if}}
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Modal Tambah Materi -->
+<div id="tambahMateriModal" class="kursus-modal">
+  <div class="kursus-modal-content">
+    <div class="modal-logo">
+      <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="modal-logo-img"/>
+      <h2>Pluvia Academy</h2>
+    </div>
+    <h3 class="modal-title">Tambah Materi - <span id="courseNameDisplay"></span></h3>
+    
+    <form id="tambahMateriForm" method="POST" action="/materi/create">
+      <input type="hidden" name="course_id" id="tambahCourseId"/>
+      
+      <input type="text" name="title" placeholder="Nama Materi" required class="modal-input"/>
+      
+      <input type="text" name="description" placeholder="Deskripsi" class="modal-input"/>
+      
+      <input type="number" name="ordinal" placeholder="Urutan" required class="modal-input"/>
+      
+      <div class="file-input-wrapper">
+        <input type="file" id="materiThumbnailInput" accept="image/*" class="modal-file-input"/>
+        <label for="materiThumbnailInput" class="file-input-label">
+          <span>Pilih Gambar</span>
+          <span class="file-icon">🖼️</span>
+        </label>
+      </div>
+      <input type="hidden" name="thumbnail" id="materiThumbnailUrl"/>
+      
+      <div class="modal-actions">
+        <button type="submit" class="modal-btn modal-btn-tambah">Tambah</button>
+        <button type="button" class="modal-btn modal-btn-batal" onclick="closeTambahMateriModal()">Batal</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Manage Materi (List of Materials) -->
+<div id="manageMateriModal" class="kursus-modal">
+  <div class="kursus-modal-content modal-manage-materi">
+    <div class="modal-logo">
+      <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="modal-logo-img"/>
+      <h2>Pluvia Academy</h2>
+    </div>
+    <h3 class="modal-title">Kelola Materi - <span id="manageCourseNameDisplay"></span></h3>
+    
+    <button type="button" class="modal-btn modal-btn-hapus" id="deleteAllMateriBtn" onclick="deleteAllMaterials()" style="display:none; margin-bottom: 15px; width: 100%; background-color: #b91c1c; color: white; border: 2px solid #7f1d1d;">⚠️ Hapus Semua Materi</button>
+    
+    <div id="materiListContainer" class="materi-list-container">
+      <!-- Materials will be loaded here dynamically -->
+    </div>
+    
+    <div class="modal-actions">
+      <button type="button" class="modal-btn modal-btn-batal" onclick="closeManageMateriModal()">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Edit Materi -->
+<div id="editMateriModal" class="kursus-modal">
+  <div class="kursus-modal-content">
+    <div class="modal-logo">
+      <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="modal-logo-img"/>
+      <h2>Pluvia Academy</h2>
+    </div>
+    <h3 class="modal-title">Edit Materi</h3>
+    
+    <form id="editMateriForm" method="POST">
+      <input type="text" name="title" id="editMateriTitle" placeholder="Nama Materi" required class="modal-input"/>
+      
+      <input type="text" name="description" id="editMateriDescription" placeholder="Deskripsi" class="modal-input"/>
+      
+      <input type="number" name="ordinal" id="editMateriOrdinal" placeholder="Urutan" required class="modal-input"/>
+      
+      <div class="file-input-wrapper">
+        <input type="file" id="editMateriThumbnailInput" accept="image/*" class="modal-file-input"/>
+        <label for="editMateriThumbnailInput" class="file-input-label">
+          <span>Pilih Gambar</span>
+          <span class="file-icon">🖼️</span>
+        </label>
+      </div>
+      <input type="hidden" name="thumbnail" id="editMateriThumbnailUrl"/>
+      
+      <div class="modal-actions">
+        <button type="submit" class="modal-btn modal-btn-edit">Edit</button>
+        <button type="button" class="modal-btn modal-btn-batal" onclick="closeEditMateriModal()">Batal</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Konfirmasi Hapus Materi -->
+<div id="deleteMateriModal" class="kursus-modal">
+  <div class="kursus-modal-content logout-modal-content">
+    <div class="modal-logo">
+      <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="modal-logo-img"/>
+      <h2>Pluvia Academy</h2>
+    </div>
+    <h3 class="modal-title">Konfirmasi Hapus</h3>
+    <p class="logout-message" id="deleteMateriMessage">Apakah Anda yakin ingin menghapus materi ini?</p>
+    
+    <div class="modal-actions">
+      <button type="button" class="modal-btn modal-btn-logout" onclick="confirmDeleteMateri()">Ya, Hapus</button>
+      <button type="button" class="modal-btn modal-btn-batal" onclick="closeDeleteMateriModal()">Batal</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Konfirmasi Hapus Semua Materi -->
+<div id="deleteAllMateriModal" class="kursus-modal">
+  <div class="kursus-modal-content logout-modal-content">
+    <div class="modal-logo">
+      <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="modal-logo-img"/>
+      <h2>Pluvia Academy</h2>
+    </div>
+    <h3 class="modal-title">⚠️ Konfirmasi Hapus Semua</h3>
+    <p class="logout-message" id="deleteAllMateriMessage">Apakah Anda yakin ingin menghapus SEMUA materi?</p>
+    
+    <div class="modal-actions">
+      <button type="button" class="modal-btn modal-btn-logout" onclick="confirmDeleteAllMateri()">Ya, Hapus Semua</button>
+      <button type="button" class="modal-btn modal-btn-batal" onclick="closeDeleteAllMateriModal()">Batal</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Store courses data for managing materials
+const coursesData = {{{json courses}}};
+let deleteMateriTarget = { id: null, title: null };
+
+// Upload file to server
+async function uploadToServer(file, folder = 'thumbnails') {
+  try {
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('folder', folder);
+
+    const response = await fetch('/api/upload/upload', {
+      method: 'POST',
+      body: formData
+    });
+
+    const result = await response.json();
+
+    if (!result.success) {
+      throw new Error(result.message || 'Upload failed');
+    }
+
+    return result.url;
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    throw error;
+  }
+}
+
+// Handle file input label change for Tambah modal
+document.addEventListener('DOMContentLoaded', function() {
+  const materiThumbnailInput = document.getElementById('materiThumbnailInput');
+  if (materiThumbnailInput) {
+    materiThumbnailInput.addEventListener('change', function(e) {
+      const label = this.nextElementSibling;
+      const span = label.querySelector('span:first-child');
+      if (this.files && this.files[0]) {
+        span.textContent = this.files[0].name;
+      } else {
+        span.textContent = 'Pilih Gambar';
+      }
+    });
+  }
+
+  const editMateriThumbnailInput = document.getElementById('editMateriThumbnailInput');
+  if (editMateriThumbnailInput) {
+    editMateriThumbnailInput.addEventListener('change', function(e) {
+      const label = this.nextElementSibling;
+      const span = label.querySelector('span:first-child');
+      if (this.files && this.files[0]) {
+        span.textContent = this.files[0].name;
+      } else {
+        span.textContent = 'Pilih Gambar';
+      }
+    });
+  }
+
+  // Handle tambah materi form submission
+  const tambahMateriForm = document.getElementById('tambahMateriForm');
+  if (tambahMateriForm) {
+    tambahMateriForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const submitBtn = this.querySelector('button[type="submit"]');
+      const originalText = submitBtn.textContent;
+      
+      try {
+        submitBtn.disabled = true;
+        
+        const fileInput = document.getElementById('materiThumbnailInput');
+        if (fileInput.files && fileInput.files[0]) {
+          submitBtn.textContent = 'Mengunggah...';
+          const thumbnailUrl = await uploadToServer(fileInput.files[0], 'materials');
+          document.getElementById('materiThumbnailUrl').value = thumbnailUrl;
+        }
+        
+        submitBtn.textContent = 'Menyimpan...';
+        this.submit();
+      } catch (error) {
+        alert('Gagal mengunggah gambar: ' + error.message);
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
+    });
+  }
+
+  // Handle edit materi form submission
+  const editMateriForm = document.getElementById('editMateriForm');
+  if (editMateriForm) {
+    editMateriForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const submitBtn = this.querySelector('button[type="submit"]');
+      const originalText = submitBtn.textContent;
+      
+      try {
+        submitBtn.disabled = true;
+        
+        const fileInput = document.getElementById('editMateriThumbnailInput');
+        if (fileInput.files && fileInput.files[0]) {
+          submitBtn.textContent = 'Mengunggah...';
+          const thumbnailUrl = await uploadToServer(fileInput.files[0], 'materials');
+          document.getElementById('editMateriThumbnailUrl').value = thumbnailUrl;
+        }
+        
+        submitBtn.textContent = 'Menyimpan...';
+        this.submit();
+      } catch (error) {
+        alert('Gagal mengunggah gambar: ' + error.message);
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
+    });
+  }
+});
+
+function openTambahMateriModal(courseId, courseName) {
+  document.getElementById('tambahCourseId').value = courseId;
+  document.getElementById('courseNameDisplay').textContent = courseName;
+  document.getElementById('tambahMateriModal').style.display = 'flex';
+}
+
+function closeTambahMateriModal() {
+  document.getElementById('tambahMateriModal').style.display = 'none';
+  document.getElementById('tambahMateriForm').reset();
+}
+
+let currentCourseId = null;
+
+function openManageMateriModal(courseId, courseName) {
+  currentCourseId = courseId;
+  document.getElementById('manageCourseNameDisplay').textContent = courseName;
+  
+  // Find course materials
+  const course = coursesData.find(c => c.id === courseId);
+  const materials = course ? course.materials : [];
+  
+  // Show/hide delete all button
+  const deleteAllBtn = document.getElementById('deleteAllMateriBtn');
+  if (materials.length > 0) {
+    deleteAllBtn.style.display = 'inline-block';
+  } else {
+    deleteAllBtn.style.display = 'none';
+  }
+  
+  // Build materials list HTML
+  let html = '';
+  if (materials.length === 0) {
+    html = '<p style="text-align:center; color:#666; padding:20px;">Belum ada materi untuk kursus ini</p>';
+  } else {
+    html = '<div class="manage-materi-list">';
+    materials.forEach(material => {
+      html += `
+        <div class="manage-materi-item">
+          <div class="manage-materi-info">
+            <h4>${material.title}</h4>
+            ${material.description ? `<p>${material.description}</p>` : ''}
+          </div>
+          <div class="manage-materi-actions">
+            <button class="modal-btn-small modal-btn-edit" onclick="openEditMateriModal('${material.id}', '${material.title}', '${material.description || ''}', '${material.thumbnail || ''}', '${material.ordinal}')">Edit</button>
+            <button class="modal-btn-small modal-btn-hapus" onclick="deleteMaterialFromManage('${material.id}', '${material.title}')">Hapus</button>
+          </div>
+        </div>
+      `;
+    });
+    html += '</div>';
+  }
+  
+  document.getElementById('materiListContainer').innerHTML = html;
+  document.getElementById('manageMateriModal').style.display = 'flex';
+}
+
+function closeManageMateriModal() {
+  document.getElementById('manageMateriModal').style.display = 'none';
+}
+
+function openEditMateriModal(id, title, description, thumbnail, ordinal) {
+  // Close manage modal first
+  closeManageMateriModal();
+  
+  document.getElementById('editMateriTitle').value = title || '';
+  document.getElementById('editMateriDescription').value = description || '';
+  document.getElementById('editMateriOrdinal').value = ordinal || '';
+  document.getElementById('editMateriThumbnailUrl').value = thumbnail || '';
+  document.getElementById('editMateriForm').action = `/materi/${id}/edit`;
+  
+  // Update file label with existing filename
+  const editLabel = document.querySelector('#editMateriThumbnailInput + label span:first-child');
+  if (editLabel && thumbnail) {
+    const filename = thumbnail.split('/').pop();
+    editLabel.textContent = filename;
+  }
+  
+  document.getElementById('editMateriModal').style.display = 'flex';
+}
+
+function closeEditMateriModal() {
+  document.getElementById('editMateriModal').style.display = 'none';
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+  const tambahModal = document.getElementById('tambahMateriModal');
+  const manageModal = document.getElementById('manageMateriModal');
+  const editModal = document.getElementById('editMateriModal');
+  
+  if (event.target === tambahModal) {
+    closeTambahMateriModal();
+  }
+  if (event.target === manageModal) {
+    closeManageMateriModal();
+  }
+  if (event.target === editModal) {
+    closeEditMateriModal();
+  }
+}
+
+function deleteCourse(id, title) {
+  if (confirm(`Apakah Anda yakin ingin menghapus kursus "${title}"?\n\nPeringatan: Semua materi di kursus ini juga akan terhapus!`)) {
+    fetch(`/kursus/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(response => {
+      window.location.reload();
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      window.location.reload();
+    });
+  }
+}
+
+function deleteMaterialFromManage(id, title) {
+  deleteMateriTarget = { id, title };
+  document.getElementById('deleteMateriMessage').textContent = `Apakah Anda yakin ingin menghapus materi "${title}"?`;
+  document.getElementById('deleteMateriModal').style.display = 'flex';
+}
+
+function closeDeleteMateriModal() {
+  document.getElementById('deleteMateriModal').style.display = 'none';
+  deleteMateriTarget = { id: null, title: null };
+}
+
+function confirmDeleteMateri() {
+  if (!deleteMateriTarget.id) return;
+  
+  fetch(`/materi/${deleteMateriTarget.id}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(response => {
+    if (response.ok) {
+      window.location.reload();
+    } else {
+      console.error('Failed to delete material');
+      window.location.reload();
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    window.location.reload();
+  })
+  .finally(() => {
+    closeDeleteMateriModal();
+  });
+}
+
+function deleteAllMaterials() {
+  if (!currentCourseId) return;
+  
+  const course = coursesData.find(c => c.id === currentCourseId);
+  const materials = course ? course.materials : [];
+  
+  if (materials.length === 0) return;
+  
+  document.getElementById('deleteAllMateriMessage').textContent = 
+    `Apakah Anda yakin ingin menghapus SEMUA materi (${materials.length} materi) dari kursus ini?\n\nPeringatan: Tindakan ini tidak dapat dibatalkan!`;
+  document.getElementById('deleteAllMateriModal').style.display = 'flex';
+}
+
+function closeDeleteAllMateriModal() {
+  document.getElementById('deleteAllMateriModal').style.display = 'none';
+}
+
+function confirmDeleteAllMateri() {
+  if (!currentCourseId) return;
+  
+  const course = coursesData.find(c => c.id === currentCourseId);
+  const materials = course ? course.materials : [];
+  
+  if (materials.length === 0) return;
+  
+  const deletePromises = materials.map(material => 
+    fetch(`/materi/${material.id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+  );
+  
+  Promise.all(deletePromises)
+    .then(responses => {
+      window.location.reload();
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      window.location.reload();
+    })
+    .finally(() => {
+      closeDeleteAllMateriModal();
+    });
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+  const deleteMateriModal = document.getElementById('deleteMateriModal');
+  const deleteAllMateriModal = document.getElementById('deleteAllMateriModal');
+  
+  if (event.target === deleteMateriModal) {
+    closeDeleteMateriModal();
+  }
+  if (event.target === deleteAllMateriModal) {
+    closeDeleteAllMateriModal();
+  }
+}
+</script>
+
+{{> footer}}
