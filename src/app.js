@@ -146,6 +146,28 @@ const requireAdmin = (req, res, next) => {
   next();
 };
 
+// Middleware: Check if user is lecturer
+const requireLecturer = (req, res, next) => {
+  if (!res.locals.user || res.locals.user.role_id !== 5) {
+    return res.status(403).render('404', { 
+      title: 'Akses Ditolak',
+      message: 'Anda tidak memiliki akses ke halaman ini.' 
+    });
+  }
+  next();
+};
+
+// Middleware: Check if user is admin or lecturer
+const requireAdminOrLecturer = (req, res, next) => {
+  if (!res.locals.user || (res.locals.user.role_id !== 10 && res.locals.user.role_id !== 5)) {
+    return res.status(403).render('404', { 
+      title: 'Akses Ditolak',
+      message: 'Anda tidak memiliki akses ke halaman ini.' 
+    });
+  }
+  next();
+};
+
 // API routes untuk OTP
 app.use('/api/otp', otpRoutes);
 
@@ -572,8 +594,122 @@ app.get('/lecturer', async (req, res) => {
   }
 });
 
-// Student management for a specific course (Admin only)
-app.get('/kursus/:id/students', requireAdmin, async (req, res) => {
+// Lecturer - Halaman Kelas (Kursus yang diajar)
+app.get('/kelas', requireLecturer, async (req, res) => {
+  try {
+    const lecturerId = res.locals.user.id;
+
+    // Get courses taught by this lecturer with student count
+    const { data: courses, error } = await supabase
+      .from('courses')
+      .select(`
+        id, 
+        title, 
+        description, 
+        thumbnail,
+        schedule_day,
+        schedule_time_start,
+        schedule_time_end
+      `)
+      .eq('instructor_id', lecturerId)
+      .order('title', { ascending: true });
+
+    if (error) throw error;
+
+    // Get student count for each course
+    const coursesWithCount = await Promise.all((courses || []).map(async (course) => {
+      const { count } = await supabase
+        .from('enrollments')
+        .select('*', { count: 'exact', head: true })
+        .eq('course_id', course.id)
+        .eq('status', 'active');
+
+      return {
+        ...course,
+        student_count: count || 0
+      };
+    }));
+
+    return res.render('lecturer/kelas', { 
+      title: 'Kelas Yang Anda Ajar', 
+      courses: coursesWithCount
+    });
+  } catch (error) {
+    console.error('Error fetching lecturer courses:', error);
+    return res.render('lecturer/kelas', { 
+      title: 'Kelas Yang Anda Ajar', 
+      courses: []
+    });
+  }
+});
+
+// Lecturer - Halaman Manajemen Kursus
+app.get('/manajemen_kursus', requireLecturer, async (req, res) => {
+  try {
+    const lecturerId = res.locals.user.id;
+
+    // Get courses taught by this lecturer
+    const { data: courses, error } = await supabase
+      .from('courses')
+      .select('id, title, description, schedule_day, schedule_time_start, schedule_time_end, meet_link')
+      .eq('instructor_id', lecturerId)
+      .order('title', { ascending: true });
+
+    if (error) throw error;
+
+    return res.render('lecturer/manajemen_kursus', { 
+      title: 'Manajemen Kursus', 
+      courses: courses || []
+    });
+  } catch (error) {
+    console.error('Error fetching lecturer courses:', error);
+    return res.render('lecturer/manajemen_kursus', { 
+      title: 'Manajemen Kursus', 
+      courses: []
+    });
+  }
+});
+
+// Lecturer - Halaman Manajemen Materi
+app.get('/manajemen_materi', requireLecturer, async (req, res) => {
+  try {
+    const lecturerId = res.locals.user.id;
+
+    // Get courses taught by this lecturer with their materials
+    const { data: courses, error } = await supabase
+      .from('courses')
+      .select(`
+        id,
+        title,
+        materials (
+          id,
+          title,
+          description,
+          thumbnail,
+          media_url,
+          ordinal
+        )
+      `)
+      .eq('instructor_id', lecturerId)
+      .order('title', { ascending: true });
+
+    if (error) throw error;
+
+    return res.render('lecturer/manajemen_materi', { 
+      title: 'Manajemen Materi', 
+      courses: courses || []
+    });
+  } catch (error) {
+    console.error('Error fetching lecturer materials:', error);
+    return res.render('lecturer/manajemen_materi', { 
+      title: 'Manajemen Materi', 
+      courses: []
+    });
+  }
+});
+
+// Student management for a specific course (Admin or Lecturer)
+app.get('/kursus/:id/students', requireAdminOrLecturer, async (req, res) => {
   const courseId = req.params.id;
 
   try {
@@ -633,8 +769,8 @@ app.get('/kursus/:id/students', requireAdmin, async (req, res) => {
   }
 });
 
-// Material access management for a specific student in a course (Admin only)
-app.get('/kursus/:courseId/students/:studentId/materi', requireAdmin, async (req, res) => {
+// Material access management for a specific student in a course (Admin or Lecturer)
+app.get('/kursus/:courseId/students/:studentId/materi', requireAdminOrLecturer, async (req, res) => {
   const { courseId, studentId } = req.params;
 
   try {
@@ -810,8 +946,8 @@ app.delete('/materi/:materialId/students/:studentId', requireAdmin, async (req, 
   }
 });
 
-// Toggle material access for student (Admin only)
-app.post('/kursus/:courseId/students/:studentId/materi/:materialId/toggle', requireAdmin, async (req, res) => {
+// Toggle material access for student (Admin or Lecturer)
+app.post('/kursus/:courseId/students/:studentId/materi/:materialId/toggle', requireAdminOrLecturer, async (req, res) => {
   const { courseId, studentId, materialId } = req.params;
 
   try {

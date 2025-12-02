@@ -17,6 +17,13 @@
             <a href="/paket_kursus" title="Paket Kursus"><img src="/img/nav-paket.png" alt="paket" class="nav-icon"/><span>Paket Kursus</span></a>
             <a href="/lecturer" title="Lecturer"><img src="/img/teacher.png" alt="lecturer" class="nav-icon"/><span>Lecturer</span></a>
             <a href="/profile" title="Profile"><img src="/img/nav-login.png" alt="profile" class="nav-icon"/><span>{{user.full_name}}</span></a>
+          {{else if (eq user.role_id 5)}}
+            <!-- Lecturer Navigation -->
+            <a href="/" title="Home"><img src="/img/nav-home.png" alt="home" class="nav-icon"/><span>Home</span></a>
+            <a href="/kelas" title="Kelas"><img src="/img/nav-kursus.png" alt="kelas" class="nav-icon"/><span>Kelas</span></a>
+            <a href="/manajemen_materi" title="Materi"><img src="/img/nav-materi.png" alt="materi" class="nav-icon"/><span>Materi</span></a>
+            <a href="/manajemen_kursus" title="Kursus"><img src="/img/nav-paket.png" alt="kursus" class="nav-icon"/><span>Kursus</span></a>
+            <a href="/profile" title="Profile"><img src="/img/nav-login.png" alt="profile" class="nav-icon"/><span>{{user.full_name}}</span></a>
           {{else}}
             <!-- Member/Guest Navigation -->
             <a href="/" title="Home"><img src="/img/nav-home.png" alt="home" class="nav-icon"/><span>Home</span></a>
