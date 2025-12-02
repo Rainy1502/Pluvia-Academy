@@ -1,0 +1,856 @@
+{{> head}}
+{{> header}}
+
+<style>
+  .payment-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #2d75ca 0%, #1e5ba8 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    padding-top: 140px;
+  }
+
+  .payment-box {
+    background: #f0f0f0;
+    border: 1px solid #000;
+    border-radius: 12px;
+    padding: 40px;
+    max-width: 850px;
+    width: 100%;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  }
+
+  .payment-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 30px;
+  }
+
+  .payment-logo img {
+    width: 62px;
+    height: 62px;
+    object-fit: contain;
+  }
+
+  .payment-logo h2 {
+    font-family: 'Odibee Sans', sans-serif;
+    font-size: 48px;
+    margin: 0;
+    color: #000;
+  }
+
+  .payment-title {
+    font-family: 'Odibee Sans', sans-serif;
+    font-size: 40px;
+    text-align: center;
+    margin: 0 0 30px 0;
+    color: #000;
+  }
+
+  .payment-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 135px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 12px 15px;
+    font-size: 20px;
+    font-family: 'Inter', sans-serif;
+    border: 3px solid #e0e0e0;
+    background: #fff;
+    color: #333;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+  }
+
+  .form-input:focus {
+    outline: none;
+    border-color: #2d75ca;
+  }
+
+  .form-input::placeholder {
+    color: #828282;
+  }
+
+  .form-input:disabled {
+    background: #f5f5f5;
+    color: #666;
+    cursor: not-allowed;
+  }
+
+  .discount-section {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .discount-input {
+    width: 308px;
+    padding: 12px 15px;
+    font-size: 20px;
+    font-family: 'Inter', sans-serif;
+    border: 3px solid #e0e0e0;
+    background: #fff;
+  }
+
+  .apply-discount-btn {
+    padding: 12px 20px;
+    background: #2d75ca;
+    color: #fff;
+    border: none;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+  }
+
+  .apply-discount-btn:hover {
+    background: #1e5ba8;
+  }
+
+  .discount-applied {
+    background: #28a745;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  #discountStatus {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .price-divider {
+    width: 100%;
+    height: 3px;
+    background: #000;
+    margin: 20px 0;
+  }
+
+  .price-info {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .discount-info {
+    font-family: 'Poppins', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: #000;
+  }
+
+  .total-price {
+    font-family: 'Poppins', sans-serif;
+    font-size: 24px;
+    font-weight: 600;
+    color: #000;
+  }
+
+  .original-price {
+    text-decoration: line-through;
+    color: #999;
+    font-size: 18px;
+    margin-right: 10px;
+  }
+
+  .submit-btn {
+    padding: 14px 32px;
+    background: #fff;
+    color: #000;
+    border: 1px solid #000;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    align-self: center;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  }
+
+  .submit-btn:hover {
+    background: #000;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .error-message {
+    color: #dc3545;
+    font-size: 14px;
+    margin-top: 5px;
+  }
+
+  .success-message {
+    color: #28a745;
+    font-size: 14px;
+    margin-top: 5px;
+  }
+
+  @media (max-width: 768px) {
+    .form-row {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    .payment-logo h2 {
+      font-size: 36px;
+    }
+
+    .payment-title {
+      font-size: 32px;
+    }
+
+    .discount-section {
+      width: 100%;
+    }
+  }
+</style>
+
+<main class="payment-container">
+  <div class="payment-box">
+    <div class="payment-logo">
+      <img src="/img/logo-pngegg.png" alt="Pluvia Academy"/>
+      <h2>Pluvia Academy</h2>
+    </div>
+
+    <h1 class="payment-title">Pembayaran</h1>
+
+    <form class="payment-form" id="paymentForm">
+      <input type="hidden" name="package_id" value="{{package.id}}"/>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <input 
+            type="text" 
+            class="form-input" 
+            name="package_name" 
+            value="{{package.title}}" 
+            placeholder="Nama Kursus" 
+            readonly
+            disabled
+          />
+        </div>
+        <div class="form-group">
+          <input 
+            type="text" 
+            class="form-input" 
+            id="accountNumber"
+            name="account_number" 
+            placeholder="No. Rek / No. HP" 
+            required
+          />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <input 
+            type="email" 
+            class="form-input" 
+            name="email" 
+            value="{{user.email}}" 
+            placeholder="Email" 
+            required
+          />
+        </div>
+        <div class="form-group">
+          <input 
+            type="tel" 
+            class="form-input" 
+            name="phone" 
+            value="{{user.phone}}" 
+            placeholder="Nomor HP" 
+            required
+          />
+        </div>
+      </div>
+
+      <div class="discount-section">
+        <input 
+          type="text" 
+          class="discount-input" 
+          id="discountCode"
+          name="discount_code" 
+          placeholder="Kode Diskon (Opsional)" 
+        />
+        <button type="button" class="apply-discount-btn" onclick="applyDiscount()">Terapkan</button>
+      </div>
+      <div id="discountStatus"></div>
+
+      <div class="price-divider"></div>
+
+      <div class="price-info">
+        <p class="discount-info">
+          Total Diskon yang didapatkan: 
+          <span id="discountAmount">Rp0</span>
+        </p>
+        <p class="total-price">
+          <span id="originalPriceDisplay" style="display: none;" class="original-price"></span>
+          Harga Kursus: <span id="finalPrice">Rp{{formatPrice package.price}}</span>
+        </p>
+      </div>
+
+      <input type="hidden" id="discountPercentage" name="discount_percentage" value="0"/>
+      <input type="hidden" id="originalPrice" value="{{package.price}}"/>
+
+      <button type="button" class="submit-btn" onclick="openPaymentMethodModal()">Pilih Metode Pembayaran</button>
+    </form>
+  </div>
+</main>
+
+<!-- Modal Pilih Metode Pembayaran -->
+<div id="paymentMethodModal" class="payment-modal">
+  <div class="payment-modal-content">
+    <span class="close-modal" onclick="closePaymentMethodModal()">&times;</span>
+    
+    <div class="payment-method-logo">
+      <img src="/img/logo-pngegg.png" alt="Pluvia Academy"/>
+      <h2>Pluvia Academy</h2>
+    </div>
+
+    <h1 class="payment-method-title">Pilih Metode Pembayaran</h1>
+
+    <div class="payment-summary">
+      <div class="summary-row">
+        <span>Paket:</span>
+        <strong>{{package.title}}</strong>
+      </div>
+      <div class="summary-row">
+        <span>Harga Asli:</span>
+        <span id="modalOriginalPrice">Rp{{formatPrice package.price}}</span>
+      </div>
+      <div class="summary-row" id="modalDiscountRow" style="color: #28a745; display: none;">
+        <span>Diskon (<span id="modalDiscountPercent">0</span>%):</span>
+        <span id="modalDiscountAmount">- Rp0</span>
+      </div>
+      <div class="summary-row total">
+        <span>Total Bayar:</span>
+        <span id="modalFinalPrice">Rp{{formatPrice package.price}}</span>
+      </div>
+    </div>
+
+    <form id="paymentMethodForm" method="POST" action="/payment/confirm">
+      <input type="hidden" name="package_id" value="{{package.id}}"/>
+      <input type="hidden" id="modalAccountNumber" name="account_number" value=""/>
+      <input type="hidden" id="modalEmail" name="email" value=""/>
+      <input type="hidden" id="modalPhone" name="phone" value=""/>
+      <input type="hidden" id="modalDiscountCode" name="discount_code" value=""/>
+      <input type="hidden" id="modalDiscountPercentage" name="discount_percentage" value="0"/>
+      <input type="hidden" id="modalOriginalPriceValue" name="original_price" value="{{package.price}}"/>
+      <input type="hidden" id="modalFinalPriceValue" name="final_price" value="{{package.price}}"/>
+      <input type="hidden" id="selectedMethod" name="payment_method" value=""/>
+
+      <div class="payment-methods-grid">
+        <div class="payment-method-card" onclick="selectMethod('gopay', this)">
+          <div class="payment-method-icon">💳</div>
+          <div class="payment-method-name">GoPay</div>
+          <div class="payment-method-desc">E-Wallet</div>
+        </div>
+
+        <div class="payment-method-card" onclick="selectMethod('ovo', this)">
+          <div class="payment-method-icon">💰</div>
+          <div class="payment-method-name">OVO</div>
+          <div class="payment-method-desc">E-Wallet</div>
+        </div>
+
+        <div class="payment-method-card" onclick="selectMethod('dana', this)">
+          <div class="payment-method-icon">💵</div>
+          <div class="payment-method-name">DANA</div>
+          <div class="payment-method-desc">E-Wallet</div>
+        </div>
+
+        <div class="payment-method-card" onclick="selectMethod('brimo', this)">
+          <div class="payment-method-icon">🏦</div>
+          <div class="payment-method-name">BRIMO</div>
+          <div class="payment-method-desc">Mobile Banking BRI</div>
+        </div>
+
+        <div class="payment-method-card" onclick="selectMethod('bank', this)">
+          <div class="payment-method-icon">🏧</div>
+          <div class="payment-method-name">Bank Lain</div>
+          <div class="payment-method-desc">Transfer Bank</div>
+        </div>
+
+        <div class="payment-method-card" onclick="selectMethod('test_admin', this)">
+          <div class="payment-method-icon">🔧</div>
+          <div class="payment-method-name">Test Admin</div>
+          <div class="test-admin-badge">BYPASS</div>
+          <div class="payment-method-desc">Untuk Testing/Demo</div>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <button type="button" class="btn-back" onclick="closePaymentMethodModal()">Kembali</button>
+        <button type="submit" class="btn-pay" id="btnPay" disabled>Bayar Sekarang</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+  .payment-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.7);
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .payment-modal-content {
+    background: #f0f0f0;
+    border: 1px solid #000;
+    border-radius: 12px;
+    margin: 5% auto;
+    padding: 40px;
+    max-width: 850px;
+    width: 90%;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    position: relative;
+    animation: slideDown 0.3s ease;
+  }
+
+  @keyframes slideDown {
+    from { 
+      transform: translateY(-50px);
+      opacity: 0;
+    }
+    to { 
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .close-modal {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    font-size: 35px;
+    font-weight: bold;
+    color: #000;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    line-height: 1;
+  }
+
+  .close-modal:hover,
+  .close-modal:focus {
+    color: #dc3545;
+    transform: rotate(90deg);
+  }
+
+  .payment-method-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 30px;
+  }
+
+  .payment-method-logo img {
+    width: 62px;
+    height: 62px;
+    object-fit: contain;
+  }
+
+  .payment-method-logo h2 {
+    font-family: 'Odibee Sans', sans-serif;
+    font-size: 48px;
+    margin: 0;
+    color: #000;
+  }
+
+  .payment-method-title {
+    font-family: 'Odibee Sans', sans-serif;
+    font-size: 40px;
+    text-align: center;
+    margin: 0 0 30px 0;
+    color: #000;
+  }
+
+  .payment-summary {
+    background: #fff;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 30px;
+  }
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 16px;
+  }
+
+  .summary-row.total {
+    font-size: 24px;
+    font-weight: 700;
+    padding-top: 12px;
+    border-top: 2px solid #e0e0e0;
+    margin-top: 12px;
+  }
+
+  .payment-methods-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+
+  .payment-method-card {
+    background: #fff;
+    border: 3px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .payment-method-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    border-color: #2d75ca;
+  }
+
+  .payment-method-card.selected {
+    border-color: #2d75ca;
+    background: #e3f2fd;
+  }
+
+  .payment-method-icon {
+    font-size: 48px;
+    margin-bottom: 8px;
+  }
+
+  .payment-method-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: #000;
+  }
+
+  .payment-method-desc {
+    font-size: 13px;
+    color: #666;
+  }
+
+  .test-admin-badge {
+    background: #ff9800;
+    color: #fff;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+  }
+
+  .btn-back {
+    padding: 14px 32px;
+    background: #fff;
+    color: #000;
+    border: 2px solid #000;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .btn-back:hover {
+    background: #f5f5f5;
+  }
+
+  .btn-pay {
+    padding: 14px 32px;
+    background: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .btn-pay:hover {
+    background: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+  }
+
+  .btn-pay:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 768px) {
+    .payment-method-logo h2 {
+      font-size: 36px;
+    }
+
+    .payment-method-title {
+      font-size: 32px;
+    }
+
+    .payment-methods-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .action-buttons {
+      flex-direction: column;
+    }
+
+    .payment-modal-content {
+      margin: 10% auto;
+      padding: 30px 20px;
+    }
+  }
+</style>
+
+<script>
+console.log('Payment script loaded');
+
+let appliedDiscount = null;
+const originalPrice = parseFloat(document.getElementById('originalPrice').value);
+let currentDiscountData = {
+  code: '',
+  percentage: 0,
+  discountAmount: 0,
+  finalPrice: originalPrice
+};
+
+console.log('Original price:', originalPrice);
+
+function formatRupiah(amount) {
+  return 'Rp' + amount.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+async function applyDiscount() {
+  const code = document.getElementById('discountCode').value.trim();
+  const statusDiv = document.getElementById('discountStatus');
+  
+  if (!code) {
+    statusDiv.innerHTML = '<p class="error-message">Masukkan kode diskon</p>';
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/payment/validate-discount', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ code })
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      appliedDiscount = result.discount;
+      const discountAmount = originalPrice * (result.discount.percentage / 100);
+      const finalPrice = originalPrice - discountAmount;
+
+      // Update main form
+      document.getElementById('discountPercentage').value = result.discount.percentage;
+      document.getElementById('discountAmount').textContent = formatRupiah(discountAmount);
+      document.getElementById('finalPrice').textContent = formatRupiah(finalPrice);
+      document.getElementById('originalPriceDisplay').textContent = formatRupiah(originalPrice);
+      document.getElementById('originalPriceDisplay').style.display = 'inline';
+
+      // Save discount data
+      currentDiscountData = {
+        code: code,
+        percentage: result.discount.percentage,
+        discountAmount: discountAmount,
+        finalPrice: finalPrice
+      };
+
+      statusDiv.innerHTML = `<div class="discount-applied">✓ Diskon ${result.discount.percentage}% diterapkan!</div>`;
+      document.getElementById('discountCode').disabled = true;
+    } else {
+      statusDiv.innerHTML = `<p class="error-message">${result.message}</p>`;
+      resetDiscount();
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    statusDiv.innerHTML = '<p class="error-message">Terjadi kesalahan saat memvalidasi kode diskon</p>';
+  }
+}
+
+function resetDiscount() {
+  appliedDiscount = null;
+  document.getElementById('discountPercentage').value = '0';
+  document.getElementById('discountAmount').textContent = 'Rp0';
+  document.getElementById('finalPrice').textContent = formatRupiah(originalPrice);
+  document.getElementById('originalPriceDisplay').style.display = 'none';
+  
+  currentDiscountData = {
+    code: '',
+    percentage: 0,
+    discountAmount: 0,
+    finalPrice: originalPrice
+  };
+}
+
+// Open payment method modal
+function openPaymentMethodModal() {
+  console.log('Opening payment modal...');
+  const form = document.getElementById('paymentForm');
+  
+  // Validate form fields
+  if (!form.checkValidity()) {
+    console.log('Form validation failed');
+    form.reportValidity();
+    return;
+  }
+  
+  console.log('Form is valid, showing modal...');
+
+  // Get form values
+  const accountNumber = document.getElementById('accountNumber')?.value || '';
+  const email = document.getElementById('email')?.value || '';
+  const phone = document.getElementById('phone')?.value || '';
+  const discountCode = document.getElementById('discountCode')?.value || '';
+  const discountPercentage = document.getElementById('discountPercentage')?.value || '0';
+
+  console.log('Form values:', { accountNumber, email, phone, discountCode, discountPercentage });
+
+  // Transfer data to modal
+  const modalAccountNumber = document.getElementById('modalAccountNumber');
+  const modalEmail = document.getElementById('modalEmail');
+  const modalPhone = document.getElementById('modalPhone');
+  const modalDiscountCode = document.getElementById('modalDiscountCode');
+  const modalDiscountPercentage = document.getElementById('modalDiscountPercentage');
+  const modalOriginalPriceValue = document.getElementById('modalOriginalPriceValue');
+  const modalFinalPriceValue = document.getElementById('modalFinalPriceValue');
+
+  if (modalAccountNumber) modalAccountNumber.value = accountNumber;
+  if (modalEmail) modalEmail.value = email;
+  if (modalPhone) modalPhone.value = phone;
+  if (modalDiscountCode) modalDiscountCode.value = discountCode;
+  if (modalDiscountPercentage) modalDiscountPercentage.value = discountPercentage;
+  if (modalOriginalPriceValue) modalOriginalPriceValue.value = originalPrice;
+  if (modalFinalPriceValue) modalFinalPriceValue.value = currentDiscountData.finalPrice;
+
+  // Update modal display
+  const modalOriginalPrice = document.getElementById('modalOriginalPrice');
+  const modalDiscountRow = document.getElementById('modalDiscountRow');
+  const modalDiscountPercent = document.getElementById('modalDiscountPercent');
+  const modalDiscountAmount = document.getElementById('modalDiscountAmount');
+  const modalFinalPrice = document.getElementById('modalFinalPrice');
+
+  if (modalOriginalPrice) modalOriginalPrice.textContent = formatRupiah(originalPrice);
+  
+  if (parseFloat(discountPercentage) > 0) {
+    if (modalDiscountRow) modalDiscountRow.style.display = 'flex';
+    if (modalDiscountPercent) modalDiscountPercent.textContent = discountPercentage;
+    if (modalDiscountAmount) modalDiscountAmount.textContent = '- ' + formatRupiah(currentDiscountData.discountAmount);
+  } else {
+    if (modalDiscountRow) modalDiscountRow.style.display = 'none';
+  }
+  
+  if (modalFinalPrice) modalFinalPrice.textContent = formatRupiah(currentDiscountData.finalPrice);
+
+  // Show modal
+  const modal = document.getElementById('paymentMethodModal');
+  console.log('Modal element:', modal);
+  if (modal) {
+    modal.style.display = 'block';
+    console.log('Modal displayed!');
+  } else {
+    console.error('Modal element not found!');
+  }
+}
+
+// Close payment method modal
+function closePaymentMethodModal() {
+  document.getElementById('paymentMethodModal').style.display = 'none';
+  
+  // Reset selection
+  document.querySelectorAll('.payment-method-card').forEach(card => {
+    card.classList.remove('selected');
+  });
+  document.getElementById('selectedMethod').value = '';
+  document.getElementById('btnPay').disabled = true;
+}
+
+// Select payment method
+function selectMethod(method, element) {
+  // Remove previous selection
+  document.querySelectorAll('.payment-method-card').forEach(card => {
+    card.classList.remove('selected');
+  });
+  
+  // Add selection to clicked card
+  element.classList.add('selected');
+  
+  // Set hidden input
+  document.getElementById('selectedMethod').value = method;
+  
+  // Enable pay button
+  document.getElementById('btnPay').disabled = false;
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+  const modal = document.getElementById('paymentMethodModal');
+  if (event.target == modal) {
+    closePaymentMethodModal();
+  }
+}
+</script>
+
+{{> footer}}
