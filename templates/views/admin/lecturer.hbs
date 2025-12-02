@@ -98,7 +98,26 @@
   </div>
 </div>
 
+<!-- Modal Konfirmasi Hapus Lecturer -->
+<div id="deleteLecturerModal" class="kursus-modal">
+  <div class="kursus-modal-content logout-modal-content">
+    <div class="modal-logo">
+      <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="modal-logo-img"/>
+      <h2>Pluvia Academy</h2>
+    </div>
+    <h3 class="modal-title">Konfirmasi Hapus</h3>
+    <p class="logout-message" id="deleteLecturerMessage">Apakah Anda yakin ingin menghapus lecturer ini?</p>
+    
+    <div class="modal-actions">
+      <button type="button" class="modal-btn modal-btn-logout" onclick="confirmDeleteLecturer()">Ya, Hapus</button>
+      <button type="button" class="modal-btn modal-btn-batal" onclick="closeDeleteLecturerModal()">Batal</button>
+    </div>
+  </div>
+</div>
+
 <script>
+let deleteLecturerTarget = { id: null, name: null };
+
 function openTambahLecturerModal() {
   document.getElementById('tambahLecturerModal').style.display = 'flex';
 }
@@ -126,37 +145,56 @@ function closeEditLecturerModal() {
 }
 
 function deleteLecturer(id, name) {
-  if (confirm(`Apakah Anda yakin ingin menghapus lecturer "${name}"?`)) {
-    fetch(`/lecturer/${id}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    .then(response => {
-      if (response.ok) {
-        alert('Lecturer berhasil dihapus');
-        window.location.reload();
-      } else {
-        alert('Gagal menghapus lecturer');
-      }
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      alert('Terjadi kesalahan');
-    });
-  }
+  deleteLecturerTarget = { id, name };
+  document.getElementById('deleteLecturerMessage').textContent = `Apakah Anda yakin ingin menghapus lecturer "${name}"?`;
+  document.getElementById('deleteLecturerModal').style.display = 'flex';
+}
+
+function closeDeleteLecturerModal() {
+  document.getElementById('deleteLecturerModal').style.display = 'none';
+  deleteLecturerTarget = { id: null, name: null };
+}
+
+function confirmDeleteLecturer() {
+  if (!deleteLecturerTarget.id) return;
+  
+  fetch(`/lecturer/${deleteLecturerTarget.id}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(response => {
+    if (response.ok) {
+      window.location.reload();
+    } else {
+      console.error('Gagal menghapus lecturer');
+      window.location.reload();
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    window.location.reload();
+  })
+  .finally(() => {
+    closeDeleteLecturerModal();
+  });
 }
 
 // Close modal when clicking outside
 window.onclick = function(event) {
   const tambahModal = document.getElementById('tambahLecturerModal');
   const editModal = document.getElementById('editLecturerModal');
+  const deleteModal = document.getElementById('deleteLecturerModal');
+  
   if (event.target === tambahModal) {
     closeTambahLecturerModal();
   }
   if (event.target === editModal) {
     closeEditLecturerModal();
+  }
+  if (event.target === deleteModal) {
+    closeDeleteLecturerModal();
   }
 }
 </script>

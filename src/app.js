@@ -361,6 +361,24 @@ app.get('/materi', async (req, res) => {
 
         if (materialsError) throw materialsError;
 
+        // Get user's progress to check which materials are unlocked
+        const { data: progress, error: progressError } = await supabase
+          .from('progress')
+          .select('material_id')
+          .eq('user_id', res.locals.user.id)
+          .eq('course_id', selectedCourseId);
+
+        if (progressError) throw progressError;
+
+        // Create a set of unlocked material IDs
+        const unlockedMaterialIds = new Set((progress || []).map(p => p.material_id));
+
+        // Add is_unlocked property to each material
+        const materialsWithAccess = (materials || []).map(material => ({
+          ...material,
+          is_unlocked: unlockedMaterialIds.has(material.id)
+        }));
+
         // Get course details
         const selectedCourse = courses.find(c => c.id === selectedCourseId);
 
@@ -368,7 +386,7 @@ app.get('/materi', async (req, res) => {
           title: 'Materi', 
           courses: courses || [],
           selectedCourse: selectedCourse,
-          materials: materials || [],
+          materials: materialsWithAccess,
           isAdmin: false 
         });
       }
@@ -501,16 +519,16 @@ app.get('/paket_kursus/:id', async (req, res) => {
         .eq('package_id', packageId);
       
       if (packageCourses && packageCourses.length > 0) {
-        // Check if user is enrolled in at least one course from this package
+        // Check if user is enrolled in ALL courses from this package
         const courseIds = packageCourses.map(pc => pc.course_id);
         const { data: enrollments } = await supabase
           .from('enrollments')
           .select('course_id')
           .eq('user_id', userId)
-          .in('course_id', courseIds)
-          .limit(1);
+          .in('course_id', courseIds);
         
-        isEnrolled = enrollments && enrollments.length > 0;
+        // User is considered enrolled only if they're enrolled in ALL courses
+        isEnrolled = enrollments && enrollments.length === packageCourses.length;
       }
     }
 

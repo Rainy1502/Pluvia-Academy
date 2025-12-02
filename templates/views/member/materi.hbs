@@ -93,6 +93,38 @@
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
   }
 
+  .materi-card.locked {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  .materi-card.locked .materi-thumbnail::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .materi-badge.locked {
+    background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
+  }
+
+  .lock-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 3rem;
+    color: #fff;
+    z-index: 1;
+  }
+
   .page-title-materi {
     text-align: center;
     font-size: 2.2rem;
@@ -224,6 +256,7 @@
         {{#if materials.length}}
         <div class="materi-grid">
           {{#each materials}}
+          {{#if this.is_unlocked}}
           <a href="{{#if this.media_url}}{{this.media_url}}{{else}}#{{/if}}" target="_blank" class="materi-card-link">
             <div class="materi-card">
               <div class="materi-thumbnail">
@@ -239,6 +272,24 @@
               </div>
             </div>
           </a>
+          {{else}}
+          <div class="materi-card-link">
+            <div class="materi-card locked">
+              <div class="materi-thumbnail">
+                {{#if this.thumbnail}}
+                <img src="{{this.thumbnail}}" alt="{{this.title}}" loading="lazy"/>
+                {{else}}
+                <img src="/img/banner.png" alt="{{this.title}}" loading="lazy"/>
+                {{/if}}
+                <span class="materi-badge locked">🔒 Terkunci</span>
+                <div class="lock-icon">🔒</div>
+              </div>
+              <div class="materi-content">
+                <h3 class="materi-title">{{this.title}}</h3>
+              </div>
+            </div>
+          </div>
+          {{/if}}
           {{/each}}
         </div>
         {{else}}
