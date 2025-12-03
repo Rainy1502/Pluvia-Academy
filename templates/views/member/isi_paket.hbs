@@ -245,9 +245,9 @@
                 Anda sudah terdaftar di paket ini
               </div>
               {{else}}
-              <a href="/pembayaran/{{package.id}}" class="btn-register-paket" style="display: inline-block; text-decoration: none; text-align: center;">
+              <button type="button" class="btn-register-paket" onclick="window.location.href='/payment/{{package.id}}'">
                 Daftar Sekarang
-              </a>
+              </button>
               {{/if}}
             </div>
           </div>

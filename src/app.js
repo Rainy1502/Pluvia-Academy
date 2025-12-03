@@ -66,8 +66,13 @@ const hbs = create({
     neq: (a, b) => a !== b,
     json: (context) => JSON.stringify(context),
     formatPrice: (price) => {
+<<<<<<< HEAD
       if (!price) return 'Rp0';
       return 'Rp' + parseInt(price).toLocaleString('id-ID');
+=======
+      if (!price) return '0';
+      return parseFloat(price).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+>>>>>>> 18b6ccce8efc5604b7db3bb515090efb54bf6c27
     }
   }
 });
@@ -2407,6 +2412,161 @@ app.post('/lecturer/:id/edit', requireAdmin, express.urlencoded({ extended: true
       success: false,
       message: 'Gagal memperbarui lecturer'
     });
+  }
+});
+
+// ========== PAYMENT SYSTEM ROUTES ==========
+
+// GET Payment page for a package
+app.get('/payment/:packageId', async (req, res) => {
+  if (!res.locals.user) {
+    return res.redirect('/login');
+  }
+
+  const { packageId } = req.params;
+
+  try {
+    const { data: packageData, error } = await supabase
+      .from('packages')
+      .select('id, title, description, price')
+      .eq('id', packageId)
+      .single();
+
+    if (error || !packageData) {
+      return res.status(404).render('404', { title: '404 - Paket Tidak Ditemukan' });
+    }
+
+    return res.render('member/pembayaran', {
+      title: 'Pembayaran - ' + packageData.title,
+      package: packageData,
+      user: res.locals.user
+    });
+  } catch (error) {
+    console.error('Error loading payment page:', error);
+    return res.status(500).render('404', { title: 'Error' });
+  }
+});
+
+// POST Validate discount code
+app.post('/api/payment/validate-discount', express.json(), async (req, res) => {
+  try {
+    const { code } = req.body;
+
+    if (!code) {
+      return res.json({ success: false, message: 'Kode diskon tidak valid' });
+    }
+
+    const { data: discount, error } = await supabase
+      .from('discount_codes')
+      .select('*')
+      .eq('code', code.toUpperCase())
+      .eq('is_active', true)
+      .single();
+
+    if (error || !discount) {
+      return res.json({ success: false, message: 'Kode diskon tidak ditemukan atau sudah tidak aktif' });
+    }
+
+    // Check if discount is still valid
+    if (discount.valid_until) {
+      const validUntil = new Date(discount.valid_until);
+      if (validUntil < new Date()) {
+        return res.json({ success: false, message: 'Kode diskon sudah kadaluarsa' });
+      }
+    }
+
+    return res.json({
+      success: true,
+      discount: {
+        code: discount.code,
+        percentage: discount.percentage
+      }
+    });
+  } catch (error) {
+    console.error('Error validating discount:', error);
+    return res.status(500).json({ success: false, message: 'Terjadi kesalahan saat memvalidasi kode diskon' });
+  }
+});
+
+// POST Confirm payment and enroll user
+app.post('/payment/confirm', express.urlencoded({ extended: true }), async (req, res) => {
+  if (!res.locals.user) {
+    return res.redirect('/login');
+  }
+
+  try {
+    const {
+      package_id,
+      account_number,
+      email,
+      phone,
+      discount_code,
+      discount_percentage,
+      original_price,
+      final_price,
+      payment_method
+    } = req.body;
+
+    const userId = res.locals.user.id;
+
+    // Validate required fields
+    if (!payment_method) {
+      return res.status(400).send('Metode pembayaran harus dipilih');
+    }
+
+    // Get courses in the package
+    const { data: packageCourses, error: coursesError } = await supabase
+      .from('package_courses')
+      .select('course_id')
+      .eq('package_id', package_id);
+
+    if (coursesError) throw coursesError;
+
+    if (!packageCourses || packageCourses.length === 0) {
+      return res.status(400).send('Paket tidak memiliki kursus');
+    }
+
+    // Create transaction record
+    const { data: transaction, error: transactionError } = await supabase
+      .from('transactions')
+      .insert({
+        user_id: userId,
+        package_id: package_id,
+        payment_method: payment_method,
+        account_number: account_number,
+        email: email,
+        phone: phone,
+        original_price: parseFloat(original_price),
+        discount_code: discount_code || null,
+        discount_amount: parseFloat(original_price) - parseFloat(final_price),
+        final_price: parseFloat(final_price),
+        status: payment_method === 'test_admin' ? 'completed' : 'completed' // For demo, all completed
+      })
+      .select()
+      .single();
+
+    if (transactionError) throw transactionError;
+
+    // Enroll user in all courses in the package
+    const enrollmentPromises = packageCourses.map(pc =>
+      supabase
+        .from('enrollments')
+        .insert({
+          user_id: userId,
+          course_id: pc.course_id,
+          status: 'active',
+          enrolled_at: new Date().toISOString()
+        })
+        .select()
+    );
+
+    await Promise.all(enrollmentPromises);
+
+    // Redirect to success page or courses page
+    return res.redirect('/kursus?payment=success');
+  } catch (error) {
+    console.error('Error confirming payment:', error);
+    return res.status(500).send('Terjadi kesalahan saat memproses pembayaran');
   }
 });
 
