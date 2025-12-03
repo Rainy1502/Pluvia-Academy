@@ -68,6 +68,29 @@ const hbs = create({
     formatPrice: (price) => {
       if (!price) return 'Rp0';
       return 'Rp' + parseInt(price).toLocaleString('id-ID');
+    },
+    formatDate: (dateString) => {
+      if (!dateString) return '-';
+      const date = new Date(dateString);
+      const options = { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      };
+      return date.toLocaleDateString('id-ID', options);
+    },
+    capitalize: (str) => {
+      if (!str) return '';
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    },
+    substring: (str, start, end) => {
+      if (!str) return '';
+      return str.substring(start, end).toUpperCase();
+    },
+    subtract: (a, b) => {
+      return parseFloat(a) - parseFloat(b);
     }
   }
 });
@@ -107,7 +130,10 @@ app.use((req, res, next) => {
 app.use(async (req, res, next) => {
   try {
     const cookieHeader = req.headers && req.headers.cookie;
-    if (!cookieHeader) return next();
+    if (!cookieHeader) {
+      res.locals.user = null;
+      return next();
+    }
 
     const cookies = {};
     cookieHeader.split(';').forEach(pair => {
@@ -119,7 +145,10 @@ app.use(async (req, res, next) => {
     });
 
     const userId = cookies['user_id'];
-    if (!userId) return next();
+    if (!userId) {
+      res.locals.user = null;
+      return next();
+    }
 
     // fetch minimal user info
     const { data, error } = await supabase
@@ -130,11 +159,18 @@ app.use(async (req, res, next) => {
 
     if (!error && data) {
       res.locals.user = data;
+      // Prevent caching for authenticated users
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+    } else {
+      res.locals.user = null;
     }
 
     return next();
   } catch (err) {
     console.error('Error loading user from cookie:', err);
+    res.locals.user = null;
     return next();
   }
 });
@@ -252,14 +288,14 @@ app.get('/', async (_req, res) => {
 
       if (error) throw error;
 
-      return res.render('lecturer/kursus', { 
-        title: 'Kursus Saya', 
+      return res.render('lecturer/kelas', { 
+        title: 'Kelas Saya', 
         courses: courses || []
       });
     } catch (error) {
       console.error('Error fetching lecturer courses:', error);
-      return res.render('lecturer/kursus', { 
-        title: 'Kursus Saya', 
+      return res.render('lecturer/kelas', { 
+        title: 'Kelas Saya', 
         courses: []
       });
     }
@@ -1130,8 +1166,8 @@ app.post('/login', express.urlencoded({ extended: true }), async (req, res) => {
       .update({ last_login: new Date().toISOString() })
       .eq('id', user.id);
 
-    // Set cookie dengan user_id
-    res.setHeader('Set-Cookie', `user_id=${user.id}; Path=/; HttpOnly; Max-Age=2592000`); // 30 days
+    // Set cookie dengan user_id (session cookie - akan hilang saat browser ditutup)
+    res.setHeader('Set-Cookie', `user_id=${user.id}; Path=/; HttpOnly; SameSite=Lax`);
 
     // Redirect ke home
     return res.redirect('/');
@@ -1437,7 +1473,13 @@ app.post('/profile/edit', express.urlencoded({ extended: true }), async (req, re
 // Simple logout route: clear `user_id` cookie and redirect home
 app.get('/logout', (req, res) => {
   // Clear cookie by setting expired Set-Cookie header
-  res.setHeader('Set-Cookie', 'user_id=; Max-Age=0; Path=/; HttpOnly');
+  res.setHeader('Set-Cookie', 'user_id=; Max-Age=0; Path=/; HttpOnly; SameSite=Lax');
+  // Clear res.locals.user to ensure no user data persists
+  res.locals.user = null;
+  // Prevent browser caching
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   return res.redirect('/');
 });
 

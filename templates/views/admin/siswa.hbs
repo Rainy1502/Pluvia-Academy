@@ -146,7 +146,7 @@
   <section class="my-courses-section">
     <div class="container">
       <div class="courses-panel">
-        <a href="/kursus" class="btn-back-students">Kembali ke Manajemen Kursus</a>
+        <a href="/manajemen_kursus" class="btn-back-students">Kembali ke Manajemen Kursus</a>
         
         <div class="students-header">
           <h2 class="students-main-title">Daftar Siswa</h2>
@@ -166,7 +166,6 @@
             </div>
             <div class="student-actions-section">
               <button class="btn-student-action btn-access" onclick="window.location.href='/kursus/{{../courseId}}/students/{{this.id}}/materi'">Akses Materi</button>
-              <button class="btn-student-action btn-remove" onclick="removeStudent('{{this.id}}', '{{this.full_name}}')">Keluarkan</button>
             </div>
           </div>
           {{/each}}
@@ -181,30 +180,5 @@
     </div>
   </section>
 </main>
-
-<script>
-function removeStudent(studentId, studentName) {
-  if (confirm(`Apakah Anda yakin ingin mengeluarkan ${studentName} dari kursus ini?`)) {
-    fetch(`/kursus/{{courseId}}/students/${studentId}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    .then(response => {
-      if (response.ok) {
-        alert('Student berhasil dikeluarkan');
-        window.location.reload();
-      } else {
-        alert('Gagal mengeluarkan student');
-      }
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      alert('Terjadi kesalahan');
-    });
-  }
-}
-</script>
 
 {{> footer}}
