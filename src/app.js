@@ -64,7 +64,11 @@ const hbs = create({
   helpers: {
     eq: (a, b) => a === b,
     neq: (a, b) => a !== b,
-    json: (context) => JSON.stringify(context)
+    json: (context) => JSON.stringify(context),
+    formatPrice: (price) => {
+      if (!price) return 'Rp0';
+      return 'Rp' + parseInt(price).toLocaleString('id-ID');
+    }
   }
 });
 app.engine('hbs', hbs.engine);
@@ -203,6 +207,7 @@ app.get('/', async (_req, res) => {
   // Courses page: shows courses the user is enrolled in or management view for admin
   app.get('/kursus', async (req, res) => {
   const isAdmin = res.locals.user && res.locals.user.role_id === 10;
+  const isLecturer = res.locals.user && res.locals.user.role_id === 5;
   
   if (isAdmin) {
     // Admin view: show all courses with management options
@@ -234,6 +239,28 @@ app.get('/', async (_req, res) => {
         courses: [],
         lecturers: [],
         isAdmin: true 
+      });
+    }
+  } else if (isLecturer) {
+    // Lecturer view: show courses they teach
+    try {
+      const { data: courses, error } = await supabase
+        .from('courses')
+        .select('id, title, description, thumbnail, meet_link')
+        .eq('instructor_id', res.locals.user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      return res.render('lecturer/kursus', { 
+        title: 'Kursus Saya', 
+        courses: courses || []
+      });
+    } catch (error) {
+      console.error('Error fetching lecturer courses:', error);
+      return res.render('lecturer/kursus', { 
+        title: 'Kursus Saya', 
+        courses: []
       });
     }
   } else {
@@ -708,6 +735,67 @@ app.get('/manajemen_materi', requireLecturer, async (req, res) => {
   }
 });
 
+// Live Class page - must be before routes with :id parameter to avoid conflicts
+app.get('/live_class/:courseId', async (req, res) => {
+  if (!res.locals.user) {
+    return res.redirect('/login');
+  }
+
+  try {
+    const { courseId } = req.params;
+    const isLecturer = res.locals.user.role_id === 5;
+
+    // For lecturer, check if they are teaching this course
+    if (isLecturer) {
+      const { data: course, error } = await supabase
+        .from('courses')
+        .select('id, title, description, thumbnail, meet_link')
+        .eq('id', courseId)
+        .eq('instructor_id', res.locals.user.id)
+        .single();
+
+      if (error || !course) {
+        return res.redirect('/kursus');
+      }
+
+      return res.render('lecturer/live_class', {
+        title: 'Live Class',
+        course: course
+      });
+    }
+
+    // For members, check if user is enrolled in this course
+    const { data: enrollment } = await supabase
+      .from('enrollments')
+      .select('id')
+      .eq('user_id', res.locals.user.id)
+      .eq('course_id', courseId)
+      .eq('status', 'active')
+      .single();
+
+    if (!enrollment) {
+      return res.redirect('/kursus');
+    }
+
+    // Get course details for members
+    const { data: memberCourse, error: memberError } = await supabase
+      .from('courses')
+      .select('id, title, description, thumbnail, meet_link')
+      .eq('id', courseId)
+      .single();
+
+    if (memberError) throw memberError;
+
+    return res.render('member/live_class', {
+      title: 'Live Class',
+      course: memberCourse
+    });
+  } catch (error) {
+    console.error('Error fetching live class:', error);
+    return res.redirect('/kursus');
+  }
+});
+
 // Student management for a specific course (Admin or Lecturer)
 app.get('/kursus/:id/students', requireAdminOrLecturer, async (req, res) => {
   const courseId = req.params.id;
@@ -1155,49 +1243,6 @@ app.post('/register', express.urlencoded({ extended: true }), async (req, res) =
       title: 'Daftar Akun',
       error: 'Terjadi kesalahan pada server',
     });
-  }
-});
-
-// (routes continue below)
-
-// Live Class page: menampilkan detail kursus dan tombol join meeting
-app.get('/live_class/:courseId', async (req, res) => {
-  if (!res.locals.user) {
-    return res.redirect('/login');
-  }
-
-  try {
-    const { courseId } = req.params;
-
-    // Check if user is enrolled in this course
-    const { data: enrollment } = await supabase
-      .from('enrollments')
-      .select('id')
-      .eq('user_id', res.locals.user.id)
-      .eq('course_id', courseId)
-      .eq('status', 'active')
-      .single();
-
-    if (!enrollment) {
-      return res.redirect('/kursus');
-    }
-
-    // Get course details
-    const { data: course, error } = await supabase
-      .from('courses')
-      .select('id, title, description, thumbnail, meet_link')
-      .eq('id', courseId)
-      .single();
-
-    if (error) throw error;
-
-    return res.render('member/live_class', {
-      title: 'Live Class',
-      course: course
-    });
-  } catch (error) {
-    console.error('Error fetching live class:', error);
-    return res.redirect('/kursus');
   }
 });
 
@@ -2033,7 +2078,110 @@ app.post('/materi/:id/edit', requireAdmin, express.urlencoded({ extended: true }
   }
 });
 
-// POST Enroll in Package (Member only)
+// GET Payment page for package enrollment
+app.get('/pembayaran/:packageId', async (req, res) => {
+  const { packageId } = req.params;
+  const userId = res.locals.user?.id;
+
+  // Check if user is logged in
+  if (!userId) {
+    return res.redirect('/login');
+  }
+
+  try {
+    // Get package details
+    const { data: packageData, error } = await supabase
+      .from('packages')
+      .select('id, title, description, price, duration, thumbnail')
+      .eq('id', packageId)
+      .single();
+
+    if (error) throw error;
+
+    if (!packageData) {
+      return res.status(404).render('404', { title: '404 - Paket Tidak Ditemukan' });
+    }
+
+    return res.render('member/pembayaran', {
+      title: 'Pembayaran - ' + packageData.title,
+      package: packageData,
+      packageId: packageId,
+      user: res.locals.user
+    });
+  } catch (error) {
+    console.error('Error loading payment page:', error);
+    return res.status(500).send('Gagal memuat halaman pembayaran');
+  }
+});
+
+// POST Submit payment and enroll
+app.post('/pembayaran/:packageId/submit', express.urlencoded({ extended: true }), async (req, res) => {
+  const { packageId } = req.params;
+  const userId = res.locals.user?.id;
+
+  // Check if user is logged in
+  if (!userId) {
+    return res.redirect('/login');
+  }
+
+  try {
+    const { no_rek, nomor_hp, kode_diskon } = req.body;
+
+    if (!no_rek || !nomor_hp) {
+      return res.status(400).send('Nomor rekening dan nomor HP wajib diisi');
+    }
+
+    // Get all courses in this package
+    const { data: packageCourses, error: packageError } = await supabase
+      .from('package_courses')
+      .select('course_id')
+      .eq('package_id', packageId);
+
+    if (packageError) throw packageError;
+
+    if (!packageCourses || packageCourses.length === 0) {
+      return res.status(400).send('Paket ini belum memiliki kursus');
+    }
+
+    // Check existing enrollments
+    const courseIds = packageCourses.map(pc => pc.course_id);
+    const { data: existingEnrollments } = await supabase
+      .from('enrollments')
+      .select('course_id')
+      .eq('user_id', userId)
+      .in('course_id', courseIds);
+
+    const enrolledCourseIds = (existingEnrollments || []).map(e => e.course_id);
+    const newCourseIds = courseIds.filter(id => !enrolledCourseIds.includes(id));
+
+    // Insert new enrollments
+    if (newCourseIds.length > 0) {
+      const enrollmentsToInsert = newCourseIds.map(courseId => ({
+        user_id: userId,
+        course_id: courseId,
+        status: 'active',
+        progress: 0
+      }));
+
+      const { error: insertError } = await supabase
+        .from('enrollments')
+        .insert(enrollmentsToInsert);
+
+      if (insertError) throw insertError;
+    }
+
+    // TODO: Save payment info (no_rek, nomor_hp, kode_diskon) to payments table if needed
+    // For now, we'll just enroll the user directly
+
+    // Redirect to kursus page with success message
+    return res.redirect('/kursus?enrolled=true');
+  } catch (error) {
+    console.error('Error processing payment:', error);
+    return res.status(500).send('Gagal memproses pembayaran. Silakan coba lagi.');
+  }
+});
+
+// POST Enroll in Package (Member only) - Legacy route, redirects to payment
 app.post('/paket_kursus/:id/enroll', express.urlencoded({ extended: true }), async (req, res) => {
   const packageId = req.params.id;
   const userId = res.locals.user?.id;

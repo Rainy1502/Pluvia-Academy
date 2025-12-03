@@ -1,40 +1,201 @@
 {{> head}}
 {{> header}}
 
+<style>
+  .management-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .management-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #00d4ff 0%, #007bff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+
+  .management-subtitle {
+    color: #718096;
+    font-size: 1.05rem;
+  }
+
+  .add-button-wrapper {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .add-button {
+    background: linear-gradient(135deg, #00d4ff 0%, #007bff 100%);
+    color: #fff;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .add-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+  }
+
+  .course-grid {
+    display: grid;
+    gap: 24px;
+  }
+
+  .course-item-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+
+  .course-item-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  }
+
+  .course-item-info {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex: 1;
+  }
+
+  .course-item-icon {
+    width: 60px;
+    height: 60px;
+    min-width: 60px;
+    min-height: 60px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.8rem;
+    font-weight: 700;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    flex-shrink: 0;
+  }
+
+  .course-item-icon::before {
+    content: '👨‍🏫';
+  }
+
+  .course-item-content h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0;
+  }
+
+  .course-item-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .btn-action {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .btn-edit {
+    background: linear-gradient(135deg, #ffd89b 0%, #ff9a00 100%);
+  }
+
+  .btn-hapus {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+  }
+
+  .empty-courses {
+    text-align: center;
+    padding: 60px 20px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  .empty-message {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 8px;
+  }
+
+  .empty-sub {
+    color: #718096;
+    font-size: 0.95rem;
+  }
+</style>
+
 <main class="site-root">
   <section class="my-courses-section">
     <div class="container">
       <div class="courses-panel">
-        <div class="lecturer-admin-container">
-          <div class="lecturer-header">
-            <h2 class="lecturer-title">Manajemen Lecturer</h2>
-            <button class="lecturer-btn-tambah" onclick="openTambahLecturerModal()">
-              <span class="plus-icon">⊕</span> Tambah Data
-            </button>
-          </div>
+        <div class="management-header">
+          <h2 class="management-title">Manajemen Lecturer</h2>
+          <p class="management-subtitle">Kelola data pengajar platform</p>
+        </div>
 
-          {{#if lecturers.length}}
-          <div class="lecturer-card">
-            {{#each lecturers}}
-            <div class="lecturer-item">
-              <div class="lecturer-info">
-                <div class="lecturer-icon"></div>
-                <span class="lecturer-name">{{this.full_name}}</span>
-              </div>
-              <div class="lecturer-actions">
-                <button class="lecturer-btn lecturer-btn-edit" onclick="openEditLecturerModal('{{this.id}}', '{{this.full_name}}', '{{this.expertise}}', '{{this.phone}}', '{{this.email}}')">Edit</button>
-                <button class="lecturer-btn lecturer-btn-hapus" onclick="deleteLecturer('{{this.id}}', '{{this.full_name}}')">Hapus</button>
+        <div class="add-button-wrapper">
+          <button class="add-button" onclick="openTambahLecturerModal()">
+            <span>⊕</span>
+            <span>Tambah Lecturer Baru</span>
+          </button>
+        </div>
+
+        {{#if lecturers.length}}
+        <div class="course-grid">
+          {{#each lecturers}}
+          <div class="course-item-card">
+            <div class="course-item-info">
+              <div class="course-item-icon"></div>
+              <div class="course-item-content">
+                <h3>{{this.full_name}}</h3>
               </div>
             </div>
-            {{/each}}
+            <div class="course-item-actions">
+              <button class="btn-action btn-edit" onclick="openEditLecturerModal('{{this.id}}', '{{this.full_name}}', '{{this.expertise}}', '{{this.phone}}', '{{this.email}}')">Edit</button>
+              <button class="btn-action btn-hapus" onclick="deleteLecturer('{{this.id}}', '{{this.full_name}}')">Hapus</button>
+            </div>
           </div>
-          {{else}}
-          <div class="empty-courses empty-centered">
-            <p class="empty-message">Belum ada lecturer terdaftar</p>
-            <p class="empty-sub">Klik "Tambah Data" untuk menambahkan lecturer baru</p>
-          </div>
-          {{/if}}
+          {{/each}}
         </div>
+        {{else}}
+        <div class="empty-courses">
+          <p class="empty-message">Belum ada lecturer terdaftar</p>
+          <p class="empty-sub">Klik "Tambah Lecturer Baru" untuk menambahkan pengajar</p>
+        </div>
+        {{/if}}
       </div>
     </div>
   </section>

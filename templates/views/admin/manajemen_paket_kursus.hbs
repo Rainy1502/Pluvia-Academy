@@ -1,33 +1,209 @@
 {{> head}}
 {{> header}}
 
+<style>
+  .management-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .management-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #00d4ff 0%, #007bff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+
+  .management-subtitle {
+    color: #718096;
+    font-size: 1.05rem;
+  }
+
+  .add-button-wrapper {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .add-button {
+    background: linear-gradient(135deg, #00d4ff 0%, #007bff 100%);
+    color: #fff;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .add-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+  }
+
+  .course-grid {
+    display: grid;
+    gap: 24px;
+  }
+
+  .course-item-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+
+  .course-item-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  }
+
+  .course-item-info {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex: 1;
+  }
+
+  .course-item-icon {
+    width: 60px;
+    height: 60px;
+    min-width: 60px;
+    min-height: 60px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.8rem;
+    font-weight: 700;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .course-item-content h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0;
+  }
+
+  .course-item-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .btn-action {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .btn-edit {
+    background: linear-gradient(135deg, #ffd89b 0%, #ff9a00 100%);
+  }
+
+  .btn-hapus {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+  }
+
+  .empty-courses {
+    text-align: center;
+    padding: 60px 20px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  .empty-message {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 8px;
+  }
+
+  .empty-sub {
+    color: #718096;
+    font-size: 0.95rem;
+    margin-bottom: 20px;
+  }
+
+  .empty-cta {
+    background: linear-gradient(135deg, #00d4ff 0%, #007bff 100%);
+    color: #fff;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+  }
+
+  .empty-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+  }
+</style>
+
 <main class="site-root">
   <section class="my-courses-section">
     <div class="container">
       <div class="courses-panel">
-        <!-- Admin View - Manajemen Paket -->
-        <div class="paket-admin-container">
-          <div class="paket-header">
-            <h2 class="paket-admin-title">Manajemen Paket Kursus</h2>
-            <button class="paket-tambah-btn" onclick="openTambahPaketModal()">
-              <span class="plus-icon">⊕</span> Tambah Data
-            </button>
-          </div>
+        <div class="management-header">
+          <h2 class="management-title">Manajemen Paket Kursus</h2>
+          <p class="management-subtitle">Kelola paket pembelajaran yang tersedia</p>
+        </div>
+
+        <div class="add-button-wrapper">
+          <button class="add-button" onclick="openTambahPaketModal()">
+            <span>⊕</span>
+            <span>Tambah Paket Baru</span>
+          </button>
+        </div>
 
         {{#if packages.length}}
-        <div class="paket-card">
+        <div class="course-grid">
           {{#each packages}}
-          <div class="paket-item">
-            <div class="paket-icon">
-              {{#if this.thumbnail}}
-              <img src="{{this.thumbnail}}" alt="{{this.title}}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" loading="lazy" decoding="async"/>
-              {{/if}}
+          <div class="course-item-card">
+            <div class="course-item-info">
+              <div class="course-item-icon" style="{{#if this.thumbnail}}background-image: url('{{this.thumbnail}}');{{/if}}">{{#unless this.thumbnail}}📦{{/unless}}</div>
+              <div class="course-item-content">
+                <h3>{{this.title}}</h3>
+              </div>
             </div>
-            <div class="paket-content">
-              <h3 class="paket-title">{{this.title}}</h3>
-            </div>
-            <div class="paket-actions">
-              <button class="kursus-btn kursus-btn-edit" 
+            <div class="course-item-actions">
+              <button class="btn-action btn-edit" 
                 data-id="{{this.id}}" 
                 data-title="{{this.title}}" 
                 data-description="{{this.description}}" 
@@ -40,7 +216,7 @@
                 onclick="openEditPaketModalData(this)">
                 Edit
               </button>
-              <button class="kursus-btn kursus-btn-hapus" 
+              <button class="btn-action btn-hapus" 
                 data-id="{{this.id}}" 
                 data-title="{{this.title}}"
                 onclick="deletePackageData(this)">
@@ -51,13 +227,12 @@
           {{/each}}
         </div>
         {{else}}
-          <div class="empty-courses empty-centered">
-            <p class="empty-message">Belum ada paket yang ditambahkan.</p>
-            <p class="empty-sub">Mulai tambahkan paket untuk platform Anda</p>
-            <button class="btn-primary empty-cta" onclick="openTambahPaketModal()">Tambah Paket Pertama</button>
-          </div>
-          {{/if}}
+        <div class="empty-courses">
+          <p class="empty-message">Belum ada paket yang ditambahkan</p>
+          <p class="empty-sub">Mulai tambahkan paket untuk platform Anda</p>
+          <button class="empty-cta" onclick="openTambahPaketModal()">Tambah Paket Pertama</button>
         </div>
+        {{/if}}
       </div>
     </div>
   </section>

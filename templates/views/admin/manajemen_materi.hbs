@@ -1,40 +1,172 @@
 {{> head}}
 {{> header}}
 
+<style>
+  .management-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .management-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #00d4ff 0%, #007bff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+
+  .management-subtitle {
+    color: #718096;
+    font-size: 1.05rem;
+  }
+
+  .course-grid {
+    display: grid;
+    gap: 24px;
+  }
+
+  .course-item-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+
+  .course-item-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  }
+
+  .course-item-info {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex: 1;
+  }
+
+  .course-item-icon {
+    width: 60px;
+    height: 60px;
+    min-width: 60px;
+    min-height: 60px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.8rem;
+    font-weight: 700;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .course-item-icon::before {
+    content: '📚';
+  }
+
+  .course-item-content h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0;
+  }
+
+  .course-item-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .btn-action {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .btn-tambah {
+    background: linear-gradient(135deg, #00d4ff 0%, #007bff 100%);
+  }
+
+  .btn-kelola {
+    background: linear-gradient(135deg, #ffd89b 0%, #ff9a00 100%);
+  }
+
+  .empty-courses {
+    text-align: center;
+    padding: 60px 20px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  .empty-message {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 8px;
+  }
+
+  .empty-sub {
+    color: #718096;
+    font-size: 0.95rem;
+  }
+</style>
+
 <main class="site-root">
   <section class="my-courses-section">
     <div class="container">
       <div class="courses-panel">
-        <!-- Admin View - Manajemen Materi -->
-        <div class="materi-admin-container">
-          <div class="materi-header">
-            <h2 class="materi-admin-title">Manajemen Materi</h2>
-          </div>
+        <div class="management-header">
+          <h2 class="management-title">Manajemen Materi</h2>
+          <p class="management-subtitle">Kelola materi pembelajaran kursus</p>
+        </div>
 
         {{#if courses.length}}
-        <div class="materi-card">
+        <div class="course-grid">
           {{#each courses}}
-          <div class="materi-item">
-            <div class="materi-info">
-              <div class="materi-icon"></div>
-              <div class="materi-content">
-                <h3 class="materi-title">{{this.title}}</h3>
+          <div class="course-item-card">
+            <div class="course-item-info">
+              <div class="course-item-icon" style="{{#if this.thumbnail}}background-image: url('{{this.thumbnail}}');{{/if}}"></div>
+              <div class="course-item-content">
+                <h3>{{this.title}}</h3>
               </div>
             </div>
-            <div class="materi-actions">
-              <button class="materi-btn materi-btn-tambah" onclick="openTambahMateriModal('{{this.id}}', '{{this.title}}')">Tambah</button>
-              <button class="materi-btn materi-btn-edit" onclick="openManageMateriModal('{{this.id}}', '{{this.title}}')">Edit</button>
+            <div class="course-item-actions">
+              <button class="btn-action btn-tambah" onclick="openTambahMateriModal('{{this.id}}', '{{this.title}}')">Tambah</button>
+              <button class="btn-action btn-kelola" onclick="openManageMateriModal('{{this.id}}', '{{this.title}}')">Edit</button>
             </div>
           </div>
           {{/each}}
         </div>
         {{else}}
-        <div class="empty-courses empty-centered">
+        <div class="empty-courses">
           <p class="empty-message">Belum ada kursus terdaftar</p>
           <p class="empty-sub">Tambahkan kursus terlebih dahulu di menu Manajemen Kursus</p>
         </div>
         {{/if}}
-        </div>
       </div>
     </div>
   </section>

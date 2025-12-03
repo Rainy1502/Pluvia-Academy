@@ -139,34 +139,36 @@
         {{#if courses.length}}
         <div class="kelas-grid">
           {{#each courses}}
-          <div class="kelas-card" onclick="window.location.href='/kursus/{{this.id}}/students'">
-            <div class="kelas-thumbnail">
-              {{#if this.thumbnail}}
-              <img src="{{this.thumbnail}}" alt="{{this.title}}" loading="lazy"/>
-              {{else}}
-              <img src="/img/banner.png" alt="{{this.title}}" loading="lazy"/>
-              {{/if}}
-              <span class="kelas-badge">📚 Kursus</span>
-            </div>
-            <div class="kelas-content">
-              <h3 class="kelas-content-title">{{this.title}}</h3>
-              {{#if this.description}}
-              <p class="kelas-description">{{this.description}}</p>
-              {{/if}}
-              <div class="kelas-meta">
-                <div class="kelas-meta-item">
-                  <span>👥</span>
-                  <span>{{this.student_count}} Siswa</span>
-                </div>
-                {{#if this.schedule_day}}
-                <div class="kelas-meta-item">
-                  <span>📅</span>
-                  <span>{{this.schedule_day}}</span>
-                </div>
+          <a href="/live_class/{{this.id}}" style="text-decoration: none; color: inherit;">
+            <div class="kelas-card">
+              <div class="kelas-thumbnail">
+                {{#if this.thumbnail}}
+                <img src="{{this.thumbnail}}" alt="{{this.title}}" loading="lazy"/>
+                {{else}}
+                <img src="/img/banner.png" alt="{{this.title}}" loading="lazy"/>
                 {{/if}}
+                <span class="kelas-badge">📚 Kursus</span>
+              </div>
+              <div class="kelas-content">
+                <h3 class="kelas-content-title">{{this.title}}</h3>
+                {{#if this.description}}
+                <p class="kelas-description">{{this.description}}</p>
+                {{/if}}
+                <div class="kelas-meta">
+                  <div class="kelas-meta-item">
+                    <span>👥</span>
+                    <span>{{this.student_count}} Siswa</span>
+                  </div>
+                  {{#if this.schedule_day}}
+                  <div class="kelas-meta-item">
+                    <span>📅</span>
+                    <span>{{this.schedule_day}}</span>
+                  </div>
+                  {{/if}}
+                </div>
               </div>
             </div>
-          </div>
+          </a>
           {{/each}}
         </div>
         {{else}}

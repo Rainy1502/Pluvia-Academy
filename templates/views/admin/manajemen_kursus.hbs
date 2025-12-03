@@ -28,14 +28,14 @@
     align-items: center;
     gap: 10px;
     padding: 14px 32px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #00d4ff 0%, #007bff 100%);
     color: #fff;
     border: none;
     border-radius: 12px;
     font-size: 1.05rem;
     font-weight: 700;
     cursor: pointer;
-    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 20px rgba(0, 123, 255, 0.3);
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
@@ -61,7 +61,7 @@
 
   .btn-add-course:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 8px 30px rgba(0, 123, 255, 0.4);
   }
 
   .btn-add-course .icon {
@@ -104,15 +104,19 @@
     min-width: 60px;
     min-height: 60px;
     border-radius: 16px;
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #fff;
     font-size: 1.8rem;
     font-weight: 700;
-    box-shadow: 0 4px 15px rgba(240, 147, 251, 0.3);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
     flex-shrink: 0;
+    overflow: hidden;
   }
 
   .course-item-content h3 {
@@ -187,7 +191,7 @@
           {{#each courses}}
           <div class="course-item-card">
             <div class="course-item-info">
-              <div class="course-item-icon">📚</div>
+              <div class="course-item-icon" style="{{#if this.thumbnail}}background-image: url('{{this.thumbnail}}');{{/if}}">{{#unless this.thumbnail}}📚{{/unless}}</div>
               <div class="course-item-content">
                 <h3>{{this.title}}</h3>
                 {{#if this.description}}

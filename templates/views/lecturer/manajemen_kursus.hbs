@@ -57,15 +57,19 @@
     min-width: 60px;
     min-height: 60px;
     border-radius: 16px;
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #fff;
     font-size: 1.8rem;
     font-weight: 700;
-    box-shadow: 0 4px 15px rgba(240, 147, 251, 0.3);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
     flex-shrink: 0;
+    overflow: hidden;
   }
 
   .course-item-content h3 {
@@ -140,7 +144,7 @@
           {{#each courses}}
           <div class="course-item-card">
             <div class="course-item-info">
-              <div class="course-item-icon">📚</div>
+              <div class="course-item-icon" style="{{#if this.thumbnail}}background-image: url('{{this.thumbnail}}');{{/if}}">{{#unless this.thumbnail}}📚{{/unless}}</div>
               <div class="course-item-content">
                 <h3>{{this.title}}</h3>
                 {{#if this.schedule_day}}
