@@ -2125,10 +2125,17 @@ app.post('/pembayaran/:packageId/submit', express.urlencoded({ extended: true })
   }
 
   try {
-    const { no_rek, nomor_hp, kode_diskon } = req.body;
+    console.log('Received payment data:', req.body);
+    
+    const { account_number, phone, email, discount_code, discount_percentage } = req.body;
 
-    if (!no_rek || !nomor_hp) {
-      return res.status(400).send('Nomor rekening dan nomor HP wajib diisi');
+    // Validate required fields
+    if (!account_number) {
+      return res.status(400).send('Nomor rekening / E-Wallet wajib diisi');
+    }
+    
+    if (!phone) {
+      return res.status(400).send('Nomor telepon wajib diisi');
     }
 
     // Get all courses in this package

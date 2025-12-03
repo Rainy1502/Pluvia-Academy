@@ -465,8 +465,8 @@
       </div>
 
       <!-- Submit Button -->
-      <button type="submit" class="submit-btn">
-        Lanjutkan Pembayaran →
+      <button type="button" class="submit-btn" onclick="openPaymentMethodModal()">
+        Pilih Metode Pembayaran →
       </button>
 
       <!-- Payment Note -->
@@ -477,10 +477,295 @@
   </div>
 </main>
 
+<!-- Modal Metode Pembayaran -->
+<div id="paymentMethodModal" class="payment-modal">
+  <div class="payment-modal-content">
+    <span class="close-modal" onclick="closePaymentMethodModal()">&times;</span>
+    
+    <div class="modal-header">
+      <h2>Pilih Metode Pembayaran</h2>
+      <p class="modal-subtitle">Pilih metode pembayaran yang Anda inginkan</p>
+    </div>
+
+    <div class="payment-summary-modal">
+      <div class="summary-item">
+        <span>Paket:</span>
+        <strong id="modalPackageName">{{package.title}}</strong>
+      </div>
+      <div class="summary-item">
+        <span>Harga:</span>
+        <span id="modalOriginalPrice">{{formatPrice package.price}}</span>
+      </div>
+      <div class="summary-item" id="modalDiscountRow" style="display: none; color: #28a745;">
+        <span>Diskon (<span id="modalDiscountPercent">0</span>%):</span>
+        <span id="modalDiscountAmount">- Rp0</span>
+      </div>
+      <div class="summary-item total-summary">
+        <span>Total Bayar:</span>
+        <strong id="modalFinalPrice">{{formatPrice package.price}}</strong>
+      </div>
+    </div>
+
+    <div class="payment-methods-grid">
+      <div class="payment-method-card" onclick="selectPaymentMethod('gopay', this)">
+        <div class="method-icon">💳</div>
+        <div class="method-name">GoPay</div>
+        <div class="method-desc">E-Wallet</div>
+      </div>
+
+      <div class="payment-method-card" onclick="selectPaymentMethod('ovo', this)">
+        <div class="method-icon">💰</div>
+        <div class="method-name">OVO</div>
+        <div class="method-desc">E-Wallet</div>
+      </div>
+
+      <div class="payment-method-card" onclick="selectPaymentMethod('dana', this)">
+        <div class="method-icon">💵</div>
+        <div class="method-name">DANA</div>
+        <div class="method-desc">E-Wallet</div>
+      </div>
+
+      <div class="payment-method-card" onclick="selectPaymentMethod('shopeepay', this)">
+        <div class="method-icon">🛍️</div>
+        <div class="method-name">ShopeePay</div>
+        <div class="method-desc">E-Wallet</div>
+      </div>
+
+      <div class="payment-method-card" onclick="selectPaymentMethod('bca', this)">
+        <div class="method-icon">🏦</div>
+        <div class="method-name">BCA</div>
+        <div class="method-desc">Virtual Account</div>
+      </div>
+
+      <div class="payment-method-card" onclick="selectPaymentMethod('mandiri', this)">
+        <div class="method-icon">🏧</div>
+        <div class="method-name">Mandiri</div>
+        <div class="method-desc">Virtual Account</div>
+      </div>
+    </div>
+
+    <input type="hidden" id="selectedPaymentMethod" value=""/>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-cancel" onclick="closePaymentMethodModal()">Batal</button>
+      <button type="button" class="btn-confirm" id="btnConfirmPayment" onclick="confirmPayment()" disabled>Konfirmasi Pembayaran</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .payment-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.6);
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .payment-modal-content {
+    background: #ffffff;
+    margin: 3% auto;
+    padding: 40px;
+    border-radius: 20px;
+    max-width: 700px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    position: relative;
+    animation: slideDown 0.3s ease;
+  }
+
+  @keyframes slideDown {
+    from {
+      transform: translateY(-50px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .close-modal {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    font-size: 32px;
+    font-weight: bold;
+    color: #999;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    line-height: 1;
+  }
+
+  .close-modal:hover {
+    color: #dc3545;
+    transform: rotate(90deg);
+  }
+
+  .modal-header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .modal-header h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0 0 8px 0;
+  }
+
+  .modal-subtitle {
+    color: #718096;
+    font-size: 0.95rem;
+    margin: 0;
+  }
+
+  .payment-summary-modal {
+    background: #f7fafc;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 30px;
+  }
+
+  .summary-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+  }
+
+  .summary-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .summary-item.total-summary {
+    border-top: 2px solid #e2e8f0;
+    padding-top: 12px;
+    margin-top: 12px;
+    font-size: 1.125rem;
+  }
+
+  .payment-methods-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 30px;
+  }
+
+  .payment-method-card {
+    background: #ffffff;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .payment-method-card:hover {
+    border-color: #00d4ff;
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 212, 255, 0.2);
+  }
+
+  .payment-method-card.selected {
+    border-color: #00d4ff;
+    background: linear-gradient(135deg, #00d4ff10 0%, #007bff10 100%);
+  }
+
+  .method-icon {
+    font-size: 2.5rem;
+    margin-bottom: 8px;
+  }
+
+  .method-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin-bottom: 4px;
+  }
+
+  .method-desc {
+    font-size: 0.8rem;
+    color: #718096;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+  }
+
+  .btn-cancel {
+    padding: 14px 32px;
+    background: #ffffff;
+    color: #1a202c;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .btn-cancel:hover {
+    background: #f7fafc;
+    border-color: #cbd5e0;
+  }
+
+  .btn-confirm {
+    padding: 14px 32px;
+    background: linear-gradient(135deg, #00d4ff 0%, #007bff 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .btn-confirm:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 123, 255, 0.4);
+  }
+
+  .btn-confirm:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 640px) {
+    .payment-methods-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .modal-actions {
+      flex-direction: column;
+    }
+
+    .btn-cancel,
+    .btn-confirm {
+      width: 100%;
+    }
+  }
+</style>
+
 <script>
 const originalPrice = parseFloat(document.getElementById('originalPrice').value);
 let appliedDiscountCode = '';
 let appliedDiscountPercent = 0;
+let selectedMethod = '';
 
 function formatRupiah(amount) {
   return 'Rp' + Math.floor(amount).toLocaleString('id-ID');
@@ -537,12 +822,146 @@ async function applyDiscount() {
   }
 }
 
+// Open payment method modal
+function openPaymentMethodModal() {
+  const form = document.getElementById('paymentForm');
+  
+  // Validate form
+  const email = document.querySelector('input[name="email"]').value.trim();
+  const phone = document.querySelector('input[name="phone"]').value.trim();
+  const accountNumber = document.querySelector('input[name="account_number"]').value.trim();
+
+  if (!email) {
+    alert('Email wajib diisi!');
+    return;
+  }
+
+  if (!phone) {
+    alert('Nomor telepon wajib diisi!');
+    return;
+  }
+
+  if (!accountNumber) {
+    alert('Nomor rekening / E-Wallet wajib diisi!');
+    return;
+  }
+
+  // Update modal with current prices
+  const finalPrice = appliedDiscountPercent > 0 
+    ? originalPrice - (originalPrice * appliedDiscountPercent / 100)
+    : originalPrice;
+
+  document.getElementById('modalOriginalPrice').textContent = formatRupiah(originalPrice);
+  document.getElementById('modalFinalPrice').textContent = formatRupiah(finalPrice);
+
+  if (appliedDiscountPercent > 0) {
+    const discountAmount = originalPrice * (appliedDiscountPercent / 100);
+    document.getElementById('modalDiscountPercent').textContent = appliedDiscountPercent;
+    document.getElementById('modalDiscountAmount').textContent = '- ' + formatRupiah(discountAmount);
+    document.getElementById('modalDiscountRow').style.display = 'flex';
+  }
+
+  // Show modal
+  document.getElementById('paymentMethodModal').style.display = 'block';
+}
+
+// Close payment method modal
+function closePaymentMethodModal() {
+  document.getElementById('paymentMethodModal').style.display = 'none';
+}
+
+// Select payment method
+function selectPaymentMethod(method, element) {
+  // Remove previous selection
+  document.querySelectorAll('.payment-method-card').forEach(card => {
+    card.classList.remove('selected');
+  });
+  
+  // Add selection
+  element.classList.add('selected');
+  selectedMethod = method;
+  document.getElementById('selectedPaymentMethod').value = method;
+  
+  // Enable confirm button
+  document.getElementById('btnConfirmPayment').disabled = false;
+}
+
+// Confirm payment
+function confirmPayment() {
+  if (!selectedMethod) {
+    alert('Pilih metode pembayaran terlebih dahulu!');
+    return;
+  }
+
+  // Add payment method to form
+  const form = document.getElementById('paymentForm');
+  const methodInput = document.createElement('input');
+  methodInput.type = 'hidden';
+  methodInput.name = 'payment_method';
+  methodInput.value = selectedMethod;
+  form.appendChild(methodInput);
+
+  // Submit form
+  form.submit();
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+  const modal = document.getElementById('paymentMethodModal');
+  if (event.target == modal) {
+    closePaymentMethodModal();
+  }
+}
+
 // Allow Enter key to apply discount
 document.getElementById('discountInput')?.addEventListener('keypress', function(e) {
   if (e.key === 'Enter') {
     e.preventDefault();
     applyDiscount();
   }
+});
+
+// Form validation before submit
+document.getElementById('paymentForm')?.addEventListener('submit', function(e) {
+  const email = document.querySelector('input[name="email"]').value.trim();
+  const phone = document.querySelector('input[name="phone"]').value.trim();
+  const accountNumber = document.querySelector('input[name="account_number"]').value.trim();
+
+  if (!email) {
+    e.preventDefault();
+    alert('Email wajib diisi!');
+    return false;
+  }
+
+  if (!phone) {
+    e.preventDefault();
+    alert('Nomor telepon wajib diisi!');
+    return false;
+  }
+
+  if (!accountNumber) {
+    e.preventDefault();
+    alert('Nomor rekening / E-Wallet wajib diisi!');
+    return false;
+  }
+
+  // Validasi email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    e.preventDefault();
+    alert('Format email tidak valid!');
+    return false;
+  }
+
+  // Validasi phone (harus angka)
+  if (!/^\d+$/.test(phone)) {
+    e.preventDefault();
+    alert('Nomor telepon hanya boleh berisi angka!');
+    return false;
+  }
+
+  // All validations passed
+  return true;
 });
 </script>
 
