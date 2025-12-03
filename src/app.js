@@ -66,13 +66,8 @@ const hbs = create({
     neq: (a, b) => a !== b,
     json: (context) => JSON.stringify(context),
     formatPrice: (price) => {
-<<<<<<< HEAD
       if (!price) return 'Rp0';
       return 'Rp' + parseInt(price).toLocaleString('id-ID');
-=======
-      if (!price) return '0';
-      return parseFloat(price).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
->>>>>>> 18b6ccce8efc5604b7db3bb515090efb54bf6c27
     }
   }
 });

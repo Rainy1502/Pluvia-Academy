@@ -2,50 +2,6 @@
 {{> header}}
 
 <style>
-<<<<<<< HEAD
-  .payment-page {
-    min-height: calc(100vh - 80px);
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 40px 20px;
-  }
-
-  .payment-container {
-    background: #ffffff;
-    border-radius: 16px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-    max-width: 600px;
-    width: 100%;
-    padding: 40px;
-  }
-
-  .payment-logo {
-    text-align: center;
-    margin-bottom: 32px;
-  }
-
-  .payment-logo img {
-    width: 48px;
-    height: 48px;
-    margin-bottom: 12px;
-  }
-
-  .payment-logo h2 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #1a202c;
-    margin: 0;
-  }
-
-  .payment-title {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #1a202c;
-    margin-bottom: 24px;
-    text-align: left;
-=======
   .payment-container {
     min-height: 100vh;
     background: linear-gradient(135deg, #2d75ca 0%, #1e5ba8 100%);
@@ -93,154 +49,23 @@
     text-align: center;
     margin: 0 0 30px 0;
     color: #000;
->>>>>>> 18b6ccce8efc5604b7db3bb515090efb54bf6c27
   }
 
   .payment-form {
     display: flex;
     flex-direction: column;
-<<<<<<< HEAD
-    gap: 16px;
-=======
     gap: 20px;
->>>>>>> 18b6ccce8efc5604b7db3bb515090efb54bf6c27
   }
 
   .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-<<<<<<< HEAD
-    gap: 16px;
-=======
     gap: 135px;
->>>>>>> 18b6ccce8efc5604b7db3bb515090efb54bf6c27
   }
 
   .form-group {
     display: flex;
     flex-direction: column;
-<<<<<<< HEAD
-    gap: 8px;
-  }
-
-  .form-group label {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #4a5568;
-  }
-
-  .form-group input {
-    padding: 12px 16px;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    color: #1a202c;
-    transition: all 0.2s ease;
-  }
-
-  .form-group input:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-  }
-
-  .form-group input::placeholder {
-    color: #a0aec0;
-  }
-
-  .discount-section {
-    border-top: 1px solid #e2e8f0;
-    padding-top: 20px;
-    margin-top: 4px;
-  }
-
-  .discount-label {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #4a5568;
-    margin-bottom: 8px;
-  }
-
-  .discount-display {
-    background: #f7fafc;
-    border: 1px dashed #cbd5e0;
-    border-radius: 8px;
-    padding: 12px 16px;
-    text-align: center;
-    color: #718096;
-    font-size: 0.95rem;
-  }
-
-  .price-section {
-    background: #f7fafc;
-    border-radius: 8px;
-    padding: 16px;
-    margin-top: 8px;
-  }
-
-  .price-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 4px;
-  }
-
-  .price-label {
-    font-size: 0.95rem;
-    color: #4a5568;
-  }
-
-  .price-value {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #1a202c;
-  }
-
-  .btn-submit {
-    background: linear-gradient(135deg, #00d4ff 0%, #007bff 100%);
-    color: #ffffff;
-    font-size: 1rem;
-    font-weight: 700;
-    padding: 14px 24px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin-top: 8px;
-  }
-
-  .btn-submit:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
-  }
-
-  .btn-submit:active {
-    transform: translateY(0);
-  }
-
-  .payment-info {
-    background: #edf2f7;
-    border-left: 4px solid #667eea;
-    padding: 12px 16px;
-    border-radius: 6px;
-    margin-top: 20px;
-  }
-
-  .payment-info p {
-    font-size: 0.875rem;
-    color: #4a5568;
-    margin: 0;
-    line-height: 1.6;
-  }
-
-  @media (max-width: 640px) {
-    .form-row {
-      grid-template-columns: 1fr;
-    }
-
-    .payment-container {
-      padding: 24px;
-=======
   }
 
   .form-input {
@@ -411,168 +236,10 @@
 
     .discount-section {
       width: 100%;
->>>>>>> 18b6ccce8efc5604b7db3bb515090efb54bf6c27
     }
   }
 </style>
 
-<<<<<<< HEAD
-<main class="site-root">
-  <section class="payment-page">
-    <div class="payment-container">
-      <!-- Logo Header -->
-      <div class="payment-logo">
-        <img src="/img/logo-pngegg.png" alt="Pluvia Academy" />
-        <h2>Pluvia Academy</h2>
-      </div>
-
-      <!-- Payment Title -->
-      <h1 class="payment-title">Pembayaran</h1>
-
-      <!-- Payment Form -->
-      <form method="POST" action="/pembayaran/{{packageId}}/submit" class="payment-form">
-        <!-- Nama Kursus & Email -->
-        <div class="form-row">
-          <div class="form-group">
-            <label for="nama_kursus">Nama Kursus</label>
-            <input 
-              type="text" 
-              id="nama_kursus" 
-              name="nama_kursus" 
-              value="{{package.title}}" 
-              readonly
-              style="background: #f7fafc; cursor: not-allowed;"
-            />
-          </div>
-          <div class="form-group">
-            <label for="email">Email</label>
-            <input 
-              type="email" 
-              id="email" 
-              name="email" 
-              value="{{user.email}}" 
-              readonly
-              style="background: #f7fafc; cursor: not-allowed;"
-            />
-          </div>
-        </div>
-
-        <!-- No. Rek & Nomor HP -->
-        <div class="form-row">
-          <div class="form-group">
-            <label for="no_rek">No. Rek</label>
-            <input 
-              type="text" 
-              id="no_rek" 
-              name="no_rek" 
-              placeholder="1234567890"
-              required
-            />
-          </div>
-          <div class="form-group">
-            <label for="nomor_hp">Nomor HP</label>
-            <input 
-              type="tel" 
-              id="nomor_hp" 
-              name="nomor_hp" 
-              placeholder="08123456789"
-              value="{{user.phone}}"
-              required
-            />
-          </div>
-        </div>
-
-        <!-- Kode Diskon -->
-        <div class="discount-section">
-          <div class="form-group">
-            <label for="kode_diskon" class="discount-label">Kode Diskon (Opsional)</label>
-            <input 
-              type="text" 
-              id="kode_diskon" 
-              name="kode_diskon" 
-              placeholder="Masukkan kode diskon"
-            />
-          </div>
-          <div id="discount_info" class="discount-display" style="margin-top: 12px;">
-            Total Diskon yang didapatkan : Rp0
-          </div>
-        </div>
-
-        <!-- Price Section -->
-        <div class="price-section">
-          <div class="price-row">
-            <span class="price-label">Harga Kursus :</span>
-            <span class="price-value">{{formatPrice package.price}}</span>
-          </div>
-        </div>
-
-        <!-- Submit Button -->
-        <button type="submit" class="btn-submit">Daftar Kursus</button>
-      </form>
-
-      <!-- Payment Info -->
-      <div class="payment-info">
-        <p><strong>📌 Informasi Penting:</strong> Setelah pembayaran, admin akan memverifikasi dalam 1x24 jam. Anda akan mendapat notifikasi melalui email.</p>
-      </div>
-    </div>
-  </section>
-</main>
-
-<script>
-  // Format price helper (client-side)
-  const priceElements = document.querySelectorAll('.price-value');
-  priceElements.forEach(el => {
-    const price = parseFloat(el.textContent.replace(/[^\d]/g, ''));
-    if (!isNaN(price)) {
-      el.textContent = 'Rp' + price.toLocaleString('id-ID');
-    }
-  });
-
-  // Discount code handler
-  const discountInput = document.getElementById('kode_diskon');
-  const discountInfo = document.getElementById('discount_info');
-  
-  discountInput?.addEventListener('input', function() {
-    const code = this.value.trim().toUpperCase();
-    
-    // Example discount codes
-    const discounts = {
-      'PLUVIA10': 10000,
-      'WELCOME': 50000,
-      'STUDENT': 25000
-    };
-    
-    if (code && discounts[code]) {
-      const discount = discounts[code];
-      discountInfo.textContent = `Total Diskon yang didapatkan : Rp${discount.toLocaleString('id-ID')}`;
-      discountInfo.style.color = '#28a745';
-      discountInfo.style.borderColor = '#28a745';
-      discountInfo.style.background = '#d4edda';
-    } else if (code) {
-      discountInfo.textContent = 'Kode diskon tidak valid';
-      discountInfo.style.color = '#dc3545';
-      discountInfo.style.borderColor = '#dc3545';
-      discountInfo.style.background = '#f8d7da';
-    } else {
-      discountInfo.textContent = 'Total Diskon yang didapatkan : Rp0';
-      discountInfo.style.color = '#718096';
-      discountInfo.style.borderColor = '#cbd5e0';
-      discountInfo.style.background = '#f7fafc';
-    }
-  });
-
-  // Phone number formatting
-  const phoneInput = document.getElementById('nomor_hp');
-  phoneInput?.addEventListener('input', function() {
-    this.value = this.value.replace(/[^\d]/g, '');
-  });
-
-  // Account number formatting
-  const rekInput = document.getElementById('no_rek');
-  rekInput?.addEventListener('input', function() {
-    this.value = this.value.replace(/[^\d]/g, '');
-  });
-=======
 <main class="payment-container">
   <div class="payment-box">
     <div class="payment-logo">
@@ -1184,7 +851,6 @@ window.onclick = function(event) {
     closePaymentMethodModal();
   }
 }
->>>>>>> 18b6ccce8efc5604b7db3bb515090efb54bf6c27
 </script>
 
 {{> footer}}
