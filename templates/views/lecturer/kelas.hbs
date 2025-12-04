@@ -47,6 +47,33 @@
     box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
   }
 
+  .btn-attendance-quick {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    margin-top: 8px;
+  }
+
+  .btn-attendance-quick:hover {
+    background: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+  }
+
+  .kelas-card-wrapper {
+    position: relative;
+  }
+
   .kelas-thumbnail {
     position: relative;
     width: 100%;
@@ -139,36 +166,41 @@
         {{#if courses.length}}
         <div class="kelas-grid">
           {{#each courses}}
-          <a href="/live_class/{{this.id}}" style="text-decoration: none; color: inherit;">
-            <div class="kelas-card">
-              <div class="kelas-thumbnail">
-                {{#if this.thumbnail}}
-                <img src="{{this.thumbnail}}" alt="{{this.title}}" loading="lazy"/>
-                {{else}}
-                <img src="/img/banner.png" alt="{{this.title}}" loading="lazy"/>
-                {{/if}}
-                <span class="kelas-badge">📚 Kursus</span>
-              </div>
-              <div class="kelas-content">
-                <h3 class="kelas-content-title">{{this.title}}</h3>
-                {{#if this.description}}
-                <p class="kelas-description">{{this.description}}</p>
-                {{/if}}
-                <div class="kelas-meta">
-                  <div class="kelas-meta-item">
-                    <span>👥</span>
-                    <span>{{this.student_count}} Siswa</span>
-                  </div>
-                  {{#if this.schedule_day}}
-                  <div class="kelas-meta-item">
-                    <span>📅</span>
-                    <span>{{this.schedule_day}}</span>
-                  </div>
+          <div class="kelas-card-wrapper">
+            <a href="/live_class/{{this.id}}" style="text-decoration: none; color: inherit;">
+              <div class="kelas-card">
+                <div class="kelas-thumbnail">
+                  {{#if this.thumbnail}}
+                  <img src="{{this.thumbnail}}" alt="{{this.title}}" loading="lazy"/>
+                  {{else}}
+                  <img src="/img/banner.png" alt="{{this.title}}" loading="lazy"/>
                   {{/if}}
+                  <span class="kelas-badge">📚 Kursus</span>
+                </div>
+                <div class="kelas-content">
+                  <h3 class="kelas-content-title">{{this.title}}</h3>
+                  {{#if this.description}}
+                  <p class="kelas-description">{{this.description}}</p>
+                  {{/if}}
+                  <div class="kelas-meta">
+                    <div class="kelas-meta-item">
+                      <span>👥</span>
+                      <span>{{this.student_count}} Siswa</span>
+                    </div>
+                    {{#if this.schedule_day}}
+                    <div class="kelas-meta-item">
+                      <span>📅</span>
+                      <span>{{this.schedule_day}}</span>
+                    </div>
+                    {{/if}}
+                  </div>
+                  <a href="/manajemen_absensi?course_id={{this.id}}" class="btn-attendance-quick" onclick="event.stopPropagation();">
+                    ✓ Catat Kehadiran
+                  </a>
                 </div>
               </div>
-            </div>
-          </a>
+            </a>
+          </div>
           {{/each}}
         </div>
         {{else}}

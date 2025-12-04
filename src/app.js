@@ -117,6 +117,7 @@ const courseData = require('./utils/courseData');
 const materiData = require('./utils/materiData');
 const otpRoutes = require('./routes/otp');
 const uploadRoutes = require('./routes/upload');
+const attendanceRoutes = require('./routes/attendance');
 
 // expose whether courses exist to templates so header can adapt links
 app.use((req, res, next) => {
@@ -213,6 +214,9 @@ app.use('/api/otp', otpRoutes);
 
 // API routes untuk Upload
 app.use('/api/upload', uploadRoutes);
+
+// API routes untuk Attendance & Punishment
+app.use('/api/attendance', attendanceRoutes);
 
 // Homepage - akan menampilkan menu sesuai status login berkat middleware di atas
 app.get('/', async (_req, res) => {
@@ -766,6 +770,33 @@ app.get('/manajemen_materi', requireLecturer, async (req, res) => {
     console.error('Error fetching lecturer materials:', error);
     return res.render('lecturer/manajemen_materi', { 
       title: 'Manajemen Materi', 
+      courses: []
+    });
+  }
+});
+
+// Lecturer - Halaman Manajemen Absensi & Punishment
+app.get('/manajemen_absensi', requireLecturer, async (req, res) => {
+  try {
+    const lecturerId = res.locals.user.id;
+
+    // Get courses taught by this lecturer
+    const { data: courses, error } = await supabase
+      .from('courses')
+      .select('id, title')
+      .eq('instructor_id', lecturerId)
+      .order('title', { ascending: true });
+
+    if (error) throw error;
+
+    return res.render('lecturer/manajemen_absensi', { 
+      title: 'Manajemen Absensi & Punishment', 
+      courses: courses || []
+    });
+  } catch (error) {
+    console.error('Error fetching lecturer courses for attendance:', error);
+    return res.render('lecturer/manajemen_absensi', { 
+      title: 'Manajemen Absensi & Punishment', 
       courses: []
     });
   }

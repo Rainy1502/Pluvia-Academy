@@ -234,6 +234,42 @@
     font-size: 1.2rem;
     font-weight: bold;
   }
+
+  .btn-attendance-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #28a745;
+    color: #fff;
+    border: 2px solid #28a745;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
+    margin-bottom: 20px;
+  }
+
+  .btn-attendance-live:hover {
+    background: #218838;
+    border-color: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+  }
+
+  .btn-attendance-live::before {
+    content: '✓';
+    font-size: 1.3rem;
+    font-weight: bold;
+  }
+
+  .header-buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
 </style>
 
 <main class="site-root">
@@ -242,8 +278,11 @@
       <div class="courses-panel">
         {{#if course}}
         <div class="live-class-container">
-          <!-- Back Button -->
-          <a href="/kursus" class="btn-back-live">Kembali ke Kursus</a>
+          <!-- Header Buttons -->
+          <div class="header-buttons">
+            <a href="/kelas" class="btn-back-live">Kembali ke Kursus</a>
+            <a href="/manajemen_absensi?course_id={{course.id}}" class="btn-attendance-live">Catat Kehadiran</a>
+          </div>
 
           <!-- Course Title -->
           <div class="course-title-header">

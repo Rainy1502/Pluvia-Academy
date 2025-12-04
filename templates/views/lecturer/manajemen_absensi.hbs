@@ -1,0 +1,892 @@
+{{> head title="Manajemen Meeting & Absensi"}}
+
+<style>
+  .attendance-page {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 2rem 0;
+  }
+
+  .attendance-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+
+  .header-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 24px;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .header-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+  }
+
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+  }
+
+  .header-text h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+  }
+
+  .header-text p {
+    color: #718096;
+    font-size: 1.1rem;
+    font-weight: 500;
+  }
+
+  .btn-create-meeting {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 16px;
+    font-weight: 700;
+    font-size: 1.05rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .btn-create-meeting:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
+  }
+
+  .btn-create-meeting i {
+    font-size: 1.2rem;
+  }
+
+  .course-select-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  }
+
+  .course-select-label {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .course-select-label i {
+    color: #667eea;
+    font-size: 1.3rem;
+  }
+
+  #courseSelect {
+    width: 100%;
+    max-width: 600px;
+    padding: 1rem 1.5rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    background: white;
+    cursor: pointer;
+  }
+
+  #courseSelect:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+  }
+
+  .tabs-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+
+  .tabs-nav {
+    display: flex;
+    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+    border-bottom: 2px solid #e2e8f0;
+  }
+
+  .tab-button {
+    flex: 1;
+    padding: 1.25rem 1.5rem;
+    background: transparent;
+    border: none;
+    font-weight: 700;
+    font-size: 1rem;
+    color: #718096;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .tab-button::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+  }
+
+  .tab-button:hover {
+    color: #667eea;
+    background: rgba(102, 126, 234, 0.05);
+  }
+
+  .tab-button.active {
+    color: #667eea;
+    background: white;
+  }
+
+  .tab-button.active::after {
+    transform: scaleX(1);
+  }
+
+  .tab-button i {
+    font-size: 1.2rem;
+  }
+
+  .content-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    min-height: 400px;
+  }
+
+  .content-title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #2d3748;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .content-title i {
+    color: #667eea;
+  }
+
+  @media (max-width: 768px) {
+    .header-content {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .header-text h1 {
+      font-size: 2rem;
+    }
+
+    .tabs-nav {
+      flex-direction: column;
+    }
+
+    .tab-button {
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    #courseSelect {
+      max-width: 100%;
+    }
+  }
+</style>
+
+<div class="attendance-page">
+  {{> header}}
+  
+  <div class="attendance-container">
+    <!-- Header -->
+    <div class="header-card">
+      <div class="header-content">
+        <div class="header-text">
+          <h1>📊 Manajemen Absensi</h1>
+          <p>Kelola jadwal meeting dan catat kehadiran siswa dengan mudah</p>
+        </div>
+        <button onclick="openCreateMeetingModal()" class="btn-create-meeting">
+          <i class="fas fa-plus-circle"></i>
+          Buat Meeting Baru
+        </button>
+      </div>
+    </div>
+
+    <!-- Course Selection -->
+    <div class="course-select-card">
+      <label class="course-select-label">
+        <i class="fas fa-graduation-cap"></i>
+        Pilih Kursus
+      </label>
+      <select id="courseSelect" onchange="loadMeetings()">
+        <option value="">🔍 Pilih kursus untuk melihat data...</option>
+        {{#each courses}}
+        <option value="{{this.id}}">📚 {{this.title}}</option>
+        {{/each}}
+      </select>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs-card">
+      <nav class="tabs-nav">
+        <button onclick="switchTab('meetings')" id="tab-meetings" class="tab-button active">
+          <i class="fas fa-calendar-check"></i>
+          Daftar Meeting
+        </button>
+        <button onclick="switchTab('students')" id="tab-students" class="tab-button">
+          <i class="fas fa-users"></i>
+          Status Siswa
+        </button>
+        <button onclick="switchTab('logs')" id="tab-logs" class="tab-button">
+          <i class="fas fa-history"></i>
+          Riwayat Punishment
+        </button>
+      </nav>
+    </div>
+
+    <!-- Content Area -->
+    <div id="content-area">
+      <!-- Meetings Tab -->
+      <div id="meetings-content" class="tab-content">
+        <div class="content-card">
+          <h2 class="content-title">
+            <i class="fas fa-calendar-alt"></i>
+            Daftar Meeting
+          </h2>
+          <div id="meetings-list">
+            <div style="text-align: center; padding: 4rem 2rem;">
+              <div style="font-size: 4rem; margin-bottom: 1rem;">📅</div>
+              <p style="color: #718096; font-size: 1.1rem; font-weight: 600;">Pilih kursus untuk melihat daftar meeting</p>
+              <p style="color: #a0aec0; font-size: 0.95rem; margin-top: 0.5rem;">Meeting yang sudah dibuat akan tampil di sini</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Students Tab -->
+      <div id="students-content" class="tab-content" style="display: none;">
+        <div class="content-card">
+          <h2 class="content-title">
+            <i class="fas fa-user-graduate"></i>
+            Status Punishment Siswa
+          </h2>
+          <div id="students-list">
+            <div style="text-align: center; padding: 4rem 2rem;">
+              <div style="font-size: 4rem; margin-bottom: 1rem;">👥</div>
+              <p style="color: #718096; font-size: 1.1rem; font-weight: 600;">Pilih kursus untuk melihat status siswa</p>
+              <p style="color: #a0aec0; font-size: 0.95rem; margin-top: 0.5rem;">Data punishment siswa akan tampil di sini</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Logs Tab -->
+      <div id="logs-content" class="tab-content" style="display: none;">
+        <div class="content-card">
+          <h2 class="content-title">
+            <i class="fas fa-clipboard-list"></i>
+            Riwayat Punishment
+          </h2>
+          <div id="logs-list">
+            <div style="text-align: center; padding: 4rem 2rem;">
+              <div style="font-size: 4rem; margin-bottom: 1rem;">📝</div>
+              <p style="color: #718096; font-size: 1.1rem; font-weight: 600;">Pilih kursus untuk melihat riwayat</p>
+              <p style="color: #a0aec0; font-size: 0.95rem; margin-top: 0.5rem;">Log aktivitas punishment akan tampil di sini</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Create Meeting -->
+<div id="createMeetingModal" class="modal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center;">
+  <div style="background: white; border-radius: 24px; padding: 2.5rem; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+      <h2 style="font-size: 1.75rem; font-weight: 800; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">✨ Buat Meeting Baru</h2>
+      <button onclick="closeCreateMeetingModal()" style="background: none; border: none; font-size: 1.5rem; color: #718096; cursor: pointer; transition: color 0.3s;">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <form id="createMeetingForm" onsubmit="submitCreateMeeting(event)">
+      <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <div>
+          <label style="display: block; font-weight: 700; color: #2d3748; margin-bottom: 0.5rem; font-size: 0.95rem;">📚 Kursus *</label>
+          <select name="course_id" required style="width: 100%; padding: 0.875rem 1rem; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 1rem; transition: all 0.3s; background: white;">
+            <option value="">Pilih Kursus</option>
+            {{#each courses}}
+            <option value="{{this.id}}">{{this.title}}</option>
+            {{/each}}
+          </select>
+        </div>
+        <div>
+          <label style="display: block; font-weight: 700; color: #2d3748; margin-bottom: 0.5rem; font-size: 0.95rem;">📝 Judul Meeting *</label>
+          <input type="text" name="title" required placeholder="Contoh: Pertemuan 1 - Pengenalan" style="width: 100%; padding: 0.875rem 1rem; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 1rem; transition: all 0.3s;">
+        </div>
+        <div>
+          <label style="display: block; font-weight: 700; color: #2d3748; margin-bottom: 0.5rem; font-size: 0.95rem;">💬 Deskripsi</label>
+          <textarea name="description" rows="3" placeholder="Deskripsi singkat tentang meeting ini" style="width: 100%; padding: 0.875rem 1rem; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 1rem; transition: all 0.3s; resize: vertical;"></textarea>
+        </div>
+        <div>
+          <label style="display: block; font-weight: 700; color: #2d3748; margin-bottom: 0.5rem; font-size: 0.95rem;">🔗 Link Google Meet</label>
+          <input type="url" name="meet_link" placeholder="https://meet.google.com/xxx-xxxx-xxx" style="width: 100%; padding: 0.875rem 1rem; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 1rem; transition: all 0.3s;">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div>
+            <label style="display: block; font-weight: 700; color: #2d3748; margin-bottom: 0.5rem; font-size: 0.95rem;">📅 Tanggal & Waktu *</label>
+            <input type="datetime-local" name="scheduled_date" required style="width: 100%; padding: 0.875rem 1rem; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 1rem; transition: all 0.3s;">
+          </div>
+          <div>
+            <label style="display: block; font-weight: 700; color: #2d3748; margin-bottom: 0.5rem; font-size: 0.95rem;">⏱️ Durasi (menit)</label>
+            <input type="number" name="duration_minutes" value="60" min="15" max="300" style="width: 100%; padding: 0.875rem 1rem; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 1rem; transition: all 0.3s;">
+          </div>
+        </div>
+      </div>
+      <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+        <button type="submit" style="flex: 1; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1rem; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+          ✓ Buat Meeting
+        </button>
+        <button type="button" onclick="closeCreateMeetingModal()" style="padding: 1rem 1.5rem; border: 2px solid #e2e8f0; border-radius: 12px; font-weight: 700; background: white; color: #718096; cursor: pointer; transition: all 0.3s;">
+          Batal
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Attendance -->
+<div id="attendanceModal" class="modal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center;">
+  <div style="background: white; border-radius: 24px; padding: 2.5rem; max-width: 900px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+      <h2 id="attendanceModalTitle" style="font-size: 1.75rem; font-weight: 800; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">📋 Catat Kehadiran</h2>
+      <button onclick="closeAttendanceModal()" style="background: none; border: none; font-size: 1.5rem; color: #718096; cursor: pointer; transition: color 0.3s;">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div id="attendanceContent">
+      <!-- Will be populated by JavaScript -->
+    </div>
+  </div>
+</div>
+
+<style>
+.tab-button.active {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+}
+
+.badge-warning_1 {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badge-warning_2 {
+  background: #fed7aa;
+  color: #9a3412;
+}
+
+.badge-suspended {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.badge-none {
+  background: #d1fae5;
+  color: #065f46;
+}
+</style>
+
+<script>
+let currentCourseId = null;
+let currentMeetingId = null;
+
+// Get course_id from URL parameter
+const urlParams = new URLSearchParams(window.location.search);
+const courseIdFromUrl = urlParams.get('course_id');
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+  if (courseIdFromUrl) {
+    const courseSelect = document.getElementById('courseSelect');
+    courseSelect.value = courseIdFromUrl;
+    loadMeetings();
+  }
+});
+
+// Tab switching
+function switchTab(tab) {
+  // Update tab buttons
+  document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  
+  // Update content
+  document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
+  document.getElementById(`${tab}-content`).classList.remove('hidden');
+  
+  // Load data based on tab
+  if (currentCourseId) {
+    if (tab === 'meetings') loadMeetings();
+    else if (tab === 'students') loadStudentsStatus();
+    else if (tab === 'logs') loadPunishmentLogs();
+  }
+}
+
+// Load meetings
+async function loadMeetings() {
+  const courseId = document.getElementById('courseSelect').value;
+  if (!courseId) {
+    document.getElementById('meetings-list').innerHTML = '<div style="text-align: center; padding: 3rem; color: #718096;"><div style="font-size: 4rem; margin-bottom: 1rem;">📚</div><p style="font-size: 1.1rem;">Pilih kursus terlebih dahulu</p></div>';
+    return;
+  }
+  
+  currentCourseId = courseId;
+  
+  try {
+    const response = await fetch(`/api/attendance/meetings/course/${courseId}`);
+    const result = await response.json();
+    
+    if (result.success && result.meetings.length > 0) {
+      let html = '<div style="display: flex; flex-direction: column; gap: 1.25rem;">';
+      result.meetings.forEach(meeting => {
+        const statusConfig = {
+          scheduled: { bg: '#bee3f8', color: '#2c5282', icon: '⏰', text: 'Terjadwal' },
+          ongoing: { bg: '#fbd38d', color: '#744210', icon: '▶️', text: 'Berlangsung' },
+          completed: { bg: '#c6f6d5', color: '#22543d', icon: '✓', text: 'Selesai' },
+          cancelled: { bg: '#fed7d7', color: '#742a2a', icon: '❌', text: 'Dibatalkan' }
+        };
+        const status = statusConfig[meeting.status] || statusConfig.scheduled;
+        
+        html += `
+          <div style="background: white; border-radius: 16px; padding: 1.75rem; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); border-left: 5px solid ${status.color}; transition: all 0.3s;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 30px rgba(0, 0, 0, 0.12)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0, 0, 0, 0.08)'">
+            <div style="display: flex; justify-between; align-items: start; margin-bottom: 1rem;">
+              <div style="flex: 1;">
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem;">
+                  <h3 style="font-size: 1.25rem; font-weight: 800; color: #2d3748;">${meeting.title}</h3>
+                  <span style="padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 700; white-space: nowrap; background: ${status.bg}; color: ${status.color};">
+                    ${status.icon} ${status.text}
+                  </span>
+                </div>
+                ${meeting.description ? `<p style="color: #718096; font-size: 0.95rem; line-height: 1.6; margin-bottom: 1rem;">${meeting.description}</p>` : ''}
+                <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; margin-top: 1rem;">
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="far fa-calendar" style="color: #667eea; font-size: 1.1rem;"></i>
+                    <span style="color: #4a5568; font-size: 0.9rem;">${new Date(meeting.scheduled_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="far fa-clock" style="color: #667eea; font-size: 1.1rem;"></i>
+                    <span style="color: #4a5568; font-size: 0.9rem;">${new Date(meeting.scheduled_date).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} (${meeting.duration_minutes} menit)</span>
+                  </div>
+                  ${meeting.meet_link ? `
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-video" style="color: #667eea; font-size: 1.1rem;"></i>
+                    <a href="${meeting.meet_link}" target="_blank" style="color: #667eea; text-decoration: none; font-weight: 600; font-size: 0.9rem;">Buka Google Meet →</a>
+                  </div>
+                  ` : ''}
+                </div>
+              </div>
+              <button onclick="viewAttendance('${meeting.id}', '${meeting.title}')" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 0.875rem 1.5rem; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3); white-space: nowrap; margin-left: 1rem;">
+                <i class="fas fa-check-circle"></i> Catat Kehadiran
+              </button>
+            </div>
+          </div>
+        `;
+      });
+      html += '</div>';
+      document.getElementById('meetings-list').innerHTML = html;
+    } else {
+      document.getElementById('meetings-list').innerHTML = '<div style="text-align: center; padding: 3rem; color: #718096;"><div style="font-size: 4rem; margin-bottom: 1rem;">📅</div><h3 style="font-size: 1.25rem; font-weight: 700; color: #2d3748; margin-bottom: 0.5rem;">Belum Ada Meeting</h3><p>Klik tombol "Buat Meeting Baru" untuk memulai</p></div>';
+    }
+  } catch (error) {
+    console.error('Error loading meetings:', error);
+    document.getElementById('meetings-list').innerHTML = '<div style="background: #fed7d7; border: 2px solid #fc8181; border-radius: 12px; padding: 1.5rem; color: #742a2a; text-align: center;"><i class="fas fa-exclamation-triangle"></i> Gagal memuat data meeting</div>';
+  }
+  }
+}
+
+// Load students punishment status
+async function loadStudentsStatus() {
+  if (!currentCourseId) return;
+  
+  try {
+    const response = await fetch(`/api/attendance/punishment/course/${currentCourseId}`);
+    const result = await response.json();
+    
+    if (result.success && result.students.length > 0) {
+      let html = `
+        <div style="overflow-x: auto; border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);">
+          <table style="width: 100%; border-collapse: collapse; background: white;">
+            <thead>
+              <tr style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <th style="padding: 1.25rem 1rem; text-align: left; font-size: 0.85rem; font-weight: 800; color: white; text-transform: uppercase; letter-spacing: 0.05em;">Nama Siswa</th>
+                <th style="padding: 1.25rem 1rem; text-align: center; font-size: 0.85rem; font-weight: 800; color: white; text-transform: uppercase; letter-spacing: 0.05em;">Absen Berturut</th>
+                <th style="padding: 1.25rem 1rem; text-align: center; font-size: 0.85rem; font-weight: 800; color: white; text-transform: uppercase; letter-spacing: 0.05em;">Status Punishment</th>
+                <th style="padding: 1.25rem 1rem; text-align: center; font-size: 0.85rem; font-weight: 800; color: white; text-transform: uppercase; letter-spacing: 0.05em;">Total Hadir</th>
+                <th style="padding: 1.25rem 1rem; text-align: center; font-size: 0.85rem; font-weight: 800; color: white; text-transform: uppercase; letter-spacing: 0.05em;">Total Tidak Hadir</th>
+                <th style="padding: 1.25rem 1rem; text-align: center; font-size: 0.85rem; font-weight: 800; color: white; text-transform: uppercase; letter-spacing: 0.05em;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+      
+      result.students.forEach((student, index) => {
+        const statusConfig = {
+          none: { bg: '#c6f6d5', color: '#22543d', text: '✓ Normal' },
+          warning_1: { bg: '#fbd38d', color: '#744210', text: '⚠️ Peringatan 1' },
+          warning_2: { bg: '#fc8181', color: '#742a2a', text: '⚠️ Peringatan 2' },
+          suspended: { bg: '#fc8181', color: '#742a2a', text: '🚫 Suspended' }
+        };
+        const status = statusConfig[student.punishment_status] || statusConfig.none;
+        
+        html += `
+          <tr style="border-bottom: 1px solid #f7fafc; transition: background 0.2s;" onmouseover="this.style.background='#f7fafc'" onmouseout="this.style.background='white'">
+            <td style="padding: 1.25rem 1rem;">
+              <div style="font-weight: 700; color: #2d3748; margin-bottom: 0.25rem;">${student.full_name}</div>
+              <div style="font-size: 0.85rem; color: #718096;">${student.email}</div>
+            </td>
+            <td style="padding: 1.25rem 1rem; text-align: center;">
+              <span style="font-size: 1.5rem; font-weight: 800; color: ${student.consecutive_absence >= 2 ? '#c53030' : student.consecutive_absence === 1 ? '#d69e2e' : '#38a169'};">
+                ${student.consecutive_absence}x
+              </span>
+            </td>
+            <td style="padding: 1.25rem 1rem; text-align: center;">
+              <span style="padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 700; background: ${status.bg}; color: ${status.color}; white-space: nowrap;">
+                ${status.text}
+              </span>
+            </td>
+            <td style="padding: 1.25rem 1rem; text-align: center; color: #38a169; font-weight: 700; font-size: 1.1rem;">${student.total_presences || 0}</td>
+            <td style="padding: 1.25rem 1rem; text-align: center; color: #c53030; font-weight: 700; font-size: 1.1rem;">${student.total_absences || 0}</td>
+            <td style="padding: 1.25rem 1rem; text-align: center;">
+              ${student.punishment_status !== 'none' ? `
+                <button onclick="resetPunishment('${student.user_id}', '${student.course_id}', '${student.full_name}')" 
+                        style="padding: 0.625rem 1.25rem; background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 10px rgba(72, 187, 120, 0.3);">
+                  <i class="fas fa-undo"></i> Reset
+                </button>
+              ` : '<span style="color: #cbd5e0; font-size: 0.9rem;">-</span>'}
+            </td>
+          </tr>
+        `;
+      });
+      
+      html += '</tbody></table></div>';
+      document.getElementById('students-list').innerHTML = html;
+    } else {
+      document.getElementById('students-list').innerHTML = '<div style="text-align: center; padding: 3rem; color: #718096;"><div style="font-size: 4rem; margin-bottom: 1rem;">👥</div><h3 style="font-size: 1.25rem; font-weight: 700; color: #2d3748; margin-bottom: 0.5rem;">Belum Ada Siswa</h3><p>Tidak ada siswa yang terdaftar di kursus ini</p></div>';
+    }
+  } catch (error) {
+    console.error('Error loading students status:', error);
+    document.getElementById('students-list').innerHTML = '<div style="background: #fed7d7; border: 2px solid #fc8181; border-radius: 12px; padding: 1.5rem; color: #742a2a; text-align: center;"><i class="fas fa-exclamation-triangle"></i> Gagal memuat status siswa</div>';
+  }
+}
+
+// Load punishment logs
+async function loadPunishmentLogs() {
+  if (!currentCourseId) return;
+  
+  try {
+    const response = await fetch(`/api/attendance/punishment/logs/${currentCourseId}?limit=50`);
+    const result = await response.json();
+    
+    if (result.success && result.logs.length > 0) {
+      let html = '<div style="display: flex; flex-direction: column; gap: 1rem;">';
+      result.logs.forEach(log => {
+        const actionConfig = {
+          warning_1: { bg: '#fef3c7', border: '#fbbf24', color: '#78350f', icon: '⚠️', label: 'Peringatan 1' },
+          warning_2: { bg: '#fed7aa', border: '#fb923c', color: '#7c2d12', icon: '⚠️⚠️', label: 'Peringatan 2' },
+          suspended: { bg: '#fee2e2', border: '#f87171', color: '#7f1d1d', icon: '🚫', label: 'Suspended' },
+          reset: { bg: '#d1fae5', border: '#34d399', color: '#065f46', icon: '🔄', label: 'Reset Punishment' },
+          reinstated: { bg: '#dbeafe', border: '#60a5fa', color: '#1e3a8a', icon: '✅', label: 'Diaktifkan Kembali' }
+        };
+        const action = actionConfig[log.action] || { bg: '#f3f4f6', border: '#9ca3af', color: '#374151', icon: 'ℹ️', label: log.action };
+        
+        html += `
+          <div style="background: ${action.bg}; border-left: 5px solid ${action.border}; padding: 1.25rem; border-radius: 12px;">
+            <div style="display: flex; justify-between; align-items: start; gap: 1rem;">
+              <div style="flex: 1;">
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                  <span style="font-size: 1.5rem;">${action.icon}</span>
+                  <div style="font-weight: 700; color: ${action.color}; font-size: 1.1rem;">${log.user?.full_name || 'Unknown'}</div>
+                </div>
+                <div style="margin-left: 2.25rem; color: ${action.color}; font-size: 0.9rem; margin-bottom: 0.5rem;">
+                  <span style="font-weight: 700;">${action.label}</span>
+                  ${log.consecutive_absence > 0 ? `<span style="opacity: 0.8;"> (${log.consecutive_absence}x absen berturut-turut)</span>` : ''}
+                </div>
+                ${log.notes ? `<div style="margin-left: 2.25rem; color: ${action.color}; font-size: 0.85rem; opacity: 0.8; font-style: italic;">"${log.notes}"</div>` : ''}
+              </div>
+              <div style="text-align: right; color: ${action.color}; font-size: 0.85rem; white-space: nowrap; opacity: 0.7;">
+                <div style="font-weight: 600;">${new Date(log.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                <div>${new Date(log.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      html += '</div>';
+      document.getElementById('logs-list').innerHTML = html;
+    } else {
+      document.getElementById('logs-list').innerHTML = '<div style="text-align: center; padding: 3rem; color: #718096;"><div style="font-size: 4rem; margin-bottom: 1rem;">📝</div><h3 style="font-size: 1.25rem; font-weight: 700; color: #2d3748; margin-bottom: 0.5rem;">Belum Ada Riwayat</h3><p>Belum ada riwayat punishment untuk kursus ini</p></div>';
+    }
+  } catch (error) {
+    console.error('Error loading logs:', error);
+    document.getElementById('logs-list').innerHTML = '<div style="background: #fed7d7; border: 2px solid #fc8181; border-radius: 12px; padding: 1.5rem; color: #742a2a; text-align: center;"><i class="fas fa-exclamation-triangle"></i> Gagal memuat riwayat</div>';
+  }
+}
+
+// View attendance
+async function viewAttendance(meetingId, meetingTitle) {
+  currentMeetingId = meetingId;
+  document.getElementById('attendanceModalTitle').textContent = `Absensi: ${meetingTitle}`;
+  
+  try {
+    const response = await fetch(`/api/attendance/attendance/meeting/${meetingId}`);
+    const result = await response.json();
+    
+    if (result.success) {
+      let html = `
+        <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;">
+          <button onclick="bulkMarkAttendance('present')" style="flex: 1; min-width: 200px; padding: 0.875rem 1.5rem; background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);">
+            <i class="fas fa-check-double"></i> Tandai Semua Hadir
+          </button>
+          <button onclick="bulkMarkAttendance('absent')" style="flex: 1; min-width: 200px; padding: 0.875rem 1.5rem; background: linear-gradient(135deg, #fc8181 0%, #f56565 100%); color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(252, 129, 129, 0.3);">
+            <i class="fas fa-times-circle"></i> Tandai Semua Tidak Hadir
+          </button>
+        </div>
+        <form onsubmit="submitAttendance(event)">
+          <div style="display: flex; flex-direction: column; gap: 1rem; max-height: 500px; overflow-y: auto; padding-right: 0.5rem;">
+      `;
+      
+      result.attendance.forEach(record => {
+        html += `
+          <div style="background: white; border: 2px solid #e2e8f0; border-radius: 16px; padding: 1.25rem; transition: all 0.3s;" onmouseover="this.style.borderColor='#667eea'; this.style.boxShadow='0 4px 20px rgba(102, 126, 234, 0.15)'" onmouseout="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; gap: 1rem;">
+                <img src="${record.user?.avatar_url || '/img/default-avatar.png'}" alt="${record.user?.full_name}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 3px solid #e2e8f0;">
+                <div>
+                  <div style="font-weight: 700; color: #2d3748; font-size: 1.05rem;">${record.user?.full_name}</div>
+                  <div style="font-size: 0.85rem; color: #718096;">${record.user?.email}</div>
+                </div>
+              </div>
+              <div style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
+                <label style="display: flex; align-items: center; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                  <input type="radio" name="attendance_${record.user_id}" value="present" ${record.status === 'present' ? 'checked' : ''} style="margin-right: 0.5rem; width: 18px; height: 18px; cursor: pointer; accent-color: #48bb78;">
+                  <span style="color: #38a169; font-weight: 700; font-size: 0.95rem;">✅ Hadir</span>
+                </label>
+                <label style="display: flex; align-items: center; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                  <input type="radio" name="attendance_${record.user_id}" value="absent" ${record.status === 'absent' ? 'checked' : ''} style="margin-right: 0.5rem; width: 18px; height: 18px; cursor: pointer; accent-color: #fc8181;">
+                  <span style="color: #c53030; font-weight: 700; font-size: 0.95rem;">❌ Tidak Hadir</span>
+                </label>
+                <label style="display: flex; align-items: center; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                  <input type="radio" name="attendance_${record.user_id}" value="permitted" ${record.status === 'permitted' ? 'checked' : ''} style="margin-right: 0.5rem; width: 18px; height: 18px; cursor: pointer; accent-color: #4299e1;">
+                  <span style="color: #2c5282; font-weight: 700; font-size: 0.95rem;">📝 Izin</span>
+                </label>
+                <label style="display: flex; align-items: center; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                  <input type="radio" name="attendance_${record.user_id}" value="sick" ${record.status === 'sick' ? 'checked' : ''} style="margin-right: 0.5rem; width: 18px; height: 18px; cursor: pointer; accent-color: #9f7aea;">
+                  <span style="color: #553c9a; font-weight: 700; font-size: 0.95rem;">🏥 Sakit</span>
+                </label>
+              </div>
+            </div>
+            <input type="hidden" name="user_id_${record.user_id}" value="${record.user_id}">
+          </div>
+        `;
+      });
+      
+      html += `
+          </div>
+          <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+            <button type="submit" style="flex: 1; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1rem; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+              💾 Simpan Absensi
+            </button>
+            <button type="button" onclick="closeAttendanceModal()" style="padding: 1rem 1.5rem; border: 2px solid #e2e8f0; border-radius: 12px; font-weight: 700; background: white; color: #718096; cursor: pointer; transition: all 0.3s;">
+              Batal
+            </button>
+          </div>
+        </form>
+      `;
+      
+      document.getElementById('attendanceContent').innerHTML = html;
+      document.getElementById('attendanceModal').style.display = 'flex';
+    }
+  } catch (error) {
+    console.error('Error loading attendance:', error);
+    alert('Gagal memuat data absensi');
+  }
+}
+
+// Bulk mark attendance
+function bulkMarkAttendance(status) {
+  const radios = document.querySelectorAll(`input[type="radio"][value="${status}"]`);
+  radios.forEach(radio => radio.checked = true);
+}
+
+// Submit attendance
+async function submitAttendance(event) {
+  event.preventDefault();
+  
+  const form = event.target;
+  const formData = new FormData(form);
+  const attendanceList = [];
+  
+  // Collect all user IDs
+  const userIds = Array.from(form.querySelectorAll('input[type="hidden"]'))
+    .filter(input => input.name.startsWith('user_id_'))
+    .map(input => input.value);
+  
+  userIds.forEach(userId => {
+    const statusRadio = form.querySelector(`input[name="attendance_${userId}"]:checked`);
+    if (statusRadio) {
+      attendanceList.push({
+        user_id: userId,
+        status: statusRadio.value
+      });
+    }
+  });
+  
+  try {
+    const response = await fetch('/api/attendance/attendance/bulk-mark', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        meeting_id: currentMeetingId,
+        attendance_list: attendanceList
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      alert('Absensi berhasil disimpan!');
+      closeAttendanceModal();
+      loadMeetings();
+    } else {
+      alert('Gagal menyimpan absensi: ' + result.error);
+    }
+  } catch (error) {
+    console.error('Error submitting attendance:', error);
+    alert('Terjadi kesalahan saat menyimpan absensi');
+  }
+}
+
+// Reset punishment
+async function resetPunishment(userId, courseId, studentName) {
+  if (!confirm(`Apakah Anda yakin ingin mereset punishment untuk ${studentName}?`)) {
+    return;
+  }
+  
+  const notes = prompt('Alasan reset (opsional):') || 'Reset oleh lecturer';
+  
+  try {
+    const response = await fetch('/api/attendance/punishment/reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId, course_id: courseId, notes })
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      alert('Punishment berhasil direset!');
+      loadStudentsStatus();
+    } else {
+      alert('Gagal mereset punishment: ' + result.error);
+    }
+  } catch (error) {
+    console.error('Error resetting punishment:', error);
+    alert('Terjadi kesalahan');
+  }
+}
+
+// Modal functions
+function openCreateMeetingModal() {
+  document.getElementById('createMeetingModal').style.display = 'flex';
+}
+
+function closeAttendanceModal() {
+  document.getElementById('attendanceModal').style.display = 'none';
+}
+
+function closeCreateMeetingModal() {
+  document.getElementById('createMeetingModal').style.display = 'none';
+  document.getElementById('createMeetingForm').reset();
+}
+
+// Submit create meeting
+async function submitCreateMeeting(event) {
+  event.preventDefault();
+  
+  const form = event.target;
+  const formData = new FormData(form);
+  const data = Object.fromEntries(formData);
+  
+  try {
+    const response = await fetch('/api/attendance/meetings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      alert('Meeting berhasil dibuat!');
+      closeCreateMeetingModal();
+      
+      // Set course select dan reload
+      document.getElementById('courseSelect').value = data.course_id;
+      loadMeetings();
+    } else {
+      alert('Gagal membuat meeting: ' + result.error);
+    }
+  } catch (error) {
+    console.error('Error creating meeting:', error);
+    alert('Terjadi kesalahan saat membuat meeting');
+  }
+}
+
+// Close modals on ESC key
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeCreateMeetingModal();
+    closeAttendanceModal();
+  }
+});
+</script>
+
+{{> footer}}

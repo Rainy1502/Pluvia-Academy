@@ -246,6 +246,9 @@
   <section class="my-courses-section">
     <div class="container">
       <div class="courses-panel">
+        <!-- Punishment Banner Container -->
+        <div id="punishment-banner-container"></div>
+        
         {{#if selectedCourse}}
         <!-- Tampilan Materi dari Kursus yang Dipilih -->
         <a href="/materi" class="btn-back-materi">Kembali ke Pilihan Kursus</a>
@@ -257,7 +260,7 @@
         <div class="materi-grid">
           {{#each materials}}
           {{#if this.is_unlocked}}
-          <a href="{{#if this.media_url}}{{this.media_url}}{{else}}#{{/if}}" target="_blank" class="materi-card-link">
+          <a href="{{#if this.media_url}}{{this.media_url}}{{else}}#{{/if}}" target="_blank" class="materi-card-link" data-material-id="{{this.id}}">
             <div class="materi-card">
               <div class="materi-thumbnail">
                 {{#if this.thumbnail}}
@@ -273,7 +276,7 @@
             </div>
           </a>
           {{else}}
-          <div class="materi-card-link">
+          <div class="materi-card-link" data-material-id="{{this.id}}">
             <div class="materi-card locked">
               <div class="materi-thumbnail">
                 {{#if this.thumbnail}}
@@ -337,5 +340,60 @@
     </div>
   </section>
 </main>
+
+<!-- Include Punishment Utils -->
+<script src="/js/punishment-utils.js"></script>
+<script>
+// Set current user untuk punishment check
+window.currentUser = {
+  id: '{{user.id}}'
+};
+
+// Initialize punishment check jika ada course yang dipilih
+{{#if selectedCourse}}
+document.addEventListener('DOMContentLoaded', function() {
+  // Display punishment banner
+  displayPunishmentBanner('{{selectedCourse.id}}');
+  
+  // Lock materials yang restricted
+  document.querySelectorAll('[data-material-id]').forEach(async (element) => {
+    const materialId = element.getAttribute('data-material-id');
+    if (materialId) {
+      const result = await checkMaterialAccess(materialId);
+      if (!result.canAccess) {
+        // Tambahkan locked state
+        element.classList.add('locked-by-punishment');
+        element.querySelector('.materi-card').classList.add('locked');
+        
+        // Ganti badge
+        const badge = element.querySelector('.materi-badge');
+        if (badge) {
+          badge.className = 'materi-badge locked';
+          badge.textContent = '🔒 Tidak Hadir';
+        }
+        
+        // Tambahkan lock icon jika belum ada
+        if (!element.querySelector('.lock-icon')) {
+          const lockIcon = document.createElement('div');
+          lockIcon.className = 'lock-icon';
+          lockIcon.textContent = '🔒';
+          element.querySelector('.materi-thumbnail').appendChild(lockIcon);
+        }
+        
+        // Disable link
+        element.style.pointerEvents = 'none';
+        element.style.opacity = '0.7';
+        
+        // Tambahkan click handler untuk info
+        element.addEventListener('click', function(e) {
+          e.preventDefault();
+          alert('Anda tidak dapat mengakses materi ini karena tidak hadir pada meeting terkait. Silakan hubungi lecturer.');
+        });
+      }
+    }
+  });
+});
+{{/if}}
+</script>
 
 {{> footer}}

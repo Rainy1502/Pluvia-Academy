@@ -240,6 +240,9 @@
   <section class="my-courses-section">
     <div class="container">
       <div class="courses-panel">
+        <!-- Punishment Banner Container -->
+        <div id="punishment-banner-container"></div>
+        
         {{#if course}}
         <div class="live-class-container">
           <!-- Back Button -->
@@ -290,5 +293,42 @@
     </div>
   </section>
 </main>
+
+<!-- Include Punishment Utils -->
+<script src="/js/punishment-utils.js"></script>
+<script>
+// Set current user untuk punishment check
+window.currentUser = {
+  id: '{{user.id}}'
+};
+
+// Initialize punishment check
+{{#if course}}
+document.addEventListener('DOMContentLoaded', function() {
+  displayPunishmentBanner('{{course.id}}');
+  
+  // Check if suspended, disable buttons
+  checkPunishmentStatus('{{course.id}}').then(result => {
+    if (result.status === 'suspended') {
+      // Disable action buttons
+      const joinBtn = document.querySelector('.btn-join');
+      const materiBtn = document.querySelector('.btn-materi');
+      
+      if (joinBtn) {
+        joinBtn.style.opacity = '0.5';
+        joinBtn.style.pointerEvents = 'none';
+        joinBtn.style.cursor = 'not-allowed';
+      }
+      
+      if (materiBtn) {
+        materiBtn.style.opacity = '0.5';
+        materiBtn.style.pointerEvents = 'none';
+        materiBtn.style.cursor = 'not-allowed';
+      }
+    }
+  });
+});
+{{/if}}
+</script>
 
 {{> footer}}
