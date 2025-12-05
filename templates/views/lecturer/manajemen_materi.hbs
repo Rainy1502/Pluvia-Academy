@@ -126,6 +126,349 @@
     color: #718096;
     font-size: 0.95rem;
   }
+
+  /* Modal Styles */
+  .kursus-modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.3s ease;
+  }
+
+  .kursus-modal-content {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    margin: 3% auto;
+    padding: 0;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 550px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    animation: slideDown 0.3s ease;
+    position: relative;
+  }
+
+  .modal-manage-materi {
+    max-width: 700px;
+  }
+
+  .modal-logo {
+    background: #007bff;
+    padding: 25px;
+    border-radius: 20px 20px 0 0;
+    text-align: center;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .modal-logo-img {
+    width: 70px;
+    height: 70px;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+  }
+
+  .modal-logo h2 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 800;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  .modal-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin: 25px 30px 20px;
+    text-align: center;
+  }
+
+  .modal-input {
+    width: 100%;
+    padding: 14px 18px;
+    margin: 12px 30px;
+    max-width: calc(100% - 60px);
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+    box-sizing: border-box;
+    font-family: inherit;
+  }
+
+  .modal-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    transform: translateY(-1px);
+  }
+
+  .modal-input::placeholder {
+    color: #a0aec0;
+  }
+
+  .form-section {
+    margin: 20px 0;
+    padding: 0;
+  }
+
+  .form-section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 30px;
+    margin-bottom: 15px;
+  }
+
+  .form-section-icon {
+    font-size: 1.2rem;
+  }
+
+  .form-section-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #2d3748;
+  }
+
+  .file-input-wrapper {
+    margin: 15px 30px;
+    position: relative;
+  }
+
+  .modal-file-input {
+    display: none;
+  }
+
+  .file-input-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+    border: 2px dashed #cbd5e0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    color: #4a5568;
+  }
+
+  .file-input-label:hover {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+  }
+
+  .file-icon {
+    font-size: 1.5rem;
+    transition: transform 0.3s ease;
+  }
+
+  .file-input-label:hover .file-icon {
+    transform: scale(1.1);
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 12px;
+    padding: 20px 30px 30px;
+    justify-content: center;
+  }
+
+  .modal-btn {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 120px;
+    font-family: inherit;
+  }
+
+  .modal-btn-tambah,
+  .modal-btn-edit {
+    background: #667eea;
+    color: white;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  }
+
+  .modal-btn-tambah:hover,
+  .modal-btn-edit:hover {
+    background: #5568d3;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  }
+
+  .modal-btn-batal {
+    background: #dc3545;
+    color: white;
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+  }
+
+  .modal-btn-batal:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+  }
+
+  .modal-btn-logout,
+  .modal-btn-hapus {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+  }
+
+  .modal-btn-logout:hover,
+  .modal-btn-hapus:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+  }
+
+  .logout-modal-content {
+    max-width: 450px;
+  }
+
+  .logout-message {
+    text-align: center;
+    color: #4a5568;
+    font-size: 1.05rem;
+    padding: 0 30px 10px;
+    line-height: 1.6;
+  }
+
+  .materi-list-container {
+    max-height: 400px;
+    overflow-y: auto;
+    margin: 0 30px 20px;
+    padding: 15px;
+    background: white;
+    border-radius: 12px;
+    border: 2px solid #e2e8f0;
+  }
+
+  .materi-item {
+    background: linear-gradient(135deg, #f7fafc 0%, #ffffff 100%);
+    padding: 15px;
+    margin-bottom: 12px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+  }
+
+  .materi-item:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: #667eea;
+  }
+
+  .materi-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .materi-info h4 {
+    margin: 0 0 5px 0;
+    color: #2d3748;
+    font-size: 1.1rem;
+  }
+
+  .materi-info p {
+    margin: 0;
+    color: #718096;
+    font-size: 0.9rem;
+  }
+
+  .materi-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .materi-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: white;
+  }
+
+  .materi-btn-edit {
+    background: linear-gradient(135deg, #ffd89b 0%, #ff9a00 100%);
+  }
+
+  .materi-btn-edit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 154, 0, 0.3);
+  }
+
+  .materi-btn-delete {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+  }
+
+  .materi-btn-delete:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideDown {
+    from { transform: translateY(-50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  @media (max-width: 768px) {
+    .kursus-modal-content {
+      width: 95%;
+      margin: 10% auto;
+    }
+
+    .modal-input,
+    .file-input-wrapper {
+      margin-left: 20px;
+      margin-right: 20px;
+      max-width: calc(100% - 40px);
+    }
+
+    .modal-actions {
+      flex-direction: column;
+      padding: 15px 20px 25px;
+    }
+
+    .modal-btn {
+      width: 100%;
+    }
+
+    .materi-actions {
+      flex-direction: column;
+    }
+
+    .materi-btn {
+      width: 100%;
+    }
+  }
 </style>
 
 <main class="site-root">
@@ -172,38 +515,48 @@
       <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="modal-logo-img"/>
       <h2>Pluvia Academy</h2>
     </div>
-    <h3 class="modal-title">Tambah Materi - <span id="courseNameDisplay"></span></h3>
+    <h3 class="modal-title">➕ Tambah Materi - <span id="courseNameDisplay"></span></h3>
     
     <form id="tambahMateriForm" method="POST" action="/materi/create">
       <input type="hidden" name="course_id" id="tambahCourseId"/>
       
-      <input type="text" name="title" placeholder="Nama Materi" required class="modal-input"/>
-      
-      <input type="text" name="description" placeholder="Deskripsi" class="modal-input"/>
-      
-      <input type="number" name="ordinal" placeholder="Urutan" required class="modal-input"/>
-      
-      <div class="file-input-wrapper">
-        <input type="file" id="materiThumbnailInput" accept="image/*" class="modal-file-input"/>
-        <label for="materiThumbnailInput" class="file-input-label">
-          <span>Pilih Gambar</span>
-          <span class="file-icon">🖼️</span>
-        </label>
+      <div class="form-section">
+        <div class="form-section-header">
+          <span class="form-section-icon">📝</span>
+          <h4 class="form-section-title">Informasi Materi</h4>
+        </div>
+        <input type="text" name="title" placeholder="Nama Materi" required class="modal-input"/>
+        <input type="text" name="description" placeholder="Deskripsi" class="modal-input"/>
+        <input type="number" name="ordinal" placeholder="Urutan" required class="modal-input"/>
       </div>
-      <input type="hidden" name="thumbnail" id="materiThumbnailUrl"/>
       
-      <div class="file-input-wrapper">
-        <input type="file" id="materiPdfInput" accept=".pdf" class="modal-file-input"/>
-        <label for="materiPdfInput" class="file-input-label">
-          <span>Pilih File PDF</span>
-          <span class="file-icon">📄</span>
-        </label>
+      <div class="form-section">
+        <div class="form-section-header">
+          <span class="form-section-icon">📁</span>
+          <h4 class="form-section-title">File & Media</h4>
+        </div>
+        <div class="file-input-wrapper">
+          <input type="file" id="materiThumbnailInput" accept="image/*" class="modal-file-input"/>
+          <label for="materiThumbnailInput" class="file-input-label">
+            <span>Pilih Gambar Thumbnail</span>
+            <span class="file-icon">🖼️</span>
+          </label>
+        </div>
+        <input type="hidden" name="thumbnail" id="materiThumbnailUrl"/>
+        
+        <div class="file-input-wrapper">
+          <input type="file" id="materiPdfInput" accept=".pdf" class="modal-file-input"/>
+          <label for="materiPdfInput" class="file-input-label">
+            <span>Pilih File PDF Materi</span>
+            <span class="file-icon">📄</span>
+          </label>
+        </div>
+        <input type="hidden" name="media_url" id="materiPdfUrl"/>
       </div>
-      <input type="hidden" name="media_url" id="materiPdfUrl"/>
       
       <div class="modal-actions">
-        <button type="submit" class="modal-btn modal-btn-tambah">Tambah</button>
-        <button type="button" class="modal-btn modal-btn-batal" onclick="closeTambahMateriModal()">Batal</button>
+        <button type="submit" class="modal-btn modal-btn-tambah">💾 Tambah Materi</button>
+        <button type="button" class="modal-btn modal-btn-batal" onclick="closeTambahMateriModal()">❌ Batal</button>
       </div>
     </form>
   </div>
@@ -237,36 +590,46 @@
       <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="modal-logo-img"/>
       <h2>Pluvia Academy</h2>
     </div>
-    <h3 class="modal-title">Edit Materi</h3>
+    <h3 class="modal-title">✏️ Edit Materi</h3>
     
     <form id="editMateriForm" method="POST">
-      <input type="text" name="title" id="editMateriTitle" placeholder="Nama Materi" required class="modal-input"/>
-      
-      <input type="text" name="description" id="editMateriDescription" placeholder="Deskripsi" class="modal-input"/>
-      
-      <input type="number" name="ordinal" id="editMateriOrdinal" placeholder="Urutan" required class="modal-input"/>
-      
-      <div class="file-input-wrapper">
-        <input type="file" id="editMateriThumbnailInput" accept="image/*" class="modal-file-input"/>
-        <label for="editMateriThumbnailInput" class="file-input-label">
-          <span>Pilih Gambar</span>
-          <span class="file-icon">🖼️</span>
-        </label>
+      <div class="form-section">
+        <div class="form-section-header">
+          <span class="form-section-icon">📝</span>
+          <h4 class="form-section-title">Informasi Materi</h4>
+        </div>
+        <input type="text" name="title" id="editMateriTitle" placeholder="Nama Materi" required class="modal-input"/>
+        <input type="text" name="description" id="editMateriDescription" placeholder="Deskripsi" class="modal-input"/>
+        <input type="number" name="ordinal" id="editMateriOrdinal" placeholder="Urutan" required class="modal-input"/>
       </div>
-      <input type="hidden" name="thumbnail" id="editMateriThumbnailUrl"/>
       
-      <div class="file-input-wrapper">
-        <input type="file" id="editMateriPdfInput" accept=".pdf" class="modal-file-input"/>
-        <label for="editMateriPdfInput" class="file-input-label">
-          <span>Pilih File PDF</span>
-          <span class="file-icon">📄</span>
-        </label>
+      <div class="form-section">
+        <div class="form-section-header">
+          <span class="form-section-icon">📁</span>
+          <h4 class="form-section-title">File & Media</h4>
+        </div>
+        <div class="file-input-wrapper">
+          <input type="file" id="editMateriThumbnailInput" accept="image/*" class="modal-file-input"/>
+          <label for="editMateriThumbnailInput" class="file-input-label">
+            <span>Pilih Gambar Thumbnail</span>
+            <span class="file-icon">🖼️</span>
+          </label>
+        </div>
+        <input type="hidden" name="thumbnail" id="editMateriThumbnailUrl"/>
+        
+        <div class="file-input-wrapper">
+          <input type="file" id="editMateriPdfInput" accept=".pdf" class="modal-file-input"/>
+          <label for="editMateriPdfInput" class="file-input-label">
+            <span>Pilih File PDF Materi</span>
+            <span class="file-icon">📄</span>
+          </label>
+        </div>
+        <input type="hidden" name="media_url" id="editMateriPdfUrl"/>
       </div>
-      <input type="hidden" name="media_url" id="editMateriPdfUrl"/>
       
       <div class="modal-actions">
-        <button type="submit" class="modal-btn modal-btn-edit">Edit</button>
-        <button type="button" class="modal-btn modal-btn-batal" onclick="closeEditMateriModal()">Batal</button>
+        <button type="submit" class="modal-btn modal-btn-edit">💾 Simpan Perubahan</button>
+        <button type="button" class="modal-btn modal-btn-batal" onclick="closeEditMateriModal()">❌ Batal</button>
       </div>
     </form>
   </div>

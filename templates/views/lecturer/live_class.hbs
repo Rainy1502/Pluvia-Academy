@@ -142,22 +142,6 @@
     font-size: 1.2rem;
   }
 
-  .btn-materi {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    color: #fff;
-    border: none;
-  }
-
-  .btn-materi:hover {
-    background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
-    color: #fff;
-  }
-
-  .btn-materi::after {
-    content: '📖';
-    font-size: 1.2rem;
-  }
-
   @keyframes fadeInUp {
     from {
       opacity: 0;
@@ -275,9 +259,6 @@
               Join Kelas Live
             </a>
             {{/if}}
-            <a href="/materi?course_id={{course.id}}" class="btn-live-class btn-materi">
-              Lihat Materi
-            </a>
           </div>
         </div>
         {{else}}

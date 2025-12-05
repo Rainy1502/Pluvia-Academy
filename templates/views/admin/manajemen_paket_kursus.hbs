@@ -178,6 +178,275 @@
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
   }
+
+  /* Modal Styles */
+  .kursus-modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.3s ease;
+  }
+
+  .kursus-modal-content {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    margin: 3% auto;
+    padding: 0;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 550px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    animation: slideDown 0.3s ease;
+    position: relative;
+  }
+
+  .modal-logo {
+    background: #007bff;
+    padding: 25px;
+    border-radius: 20px 20px 0 0;
+    text-align: center;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .modal-logo-img {
+    height: 50px;
+    width: auto;
+  }
+
+  .modal-logo h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+
+  .modal-title {
+    text-align: center;
+    padding: 20px 30px 10px;
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #2d3748;
+  }
+
+  .modal-input {
+    width: 100%;
+    padding: 14px 18px;
+    margin: 12px 30px;
+    max-width: calc(100% - 60px);
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+    box-sizing: border-box;
+    font-family: inherit;
+  }
+
+  .modal-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    transform: translateY(-1px);
+  }
+
+  .modal-input::placeholder {
+    color: #a0aec0;
+  }
+
+  .form-section {
+    margin: 20px 0;
+    padding: 0;
+  }
+
+  .form-section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 30px;
+    margin-bottom: 15px;
+  }
+
+  .form-section-icon {
+    font-size: 1.2rem;
+  }
+
+  .form-section-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #2d3748;
+  }
+
+  .course-select-wrapper {
+    margin: 12px 30px;
+    max-width: calc(100% - 60px);
+  }
+
+  .course-select-header {
+    padding: 14px 18px;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .course-select-header:hover {
+    border-color: #667eea;
+  }
+
+  .dropdown-icon {
+    font-size: 1.2rem;
+    transition: transform 0.3s ease;
+  }
+
+  .course-dropdown {
+    display: none;
+    margin-top: 10px;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 10px;
+  }
+
+  .course-dropdown.active {
+    display: block;
+  }
+
+  .course-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background 0.2s ease;
+  }
+
+  .course-checkbox-label:hover {
+    background: #f7fafc;
+  }
+
+  .course-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+  }
+
+  .file-input-wrapper {
+    margin: 15px 30px;
+    position: relative;
+  }
+
+  .modal-file-input {
+    display: none;
+  }
+
+  .file-input-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+    border: 2px dashed #cbd5e0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    color: #4a5568;
+  }
+
+  .file-input-label:hover {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+  }
+
+  .file-icon {
+    font-size: 1.5rem;
+    transition: transform 0.3s ease;
+  }
+
+  .file-input-label:hover .file-icon {
+    transform: scale(1.1);
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 12px;
+    padding: 20px 30px 30px;
+    justify-content: center;
+  }
+
+  .modal-btn {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 120px;
+    font-family: inherit;
+  }
+
+  .modal-btn-tambah {
+    background: #667eea;
+    color: white;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  }
+
+  .modal-btn-tambah:hover {
+    background: #5568d3;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  }
+
+  .modal-btn-batal {
+    background: #dc3545;
+    color: white;
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+  }
+
+  .modal-btn-batal:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-50px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 </style>
 
 <main class="site-root">
@@ -253,55 +522,73 @@
       <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="modal-logo-img"/>
       <h2>Pluvia Academy</h2>
     </div>
-    <h3 class="modal-title">Tambah Paket Kursus</h3>
+    <h3 class="modal-title">➕ Tambah Paket - Manajemen Paket Kursus</h3>
     
     <form id="tambahPaketForm" method="POST" action="/paket_kursus/create">
-      <input type="text" name="title" placeholder="Nama Paket" required class="modal-input"/>
-      
-      <textarea name="description" placeholder="Deskripsi" required class="modal-input" rows="3"></textarea>
-      
-      <input type="number" name="price" placeholder="Harga" required class="modal-input"/>
-      
-      <input type="text" name="duration" placeholder="Durasi (contoh: 6 Bulan)" class="modal-input"/>
-      
-      <div class="course-select-wrapper">
-        <div class="course-select-header" onclick="toggleCourseDropdown('tambah')">
-          <span id="tambahSelectedText">Pilih Kursus</span>
-          <span class="dropdown-icon">⊕</span>
+      <div class="form-section">
+        <div class="form-section-header">
+          <span class="form-section-icon">📝</span>
+          <h4 class="form-section-title">Informasi Paket</h4>
         </div>
-        <div id="tambahCourseDropdown" class="course-dropdown">
-          {{#each courses}}
-          <label class="course-checkbox-label">
-            <input type="checkbox" value="{{this.id}}" class="course-checkbox" data-tambah-course="true"/>
-            <span>{{this.title}}</span>
+        <input type="text" name="title" placeholder="Nama Paket" required class="modal-input"/>
+        
+        <textarea name="description" placeholder="Deskripsi Paket" required class="modal-input" rows="3"></textarea>
+        
+        <input type="number" name="price" placeholder="Harga Paket (Rp)" required class="modal-input"/>
+        
+        <input type="text" name="duration" placeholder="Durasi (contoh: 6 Bulan)" class="modal-input"/>
+      </div>
+      
+      <div class="form-section">
+        <div class="form-section-header">
+          <span class="form-section-icon">📚</span>
+          <h4 class="form-section-title">Kursus dalam Paket</h4>
+        </div>
+        <div class="course-select-wrapper">
+          <div class="course-select-header" onclick="toggleCourseDropdown('tambah')">
+            <span id="tambahSelectedText">Pilih Kursus</span>
+            <span class="dropdown-icon">⊕</span>
+          </div>
+          <div id="tambahCourseDropdown" class="course-dropdown">
+            {{#each courses}}
+            <label class="course-checkbox-label">
+              <input type="checkbox" value="{{this.id}}" class="course-checkbox" data-tambah-course="true"/>
+              <span>{{this.title}}</span>
+            </label>
+            {{/each}}
+          </div>
+        </div>
+        <div id="tambahHiddenCourses"></div>
+      </div>
+      
+      <div class="form-section">
+        <div class="form-section-header">
+          <span class="form-section-icon">🖼️</span>
+          <h4 class="form-section-title">Media Paket</h4>
+        </div>
+        <div class="file-input-wrapper">
+          <input type="file" id="paketThumbnailInput" accept="image/*" class="modal-file-input"/>
+          <label for="paketThumbnailInput" class="file-input-label">
+            <span>Pilih Thumbnail Paket</span>
+            <span class="file-icon">📸</span>
           </label>
-          {{/each}}
         </div>
+        <input type="hidden" name="thumbnail" id="paketThumbnailUrl"/>
+        <input type="hidden" name="is_banner" value="true"/>
+        
+        <div class="file-input-wrapper">
+          <input type="file" id="paketBannerInput" accept="image/*" class="modal-file-input"/>
+          <label for="paketBannerInput" class="file-input-label">
+            <span>Pilih Banner (Gambar Wide)</span>
+            <span class="file-icon">🎨</span>
+          </label>
+        </div>
+        <input type="hidden" name="banner_image" id="paketBannerUrl"/>
       </div>
-      <div id="tambahHiddenCourses"></div>
-      
-      <div class="file-input-wrapper">
-        <input type="file" id="paketThumbnailInput" accept="image/*" class="modal-file-input"/>
-        <label for="paketThumbnailInput" class="file-input-label">
-          <span>Pilih Thumbnail (Gambar Paket)</span>
-          <span class="file-icon">🖼️</span>
-        </label>
-      </div>
-      <input type="hidden" name="thumbnail" id="paketThumbnailUrl"/>
-      <input type="hidden" name="is_banner" value="true"/>
-      
-      <div class="file-input-wrapper">
-        <input type="file" id="paketBannerInput" accept="image/*" class="modal-file-input"/>
-        <label for="paketBannerInput" class="file-input-label">
-          <span>Pilih Banner (Gambar Landscape/Wide)</span>
-          <span class="file-icon">🎨</span>
-        </label>
-      </div>
-      <input type="hidden" name="banner_image" id="paketBannerUrl"/>
       
       <div class="modal-actions">
-        <button type="submit" class="modal-btn modal-btn-tambah">Tambah</button>
-        <button type="button" class="modal-btn modal-btn-batal" onclick="closeTambahPaketModal()">Batal</button>
+        <button type="submit" class="modal-btn modal-btn-tambah">💾 Tambah Paket</button>
+        <button type="button" class="modal-btn modal-btn-batal" onclick="closeTambahPaketModal()">❌ Batal</button>
       </div>
     </form>
   </div>
@@ -314,23 +601,34 @@
       <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="modal-logo-img"/>
       <h2>Pluvia Academy</h2>
     </div>
-    <h3 class="modal-title">Edit Paket Kursus</h3>
+    <h3 class="modal-title">✏️ Edit Paket - Manajemen Paket Kursus</h3>
     
     <form id="editPaketForm" method="POST">
-      <input type="text" name="title" id="editPaketTitle" placeholder="Nama Paket" required class="modal-input"/>
-      
-      <textarea name="description" id="editPaketDescription" placeholder="Deskripsi" required class="modal-input" rows="3"></textarea>
-      
-      <input type="number" name="price" id="editPaketPrice" placeholder="Harga" required class="modal-input"/>
-      
-      <input type="text" name="duration" id="editPaketDuration" placeholder="Durasi (contoh: 6 Bulan)" class="modal-input"/>
-      
-      <div class="course-select-wrapper">
-        <div class="course-select-header" onclick="toggleCourseDropdown('edit')">
-          <span id="editSelectedText">Pilih Kursus</span>
-          <span class="dropdown-icon">⊕</span>
+      <div class="form-section">
+        <div class="form-section-header">
+          <span class="form-section-icon">📝</span>
+          <h4 class="form-section-title">Informasi Paket</h4>
         </div>
-        <div id="editCourseDropdown" class="course-dropdown">
+        <input type="text" name="title" id="editPaketTitle" placeholder="Nama Paket" required class="modal-input"/>
+        
+        <textarea name="description" id="editPaketDescription" placeholder="Deskripsi Paket" required class="modal-input" rows="3"></textarea>
+        
+        <input type="number" name="price" id="editPaketPrice" placeholder="Harga Paket (Rp)" required class="modal-input"/>
+        
+        <input type="text" name="duration" id="editPaketDuration" placeholder="Durasi (contoh: 6 Bulan)" class="modal-input"/>
+      </div>
+      
+      <div class="form-section">
+        <div class="form-section-header">
+          <span class="form-section-icon">📚</span>
+          <h4 class="form-section-title">Kursus dalam Paket</h4>
+        </div>
+        <div class="course-select-wrapper">
+          <div class="course-select-header" onclick="toggleCourseDropdown('edit')">
+            <span id="editSelectedText">Pilih Kursus</span>
+            <span class="dropdown-icon">⊕</span>
+          </div>
+          <div id="editCourseDropdown" class="course-dropdown">
           {{#each courses}}
           <label class="course-checkbox-label">
             <input type="checkbox" value="{{this.id}}" class="course-checkbox" data-course-id="{{this.id}}" data-edit-course="true"/>
@@ -340,29 +638,36 @@
         </div>
       </div>
       <div id="editHiddenCourses"></div>
-      
-      <div class="file-input-wrapper">
-        <input type="file" id="editPaketThumbnailInput" accept="image/*" class="modal-file-input"/>
-        <label for="editPaketThumbnailInput" class="file-input-label">
-          <span>Pilih Thumbnail (Gambar Paket)</span>
-          <span class="file-icon">🖼️</span>
-        </label>
       </div>
-      <input type="hidden" name="thumbnail" id="editPaketThumbnailUrl"/>
-      <input type="hidden" name="is_banner" value="true"/>
       
-      <div class="file-input-wrapper">
-        <input type="file" id="editPaketBannerInput" accept="image/*" class="modal-file-input"/>
-        <label for="editPaketBannerInput" class="file-input-label">
-          <span>Pilih Banner (Gambar Landscape/Wide)</span>
-          <span class="file-icon">🎨</span>
-        </label>
+      <div class="form-section">
+        <div class="form-section-header">
+          <span class="form-section-icon">🖼️</span>
+          <h4 class="form-section-title">Media Paket</h4>
+        </div>
+        <div class="file-input-wrapper">
+          <input type="file" id="editPaketThumbnailInput" accept="image/*" class="modal-file-input"/>
+          <label for="editPaketThumbnailInput" class="file-input-label">
+            <span>Pilih Thumbnail Paket</span>
+            <span class="file-icon">📸</span>
+          </label>
+        </div>
+        <input type="hidden" name="thumbnail" id="editPaketThumbnailUrl"/>
+        <input type="hidden" name="is_banner" value="true"/>
+      
+        <div class="file-input-wrapper">
+          <input type="file" id="editPaketBannerInput" accept="image/*" class="modal-file-input"/>
+          <label for="editPaketBannerInput" class="file-input-label">
+            <span>Pilih Banner (Gambar Wide)</span>
+            <span class="file-icon">🎨</span>
+          </label>
+        </div>
+        <input type="hidden" name="banner_image" id="editPaketBannerImageUrl"/>
       </div>
-      <input type="hidden" name="banner_image" id="editPaketBannerImageUrl"/>
       
       <div class="modal-actions">
-        <button type="submit" class="modal-btn modal-btn-edit">Edit</button>
-        <button type="button" class="modal-btn modal-btn-batal" onclick="closeEditPaketModal()">Batal</button>
+        <button type="submit" class="modal-btn modal-btn-tambah">💾 Simpan Perubahan</button>
+        <button type="button" class="modal-btn modal-btn-batal" onclick="closeEditPaketModal()">❌ Batal</button>
       </div>
     </form>
   </div>

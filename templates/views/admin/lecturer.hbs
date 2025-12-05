@@ -155,6 +155,201 @@
     color: #718096;
     font-size: 0.95rem;
   }
+
+  /* Modal Styles */
+  .kursus-modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.3s ease;
+  }
+
+  .kursus-modal-content {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    margin: 3% auto;
+    padding: 0;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 550px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    animation: slideDown 0.3s ease;
+    position: relative;
+  }
+
+  .modal-logo {
+    background: #007bff;
+    padding: 25px;
+    border-radius: 20px 20px 0 0;
+    text-align: center;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .modal-logo-img {
+    height: 50px;
+    width: auto;
+  }
+
+  .modal-logo h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+
+  .modal-title {
+    text-align: center;
+    padding: 20px 30px 10px;
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #2d3748;
+  }
+
+  .modal-input {
+    width: 100%;
+    padding: 14px 18px;
+    margin: 12px 30px;
+    max-width: calc(100% - 60px);
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+    box-sizing: border-box;
+    font-family: inherit;
+  }
+
+  .modal-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    transform: translateY(-1px);
+  }
+
+  .modal-input::placeholder {
+    color: #a0aec0;
+  }
+
+  .form-section {
+    margin: 20px 0;
+    padding: 0;
+  }
+
+  .form-section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 30px;
+    margin-bottom: 15px;
+  }
+
+  .form-section-icon {
+    font-size: 1.2rem;
+  }
+
+  .form-section-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #2d3748;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 12px;
+    padding: 20px 30px 30px;
+    justify-content: center;
+  }
+
+  .modal-btn {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 120px;
+    font-family: inherit;
+  }
+
+  .modal-btn-tambah,
+  .modal-btn-edit {
+    background: #667eea;
+    color: white;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  }
+
+  .modal-btn-tambah:hover,
+  .modal-btn-edit:hover {
+    background: #5568d3;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  }
+
+  .modal-btn-batal {
+    background: #dc3545;
+    color: white;
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+  }
+
+  .modal-btn-batal:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+  }
+
+  .modal-btn-hapus {
+    background: #dc3545;
+    color: white;
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+  }
+
+  .modal-btn-hapus:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+  }
+
+  .logout-modal-content {
+    max-width: 450px;
+  }
+
+  .logout-message {
+    text-align: center;
+    color: #4a5568;
+    font-size: 1.05rem;
+    padding: 0 30px 10px;
+    line-height: 1.6;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-50px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 </style>
 
 <main class="site-root">
@@ -209,22 +404,34 @@
       <h2>Pluvia Academy</h2>
     </div>
     
-    <h3 class="modal-title">Tambah Lecturer</h3>
+    <h3 class="modal-title">➕ Tambah Lecturer - Manajemen Lecturer</h3>
     
     <form id="tambahLecturerForm" method="POST" action="/lecturer/create">
-      <input type="text" name="full_name" placeholder="Nama Lengkap" required class="modal-input"/>
+      <div class="form-section">
+        <div class="form-section-header">
+          <span class="form-section-icon">👤</span>
+          <h4 class="form-section-title">Informasi Pribadi</h4>
+        </div>
+        <input type="text" name="full_name" placeholder="Nama Lengkap" required class="modal-input"/>
+        
+        <input type="text" name="expertise" placeholder="Riwayat Pendidikan" class="modal-input"/>
+        
+        <input type="tel" name="phone" placeholder="Nomor Hp" required class="modal-input"/>
+      </div>
       
-      <input type="text" name="expertise" placeholder="Riwayat Pendidikan" class="modal-input"/>
-      
-      <input type="tel" name="phone" placeholder="Nomor Hp" required class="modal-input"/>
-      
-      <input type="email" name="email" placeholder="Email" required class="modal-input"/>
-      
-      <input type="password" name="password" placeholder="Password" required class="modal-input"/>
+      <div class="form-section">
+        <div class="form-section-header">
+          <span class="form-section-icon">🔐</span>
+          <h4 class="form-section-title">Informasi Akun</h4>
+        </div>
+        <input type="email" name="email" placeholder="Email" required class="modal-input"/>
+        
+        <input type="password" name="password" placeholder="Password" required class="modal-input"/>
+      </div>
       
       <div class="modal-actions">
-        <button type="submit" class="modal-btn modal-btn-tambah">Tambah</button>
-        <button type="button" class="modal-btn modal-btn-batal" onclick="closeTambahLecturerModal()">Batal</button>
+        <button type="submit" class="modal-btn modal-btn-tambah">💾 Tambah Lecturer</button>
+        <button type="button" class="modal-btn modal-btn-batal" onclick="closeTambahLecturerModal()">❌ Batal</button>
       </div>
     </form>
   </div>
@@ -238,22 +445,34 @@
       <h2>Pluvia Academy</h2>
     </div>
     
-    <h3 class="modal-title">Edit Lecturer</h3>
+    <h3 class="modal-title">✏️ Edit Lecturer - Manajemen Lecturer</h3>
     
     <form id="editLecturerForm" method="POST">
-      <input type="text" id="editFullName" name="full_name" placeholder="Nama Lengkap" required class="modal-input"/>
+      <div class="form-section">
+        <div class="form-section-header">
+          <span class="form-section-icon">👤</span>
+          <h4 class="form-section-title">Informasi Pribadi</h4>
+        </div>
+        <input type="text" id="editFullName" name="full_name" placeholder="Nama Lengkap" required class="modal-input"/>
+        
+        <input type="text" id="editExpertise" name="expertise" placeholder="Riwayat Pendidikan" class="modal-input"/>
+        
+        <input type="tel" id="editPhone" name="phone" placeholder="Nomor Hp" required class="modal-input"/>
+      </div>
       
-      <input type="text" id="editExpertise" name="expertise" placeholder="Riwayat Pendidikan" class="modal-input"/>
-      
-      <input type="tel" id="editPhone" name="phone" placeholder="Nomor Hp" required class="modal-input"/>
-      
-      <input type="email" id="editEmail" name="email" placeholder="Email" required class="modal-input"/>
-      
-      <input type="password" id="editPassword" name="password" placeholder="Password (kosongkan jika tidak diubah)" class="modal-input"/>
+      <div class="form-section">
+        <div class="form-section-header">
+          <span class="form-section-icon">🔐</span>
+          <h4 class="form-section-title">Informasi Akun</h4>
+        </div>
+        <input type="email" id="editEmail" name="email" placeholder="Email" required class="modal-input"/>
+        
+        <input type="password" id="editPassword" name="password" placeholder="Password (kosongkan jika tidak diubah)" class="modal-input"/>
+      </div>
       
       <div class="modal-actions">
-        <button type="submit" class="modal-btn modal-btn-edit">Edit</button>
-        <button type="button" class="modal-btn modal-btn-batal" onclick="closeEditLecturerModal()">Batal</button>
+        <button type="submit" class="modal-btn modal-btn-edit">💾 Simpan Perubahan</button>
+        <button type="button" class="modal-btn modal-btn-batal" onclick="closeEditLecturerModal()">❌ Batal</button>
       </div>
     </form>
   </div>
