@@ -7,7 +7,7 @@ const attendanceController = require('../controller/attendanceController');
 
 // Middleware untuk cek authentication
 function requireAuth(req, res, next) {
-  if (!req.session.userId) {
+  if (!res.locals.user || !res.locals.user.id) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
   next();
@@ -15,7 +15,8 @@ function requireAuth(req, res, next) {
 
 // Middleware untuk cek role lecturer atau admin
 function requireLecturerOrAdmin(req, res, next) {
-  if (!req.session.roleId || (req.session.roleId !== 5 && req.session.roleId !== 10)) {
+  const roleId = res.locals.user?.role_id;
+  if (!roleId || (roleId !== 5 && roleId !== 10)) {
     return res.status(403).json({ error: 'Forbidden: Hanya lecturer atau admin yang bisa akses' });
   }
   next();
@@ -27,6 +28,9 @@ function requireLecturerOrAdmin(req, res, next) {
 
 // Create meeting (lecturer/admin only)
 router.post('/meetings', requireAuth, requireLecturerOrAdmin, attendanceController.createMeeting);
+
+// Delete meeting (lecturer/admin only)
+router.delete('/meetings/:meeting_id', requireAuth, requireLecturerOrAdmin, attendanceController.deleteMeeting);
 
 // Get meetings by course
 router.get('/meetings/course/:course_id', requireAuth, attendanceController.getMeetingsByCourse);
@@ -43,6 +47,12 @@ router.post('/attendance/mark', requireAuth, requireLecturerOrAdmin, attendanceC
 
 // Bulk mark attendance (lecturer/admin only)
 router.post('/attendance/bulk-mark', requireAuth, requireLecturerOrAdmin, attendanceController.bulkMarkAttendance);
+
+// Auto-mark attendance when student joins live class (member only)
+router.post('/attendance/auto-join/:course_id', requireAuth, attendanceController.autoMarkAttendanceOnJoin);
+
+// Get students enrolled in course (for attendance list)
+router.get('/students/course/:course_id', requireAuth, requireLecturerOrAdmin, attendanceController.getStudentsByCourse);
 
 // ============================================
 // PUNISHMENT ROUTES

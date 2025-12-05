@@ -15,7 +15,7 @@ const supabase = createClient(
 async function createMeeting(req, res) {
   try {
     const { course_id, title, description, meet_link, scheduled_date, duration_minutes } = req.body;
-    const created_by = req.session.userId;
+    const created_by = res.locals.user?.id;
 
     // Validasi
     if (!course_id || !title || !scheduled_date) {
@@ -60,6 +60,46 @@ async function createMeeting(req, res) {
     res.json({ success: true, meeting: data });
   } catch (error) {
     console.error('Error creating meeting:', error);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+/**
+ * Delete meeting
+ */
+async function deleteMeeting(req, res) {
+  try {
+    const { meeting_id } = req.params;
+    const user_id = res.locals.user?.id;
+
+    // Check if meeting exists and user is authorized
+    const { data: meeting, error: fetchError } = await supabase
+      .from('meetings')
+      .select('created_by, course_id')
+      .eq('id', meeting_id)
+      .single();
+
+    if (fetchError) throw fetchError;
+    if (!meeting) {
+      return res.status(404).json({ error: 'Meeting tidak ditemukan' });
+    }
+
+    // Check authorization (only creator or admin can delete)
+    if (meeting.created_by !== user_id && res.locals.user?.role_id !== 1) {
+      return res.status(403).json({ error: 'Tidak memiliki izin untuk menghapus meeting ini' });
+    }
+
+    // Delete meeting (cascade will delete related attendance records)
+    const { error: deleteError } = await supabase
+      .from('meetings')
+      .delete()
+      .eq('id', meeting_id);
+
+    if (deleteError) throw deleteError;
+
+    res.json({ success: true, message: 'Meeting berhasil dihapus' });
+  } catch (error) {
+    console.error('Error deleting meeting:', error);
     res.status(500).json({ error: error.message });
   }
 }
@@ -121,8 +161,8 @@ async function getAttendanceByMeeting(req, res) {
  */
 async function markAttendance(req, res) {
   try {
-    const { meeting_id, user_id, status, notes } = req.body;
-    const marked_by = req.session.userId;
+    const { meeting_id, user_id, status } = req.body;
+    const marked_by = res.locals.user?.id;
 
     // Validasi
     if (!meeting_id || !user_id || !status) {
@@ -150,8 +190,7 @@ async function markAttendance(req, res) {
         user_id,
         course_id: meeting.course_id,
         status,
-        marked_by,
-        notes
+        marked_by
       }, {
         onConflict: 'meeting_id,user_id'
       })
@@ -220,7 +259,7 @@ async function bulkMarkAttendance(req, res) {
     const { meeting_id, attendance_list } = req.body;
     // attendance_list: [{ user_id, status, notes }]
     
-    const marked_by = req.session.userId;
+    const marked_by = res.locals.user?.id;
 
     if (!meeting_id || !Array.isArray(attendance_list)) {
       return res.status(400).json({ error: 'meeting_id dan attendance_list wajib diisi' });
@@ -273,7 +312,7 @@ async function bulkMarkAttendance(req, res) {
 async function resetPunishment(req, res) {
   try {
     const { user_id, course_id, notes } = req.body;
-    const reset_by = req.session.userId;
+    const reset_by = res.locals.user?.id;
 
     if (!user_id || !course_id) {
       return res.status(400).json({ error: 'user_id dan course_id wajib diisi' });
@@ -445,12 +484,184 @@ async function getPunishmentLogs(req, res) {
   }
 }
 
+/**
+ * Auto-mark attendance ketika member join live class
+ */
+async function autoMarkAttendanceOnJoin(req, res) {
+  try {
+    const user_id = res.locals.user?.id;
+    const { course_id } = req.params;
+
+    if (!user_id || !course_id) {
+      return res.status(400).json({ success: false, error: 'User ID dan Course ID wajib diisi' });
+    }
+
+    // Cek apakah user enrolled di course ini
+    const { data: enrollment, error: enrollError } = await supabase
+      .from('enrollments')
+      .select('id')
+      .eq('user_id', user_id)
+      .eq('course_id', course_id)
+      .eq('status', 'active')
+      .single();
+
+    if (enrollError || !enrollment) {
+      return res.status(403).json({ success: false, error: 'User tidak terdaftar di kursus ini' });
+    }
+
+    // Cari meeting terbaru untuk course ini (yang belum selesai atau baru dimulai)
+    let { data: meeting, error: meetingError } = await supabase
+      .from('meetings')
+      .select('id, status, scheduled_date, created_at, duration_minutes')
+      .eq('course_id', course_id)
+      .in('status', ['scheduled', 'ongoing'])
+      .order('scheduled_date', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (meetingError || !meeting) {
+      // Jika tidak ada meeting ongoing/scheduled, cari meeting terakhir (completed)
+      const { data: lastMeeting, error: lastError } = await supabase
+        .from('meetings')
+        .select('id, status, scheduled_date, created_at, duration_minutes')
+        .eq('course_id', course_id)
+        .eq('status', 'completed')
+        .order('scheduled_date', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (lastError || !lastMeeting) {
+        return res.status(404).json({ success: false, error: 'Tidak ada meeting untuk kursus ini' });
+      }
+
+      meeting = lastMeeting;
+    }
+
+    // Cek batas waktu: 2 jam setelah meeting dibuat
+    const meetingCreatedTime = new Date(meeting.created_at);
+    const currentTime = new Date();
+    const timeLimit = 2 * 60 * 60 * 1000; // 2 jam dalam milliseconds
+    const timeDiff = currentTime - meetingCreatedTime;
+
+    if (timeDiff > timeLimit) {
+      return res.json({ 
+        success: false, 
+        error: 'Batas waktu absensi otomatis telah berakhir (2 jam setelah pertemuan dibuat)',
+        status: 'time_expired'
+      });
+    }
+
+    // Cek apakah sudah ada attendance record untuk user ini di meeting ini
+    const { data: existingAttendance } = await supabase
+      .from('attendance')
+      .select('id, status')
+      .eq('meeting_id', meeting.id)
+      .eq('user_id', user_id)
+      .single();
+
+    if (existingAttendance) {
+      // Jika sudah ada, cek statusnya
+      if (existingAttendance.status === 'present') {
+        // Sudah hadir, return success
+        return res.json({ success: true, message: 'User sudah tercatat hadir', status: 'already_marked' });
+      } else if (existingAttendance.status !== 'absent') {
+        // Jika status bukan absent (misal izin/sakit), jangan ubah
+        return res.json({ success: true, message: 'Status attendance sudah diset', status: 'already_set', currentStatus: existingAttendance.status });
+      }
+    }
+
+    // Update attendance record menjadi present
+    const { error: updateError } = await supabase
+      .from('attendance')
+      .update({ 
+        status: 'present',
+        updated_at: new Date().toISOString()
+      })
+      .eq('meeting_id', meeting.id)
+      .eq('user_id', user_id);
+
+    if (updateError) {
+      console.error('Error marking attendance:', updateError);
+      return res.status(500).json({ success: false, error: 'Gagal menandai kehadiran' });
+    }
+
+    // Update enrollment stats (reset consecutive absence jika ada)
+    const { data: currentEnrollment } = await supabase
+      .from('enrollments')
+      .select('consecutive_absence')
+      .eq('user_id', user_id)
+      .eq('course_id', course_id)
+      .single();
+
+    if (currentEnrollment && currentEnrollment.consecutive_absence > 0) {
+      // Reset consecutive absence karena user hadir
+      await supabase
+        .from('enrollments')
+        .update({ 
+          consecutive_absence: 0,
+          punishment_status: 'none'
+        })
+        .eq('user_id', user_id)
+        .eq('course_id', course_id);
+    }
+
+    return res.json({ 
+      success: true, 
+      message: 'Kehadiran berhasil dicatat otomatis',
+      status: 'marked_present'
+    });
+
+  } catch (error) {
+    console.error('Error in autoMarkAttendanceOnJoin:', error);
+    return res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+/**
+ * Get students enrolled in a course (for attendance list)
+ */
+async function getStudentsByCourse(req, res) {
+  try {
+    const { course_id } = req.params;
+
+    // Get enrolled students
+    const { data: enrollments, error: enrollError } = await supabase
+      .from('enrollments')
+      .select(`
+        user_id,
+        users:user_id(id, full_name, email)
+      `)
+      .eq('course_id', course_id)
+      .eq('status', 'active');
+
+    if (enrollError) throw enrollError;
+
+    if (!enrollments || enrollments.length === 0) {
+      return res.json({ success: true, students: [] });
+    }
+
+    const students = enrollments.map(enrollment => ({
+      user_id: enrollment.user_id,
+      full_name: enrollment.users.full_name,
+      email: enrollment.users.email
+    }));
+
+    res.json({ success: true, students });
+  } catch (error) {
+    console.error('Error getting students:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+}
+
 module.exports = {
   createMeeting,
+  deleteMeeting,
   getMeetingsByCourse,
   getAttendanceByMeeting,
+  getStudentsByCourse,
   markAttendance,
   bulkMarkAttendance,
+  autoMarkAttendanceOnJoin,
   resetPunishment,
   getPunishmentStatus,
   getStudentsPunishmentStatus,

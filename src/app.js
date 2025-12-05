@@ -779,26 +779,31 @@ app.get('/manajemen_materi', requireLecturer, async (req, res) => {
 app.get('/manajemen_absensi', requireLecturer, async (req, res) => {
   try {
     const lecturerId = res.locals.user.id;
+    const courseId = req.query.course_id;
 
-    // Get courses taught by this lecturer
-    const { data: courses, error } = await supabase
+    if (!courseId) {
+      return res.redirect('/kelas');
+    }
+
+    // Get specific course info
+    const { data: course, error } = await supabase
       .from('courses')
-      .select('id, title')
+      .select('id, title, meet_link')
+      .eq('id', courseId)
       .eq('instructor_id', lecturerId)
-      .order('title', { ascending: true });
+      .single();
 
-    if (error) throw error;
+    if (error || !course) {
+      return res.redirect('/kelas');
+    }
 
     return res.render('lecturer/manajemen_absensi', { 
-      title: 'Manajemen Absensi & Punishment', 
-      courses: courses || []
+      title: 'Manajemen Absensi - ' + course.title, 
+      course: course
     });
   } catch (error) {
-    console.error('Error fetching lecturer courses for attendance:', error);
-    return res.render('lecturer/manajemen_absensi', { 
-      title: 'Manajemen Absensi & Punishment', 
-      courses: []
-    });
+    console.error('Error fetching course for attendance:', error);
+    return res.redirect('/kelas');
   }
 });
 

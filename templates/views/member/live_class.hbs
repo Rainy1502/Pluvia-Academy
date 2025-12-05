@@ -2,6 +2,28 @@
 {{> header}}
 
 <style>
+  @keyframes slideIn {
+    from {
+      transform: translateX(400px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideOut {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(400px);
+      opacity: 0;
+    }
+  }
+
   .live-class-container {
     max-width: 1000px;
     margin: 0 auto;
@@ -274,7 +296,7 @@
           <!-- Action Buttons -->
           <div class="action-buttons">
             {{#if course.meet_link}}
-            <a href="{{course.meet_link}}" target="_blank" class="btn-live-class btn-join">
+            <a href="{{course.meet_link}}" target="_blank" onclick="markAttendanceAndJoin(event, '{{course.id}}')" class="btn-live-class btn-join">
               Join Kelas Live
             </a>
             {{/if}}
@@ -301,6 +323,75 @@
 window.currentUser = {
   id: '{{user.id}}'
 };
+
+// Mark attendance otomatis ketika join live class
+async function markAttendanceAndJoin(event, courseId) {
+  try {
+    // Call auto-attendance endpoint
+    const response = await fetch(`/api/attendance/attendance/auto-join/${courseId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      if (result.status === 'marked_present') {
+        // Show success notification
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+          color: white;
+          padding: 16px 24px;
+          border-radius: 12px;
+          box-shadow: 0 4px 20px rgba(72, 187, 120, 0.4);
+          z-index: 9999;
+          font-weight: 600;
+          animation: slideIn 0.3s ease;
+        `;
+        notification.innerHTML = '✅ Kehadiran Anda berhasil tercatat!';
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.style.animation = 'slideOut 0.3s ease';
+          setTimeout(() => notification.remove(), 300);
+        }, 3000);
+      } else if (result.status === 'already_marked') {
+        console.log('✓ Kehadiran sudah tercatat sebelumnya');
+      }
+    } else {
+      // Show warning if time expired or other error
+      if (result.status === 'time_expired') {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%);
+          color: white;
+          padding: 16px 24px;
+          border-radius: 12px;
+          box-shadow: 0 4px 20px rgba(246, 173, 85, 0.4);
+          z-index: 9999;
+          font-weight: 600;
+        `;
+        notification.innerHTML = '⚠️ Batas waktu absensi otomatis telah berakhir';
+        document.body.appendChild(notification);
+        
+        setTimeout(() => notification.remove(), 4000);
+      } else {
+        console.warn('⚠️ Gagal mencatat kehadiran:', result.error);
+      }
+    }
+  } catch (error) {
+    console.error('❌ Error saat mencatat kehadiran:', error);
+  }
+}
 
 // Initialize punishment check
 {{#if course}}
