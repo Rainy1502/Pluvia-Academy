@@ -2,7 +2,7 @@
 
 <style>
   .attendance-page {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #2d75ca;
     min-height: 100vh;
     padding: 8rem 0 2rem 0;
   }
@@ -31,7 +31,7 @@
     left: 0;
     right: 0;
     height: 6px;
-    background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+    background: linear-gradient(90deg, #2d75ca, #ffd766);
   }
 
   .header-content {
@@ -45,7 +45,7 @@
   .header-text h1 {
     font-size: 2.5rem;
     font-weight: 800;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2d75ca 0%, #1a5a9e 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -59,7 +59,7 @@
   }
 
   .btn-create-meeting {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2d75ca 0%, #1a5a9e 100%);
     color: white;
     padding: 1rem 2rem;
     border-radius: 16px;
@@ -68,7 +68,7 @@
     border: none;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 8px 20px rgba(45, 117, 202, 0.3);
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
@@ -76,7 +76,7 @@
 
   .btn-create-meeting:hover {
     transform: translateY(-3px);
-    box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 12px 30px rgba(45, 117, 202, 0.4);
   }
 
   .btn-create-meeting i {
@@ -94,8 +94,8 @@
   }
 
   .course-select-card:hover {
-    border-color: #667eea;
-    box-shadow: 0 10px 40px rgba(102, 126, 234, 0.15);
+    border-color: #2d75ca;
+    box-shadow: 0 10px 40px rgba(45, 117, 202, 0.15);
   }
 
   .tabs-card {
@@ -136,18 +136,18 @@
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(90deg, #667eea, #764ba2);
+    background: linear-gradient(90deg, #2d75ca, #ffd766);
     transform: scaleX(0);
     transition: transform 0.3s ease;
   }
 
   .tab-button:hover {
-    color: #667eea;
-    background: rgba(102, 126, 234, 0.05);
+    color: #2d75ca;
+    background: rgba(45, 117, 202, 0.05);
   }
 
   .tab-button.active {
-    color: #667eea;
+    color: #2d75ca;
     background: white;
   }
 
@@ -178,7 +178,7 @@
   }
 
   .content-title i {
-    color: #667eea;
+    color: #2d75ca;
   }
 
   @media (max-width: 768px) {
@@ -213,7 +213,7 @@
           <h1>📋 Catat Kehadiran Siswa</h1>
           <p>Tandai kehadiran siswa untuk live class yang sedang berlangsung</p>
         </div>
-        <a href="/kelas" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; background: white; color: #667eea; border: 2px solid #667eea; border-radius: 10px; text-decoration: none; font-weight: 700; transition: all 0.3s; white-space: nowrap; align-self: flex-start;" onmouseover="this.style.background='#667eea'; this.style.color='white'" onmouseout="this.style.background='white'; this.style.color='#667eea'">
+        <a href="/kelas" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; background: white; color: #2d75ca; border: 2px solid #2d75ca; border-radius: 10px; text-decoration: none; font-weight: 700; transition: all 0.3s; white-space: nowrap; align-self: flex-start;" onmouseover="this.style.background='#2d75ca'; this.style.color='white'" onmouseout="this.style.background='white'; this.style.color='#2d75ca'">
           <i class="fas fa-arrow-left"></i>
           Kembali ke Kelas
         </a>
@@ -221,12 +221,12 @@
       
       <!-- Course Info inside header -->
       <div style="display: flex; align-items: center; gap: 1rem; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid #e2e8f0;">
-        <i class="fas fa-graduation-cap" style="font-size: 2rem; color: #667eea;"></i>
+        <i class="fas fa-graduation-cap" style="font-size: 2rem; color: #2d75ca;"></i>
         <div style="flex: 1;">
           <p style="font-size: 0.85rem; color: #718096; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Kursus</p>
           <h3 style="font-size: 1.5rem; font-weight: 800; color: #2d3748; margin: 0 0 0.5rem 0;">{{course.title}}</h3>
           {{#if course.meet_link}}
-          <a href="{{course.meet_link}}" target="_blank" style="display: inline-flex; align-items: center; gap: 0.5rem; color: #667eea; text-decoration: none; font-weight: 600; font-size: 0.95rem;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">
+          <a href="{{course.meet_link}}" target="_blank" style="display: inline-flex; align-items: center; gap: 0.5rem; color: #2d75ca; text-decoration: none; font-weight: 600; font-size: 0.95rem;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">
             <i class="fas fa-video"></i>
             Buka Google Meet ↗
           </a>
@@ -238,13 +238,13 @@
     </div>
 
     <!-- Meeting Title Input & Create (Separate card) -->
-    <div class="course-select-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+    <div class="course-select-card" style="background: linear-gradient(135deg, #2d75ca 0%, #1a5a9e 100%); border: none;">
       <div style="display: flex; align-items: flex-end; gap: 1.5rem; flex-wrap: wrap;">
         <div style="flex: 1; min-width: 300px;">
           <label for="meetingTitle" style="display: block; font-size: 0.85rem; color: rgba(255, 255, 255, 0.9); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">📝 Judul Pertemuan Baru</label>
           <input type="text" id="meetingTitle" placeholder="Contoh: Pertemuan 1, Week 2 - React Hooks, dll" style="width: 100%; padding: 0.875rem 1.25rem; border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 12px; font-size: 1.05rem; font-weight: 600; background: rgba(255, 255, 255, 0.95); color: #2d3748; transition: all 0.3s;" onfocus="this.style.background='white'; this.style.borderColor='white'" onblur="this.style.background='rgba(255, 255, 255, 0.95)'; this.style.borderColor='rgba(255, 255, 255, 0.3)'">
         </div>
-        <button onclick="createNewMeeting()" style="padding: 0.875rem 2rem; background: white; color: #667eea; border: 2px solid white; border-radius: 12px; font-weight: 700; font-size: 1.05rem; cursor: pointer; transition: all 0.3s; white-space: nowrap; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);" onmouseover="this.style.background='rgba(255,255,255,0.9)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='white'; this.style.transform='translateY(0)'">
+        <button onclick="createNewMeeting()" style="padding: 0.875rem 2rem; background: #ffd766; color: #0b1220; border: 2px solid #ffd766; border-radius: 12px; font-weight: 700; font-size: 1.05rem; cursor: pointer; transition: all 0.3s; white-space: nowrap; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);" onmouseover="this.style.background='rgba(255,215,102,0.9)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='#ffd766'; this.style.transform='translateY(0)'">
           <i class="fas fa-plus-circle"></i> Buat Pertemuan
         </button>
       </div>
@@ -274,7 +274,7 @@
         <i class="fas fa-user-graduate"></i>
         Daftar Kehadiran Siswa
       </h2>
-      <div id="attendance-info" style="background: #f7fafc; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; border-left: 4px solid #667eea; display: none;">
+      <div id="attendance-info" style="background: #f7fafc; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; border-left: 4px solid #2d75ca; display: none;">
         <p style="font-size: 0.9rem; color: #4a5568; font-weight: 600;"><i class="fas fa-info-circle"></i> <span id="selected-meeting-title">Pilih pertemuan di atas untuk melihat daftar kehadiran</span></p>
       </div>
       <div id="students-list">
@@ -289,7 +289,7 @@
 <div id="markAttendanceModal" class="modal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center;">
   <div style="background: white; border-radius: 24px; padding: 2.5rem; max-width: 500px; width: 90%; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-      <h2 style="font-size: 1.75rem; font-weight: 800; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">✁ETandai Kehadiran</h2>
+      <h2 style="font-size: 1.75rem; font-weight: 800; background: linear-gradient(135deg, #2d75ca 0%, #1a5a9e 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">✁ETandai Kehadiran</h2>
       <button onclick="closeMarkAttendanceModal()" style="background: none; border: none; font-size: 1.5rem; color: #718096; cursor: pointer; transition: color 0.3s;">
         <i class="fas fa-times"></i>
       </button>
@@ -320,7 +320,7 @@
 <div id="createMeetingModal" class="modal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center;">
   <div style="background: white; border-radius: 24px; padding: 2.5rem; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-      <h2 style="font-size: 1.75rem; font-weight: 800; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">✨ Buat Meeting Baru</h2>
+      <h2 style="font-size: 1.75rem; font-weight: 800; background: linear-gradient(135deg, #2d75ca 0%, #1a5a9e 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">✨ Buat Meeting Baru</h2>
       <button onclick="closeCreateMeetingModal()" style="background: none; border: none; font-size: 1.5rem; color: #718096; cursor: pointer; transition: color 0.3s;">
         <i class="fas fa-times"></i>
       </button>
@@ -328,7 +328,7 @@
     <form id="createMeetingForm" onsubmit="submitCreateMeeting(event)">
       <div style="display: flex; flex-direction: column; gap: 1.5rem;">
         <input type="hidden" name="course_id" value="{{course.id}}">
-        <div style="background: #f7fafc; padding: 1rem; border-radius: 12px; border-left: 4px solid #667eea; margin-bottom: 0.5rem;">
+        <div style="background: #f7fafc; padding: 1rem; border-radius: 12px; border-left: 4px solid #2d75ca; margin-bottom: 0.5rem;">
           <p style="font-size: 0.85rem; color: #718096; font-weight: 600; margin-bottom: 0.25rem;">📚 Kursus</p>
           <p style="font-size: 1.1rem; font-weight: 700; color: #2d3748;">{{course.title}}</p>
         </div>
@@ -356,7 +356,7 @@
         </div>
       </div>
       <div style="margin-top: 2rem; display: flex; gap: 1rem;">
-        <button type="submit" style="flex: 1; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1rem; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+        <button type="submit" style="flex: 1; background: linear-gradient(135deg, #2d75ca 0%, #1a5a9e 100%); color: white; padding: 1rem; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(45, 117, 202, 0.3);">
           ✁EBuat Meeting
         </button>
         <button type="button" onclick="closeCreateMeetingModal()" style="padding: 1rem 1.5rem; border: 2px solid #e2e8f0; border-radius: 12px; font-weight: 700; background: white; color: #718096; cursor: pointer; transition: all 0.3s;">
@@ -371,7 +371,7 @@
 <div id="attendanceModal" class="modal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center;">
   <div style="background: white; border-radius: 24px; padding: 2.5rem; max-width: 900px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-      <h2 id="attendanceModalTitle" style="font-size: 1.75rem; font-weight: 800; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">📋 Catat Kehadiran</h2>
+      <h2 id="attendanceModalTitle" style="font-size: 1.75rem; font-weight: 800; background: linear-gradient(135deg, #2d75ca 0%, #1a5a9e 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">📋 Catat Kehadiran</h2>
       <button onclick="closeAttendanceModal()" style="background: none; border: none; font-size: 1.5rem; color: #718096; cursor: pointer; transition: color 0.3s;">
         <i class="fas fa-times"></i>
       </button>
@@ -384,8 +384,8 @@
 
 <style>
 .tab-button.active {
-  color: #2563eb;
-  border-bottom-color: #2563eb;
+  color: #2d75ca;
+  border-bottom-color: #2d75ca;
 }
 
 .badge-warning_1 {
@@ -472,7 +472,7 @@ async function loadMeetingsList() {
         <div style="overflow-x: auto; border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);">
           <table style="width: 100%; border-collapse: collapse; background: white;">
             <thead>
-              <tr style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+              <tr style="background: linear-gradient(135deg, #2d75ca 0%, #1a5a9e 100%);">
                 <th style="padding: 1.25rem 1rem; text-align: left; font-size: 0.85rem; font-weight: 800; color: white; text-transform: uppercase; letter-spacing: 0.05em;">Pertemuan</th>
                 <th style="padding: 1.25rem 1rem; text-align: center; font-size: 0.85rem; font-weight: 800; color: white; text-transform: uppercase; letter-spacing: 0.05em;">Tanggal</th>
                 <th style="padding: 1.25rem 1rem; text-align: center; font-size: 0.85rem; font-weight: 800; color: white; text-transform: uppercase; letter-spacing: 0.05em;">Aksi</th>
@@ -496,10 +496,10 @@ async function loadMeetingsList() {
             </td>
             <td style="padding: 1.25rem 1rem; text-align: center;">
               <div style="display: flex; gap: 0.5rem; justify-content: center;">
-                <button onclick="selectMeeting('${meeting.id}', '${meeting.title.replace(/'/g, "\\'")}' )" 
-                        style="padding: 0.625rem 1.25rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);" 
-                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.4)'" 
-                        onmouseout="this.style.transform=''; this.style.boxShadow='0 2px 10px rgba(102, 126, 234, 0.3)'">
+                <button onclick="selectMeeting('${meeting.id}', '${meeting.title.replace(/'/g, "\\'")}'" )
+                        style="padding: 0.625rem 1.25rem; background: linear-gradient(135deg, #2d75ca 0%, #1a5a9e 100%); color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 10px rgba(45, 117, 202, 0.3);" 
+                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 15px rgba(45, 117, 202, 0.4)'" 
+                        onmouseout="this.style.transform=''; this.style.boxShadow='0 2px 10px rgba(45, 117, 202, 0.3)'">
                   <i class="fas fa-clipboard-check"></i> Lihat
                 </button>
                 <button onclick="deleteMeeting('${meeting.id}', '${meeting.title.replace(/'/g, "\\'")}')" 
@@ -595,7 +595,7 @@ async function loadAttendanceForMeeting(meetingId) {
         <div style="overflow-x: auto; border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);">
           <table style="width: 100%; border-collapse: collapse; background: white;">
             <thead>
-              <tr style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+              <tr style="background: linear-gradient(135deg, #2d75ca 0%, #1a5a9e 100%);">
                 <th style="padding: 1.25rem 1rem; text-align: left; font-size: 0.85rem; font-weight: 800; color: white; text-transform: uppercase; letter-spacing: 0.05em;">No</th>
                 <th style="padding: 1.25rem 1rem; text-align: left; font-size: 0.85rem; font-weight: 800; color: white; text-transform: uppercase; letter-spacing: 0.05em;">Nama Siswa</th>
                 <th style="padding: 1.25rem 1rem; text-align: left; font-size: 0.85rem; font-weight: 800; color: white; text-transform: uppercase; letter-spacing: 0.05em;">Email</th>
@@ -628,10 +628,10 @@ async function loadAttendanceForMeeting(meetingId) {
               </span>
             </td>
             <td style="padding: 1.25rem 1rem; text-align: center;">
-              <button onclick="openMarkAttendanceModal('${record.user_id}', '${(record.user?.full_name || 'Unknown').replace(/'/g, "\\'")}', '${record.status}')" 
-                      style="padding: 0.625rem 1.5rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);" 
-                      onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.4)'" 
-                      onmouseout="this.style.transform=''; this.style.boxShadow='0 2px 10px rgba(102, 126, 234, 0.3)'">
+              <button onclick="openMarkAttendanceModal('${record.user_id}', '${(record.user?.full_name || 'Unknown').replace(/'/g, "\\")}', '${record.status}')" 
+                      style="padding: 0.625rem 1.5rem; background: linear-gradient(135deg, #2d75ca 0%, #1a5a9e 100%); color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 10px rgba(45, 117, 202, 0.3);" 
+                      onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 15px rgba(45, 117, 202, 0.4)'" 
+                      onmouseout="this.style.transform=''; this.style.boxShadow='0 2px 10px rgba(45, 117, 202, 0.3)'">
                 <i class="fas fa-edit"></i> Ubah
               </button>
             </td>
@@ -671,7 +671,7 @@ async function loadAllStudents() {
         <div style="overflow-x: auto; border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);">
           <table style="width: 100%; border-collapse: collapse; background: white;">
             <thead>
-              <tr style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+              <tr style="background: linear-gradient(135deg, #2d75ca 0%, #1a5a9e 100%);">
                 <th style="padding: 1.25rem 1rem; text-align: left; font-size: 0.85rem; font-weight: 800; color: white; text-transform: uppercase; letter-spacing: 0.05em;">No</th>
                 <th style="padding: 1.25rem 1rem; text-align: left; font-size: 0.85rem; font-weight: 800; color: white; text-transform: uppercase; letter-spacing: 0.05em;">Nama Siswa</th>
                 <th style="padding: 1.25rem 1rem; text-align: left; font-size: 0.85rem; font-weight: 800; color: white; text-transform: uppercase; letter-spacing: 0.05em;">Email</th>
@@ -724,7 +724,7 @@ function openMarkAttendanceModal(userId, studentName, currentStatus = null) {
   
   document.getElementById('modalStudentInfo').innerHTML = `
     <div style="display: flex; align-items: center; gap: 1rem;">
-      <i class="fas fa-user-circle" style="font-size: 2.5rem; color: #667eea;"></i>
+      <i class="fas fa-user-circle" style="font-size: 2.5rem; color: #2d75ca;"></i>
       <div>
         <p style="font-size: 0.85rem; color: #718096; font-weight: 600; margin-bottom: 0.25rem;">SISWA</p>
         <p style="font-size: 1.25rem; font-weight: 800; color: #2d3748;">${studentName}</p>

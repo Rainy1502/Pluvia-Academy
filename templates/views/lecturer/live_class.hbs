@@ -250,9 +250,21 @@
 
   .header-buttons {
     display: flex;
+    justify-content: space-between;
+    align-items: center;
     gap: 12px;
     flex-wrap: wrap;
     margin-bottom: 20px;
+  }
+
+  .header-left {
+    display: flex;
+    gap: 12px;
+  }
+
+  .header-right {
+    display: flex;
+    gap: 12px;
   }
 </style>
 
@@ -264,8 +276,12 @@
         <div class="live-class-container">
           <!-- Header Buttons -->
           <div class="header-buttons">
-            <a href="/kelas" class="btn-back-live">Kembali ke Kursus</a>
-            <a href="/manajemen_absensi?course_id={{course.id}}" class="btn-attendance-live">Catat Kehadiran</a>
+            <div class="header-left">
+              <a href="/kelas" class="btn-back-live">Kembali ke Kursus</a>
+            </div>
+            <div class="header-right">
+              <a href="/manajemen_absensi?course_id={{course.id}}" class="btn-attendance-live">Catat Kehadiran</a>
+            </div>
           </div>
 
           <!-- Course Title -->

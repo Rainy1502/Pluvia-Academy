@@ -47,29 +47,6 @@
     box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
   }
 
-  .btn-attendance-quick {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
-    background: #28a745;
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-decoration: none;
-    margin-top: 8px;
-  }
-
-  .btn-attendance-quick:hover {
-    background: #218838;
-    transform: translateY(-2px);
-    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
-  }
-
   .kelas-card-wrapper {
     position: relative;
   }
@@ -194,9 +171,6 @@
                     </div>
                     {{/if}}
                   </div>
-                  <a href="/manajemen_absensi?course_id={{this.id}}" class="btn-attendance-quick" onclick="event.stopPropagation();">
-                    ✓ Catat Kehadiran
-                  </a>
                 </div>
               </div>
             </a>
