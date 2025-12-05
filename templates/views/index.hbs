@@ -39,10 +39,11 @@
   <!-- About / illustration + text (Figma layout) -->
   <section id="about" class="about-row">
     <div class="container" style="max-width:1280px;margin:0 auto;">
-      <div class="about-illustration">
+      <div class="about-illustration animate-on-scroll">
         <img src="/img/illustration.png" alt="illustration" width="722" height="600" style="width:100%;border-radius:8px;" loading="lazy" decoding="async" />
       </div>
-      <div class="about-card">
+      <div class="about-card animate-on-scroll">
+        <h2 class="section-title-gradient">Tentang Pluvia Academy</h2>
         <div class="about-text">
           <p>Pluvia Academy adalah akademi coding online yang dirancang untuk semua orang, dari pemula hingga profesional berpengalaman. Kami menawarkan berbagai program yang menarik dan interaktif untuk membantu Anda mempelajari bahasa pemrograman, membangun aplikasi web dan mobile, dan banyak lagi.</p>
 
@@ -55,21 +56,24 @@
   <!-- Keunggulan / Features -->
   <section id="features" class="courses">
     <div class="container">
-      <h2>Keunggulan Pluvia Academy</h2>
+      <h2 class="section-title-white animate-on-scroll">Keunggulan Pluvia Academy</h2>
       <div class="grid" style="max-width:1100px;margin:0 auto;">
         <div class="course-card feature-card">
+          <div class="feature-icon">💼</div>
           <div class="card-media"><img src="/img/Belajar.png" alt="Private class" width="240" height="140" loading="lazy" decoding="async"/></div>
           <h3>Private Class</h3>
           <p class="meta">Kelas kecil (avg 10 peserta) agar interaksi dengan instruktur maksimal dan materi terserap efektif.</p>
         </div>
 
         <div class="course-card feature-card">
+          <div class="feature-icon">📚</div>
           <div class="card-media"><img src="/img/Buku.png" alt="Materi" width="240" height="140" loading="lazy" decoding="async"/></div>
           <h3>Materi Lengkap</h3>
           <p class="meta">Materi up-to-date dan berbasis proyek, lengkap dengan modul praktek dan penilaian berkala.</p>
         </div>
 
         <div class="course-card feature-card">
+          <div class="feature-icon">💰</div>
           <div class="card-media"><img src="/img/Rupiah.png" alt="Harga" width="240" height="140" loading="lazy" decoding="async"/></div>
           <h3>Harga Bersahabat</h3>
           <p class="meta">Biaya terjangkau dengan opsi beasiswa dan diskon untuk kelompok serta paket bundling.</p>
@@ -79,16 +83,20 @@
   </section>
 
   <!-- Anggota -->
-  <section id="members" style="padding:24px 0;">
+  <section id="members" style="padding:48px 0;">
     <div class="container text-center">
-      <h2 style="color:#fff;">Anggota Kami</h2>
-      <div style="display:flex;gap:48px;justify-content:center;margin-top:18px;flex-wrap:wrap;">
-        <div class="member">
-          <img src="/img/member-dolly.png" alt="Dolly" width="160" height="160" class="avatar" />
+      <h2 class="section-title-white animate-on-scroll">Anggota Kami</h2>
+      <div style="display:flex;gap:48px;justify-content:center;margin-top:32px;flex-wrap:wrap;">
+        <div class="member animate-on-scroll">
+          <div class="member-image-wrapper">
+            <img src="/img/member-dolly.png" alt="Dolly" width="180" height="180" class="avatar" />
+          </div>
           <div class="member-name">Dolly Anggara</div>
         </div>
-        <div class="member">
-          <img src="/img/member-fattan.png" alt="Fattan" width="160" height="160" class="avatar" />
+        <div class="member animate-on-scroll">
+          <div class="member-image-wrapper">
+            <img src="/img/member-fattan.png" alt="Fattan" width="180" height="180" class="avatar" />
+          </div>
           <div class="member-name">Fattan Naufan Islami</div>
         </div>
       </div>
@@ -96,11 +104,12 @@
   </section>
 
   <!-- Testimoni -->
-  <section id="testimoni" style="padding:24px 0;">
+  <section id="testimoni" style="padding:48px 0;">
     <div class="container" style="max-width:1100px;margin:0 auto;">
-      <h2 style="color:#fff;text-align:center;font-size:32px;font-weight:800;margin-bottom:8px;text-shadow:5px 5px 4px rgba(0,0,0,0.25);">Testimoni</h2>
-      <div class="testimonial-card">
-        <p class="testimonial-text">"Saya sangat bersyukur telah mengikuti Pluvia Academy. Pluvia Academy telah membantu saya untuk meningkatkan nilai saya di sekolah. Saya sekarang lebih percaya diri dalam mengerjakan soal-soal dan saya lebih mudah memahami materi pelajaran."</p>
+      <h2 class="section-title-white animate-on-scroll">Testimoni</h2>
+      <div class="testimonial-card animate-on-scroll">
+        <div class="quote-icon">"</div>
+        <p class="testimonial-text">Saya sangat bersyukur telah mengikuti Pluvia Academy. Pluvia Academy telah membantu saya untuk meningkatkan nilai saya di sekolah. Saya sekarang lebih percaya diri dalam mengerjakan soal-soal dan saya lebih mudah memahami materi pelajaran.</p>
         <div class="testimonial-ident">
           <img src="/img/testimoni-mark.png" alt="mark" class="testimonial-overlap" width="126" height="124" />
           <div class="testimonial-meta">
@@ -115,6 +124,111 @@
 </main>
 
 <style>
+/* Scroll Animation */
+.animate-on-scroll {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.animate-on-scroll.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Section Titles */
+.section-title-gradient {
+  font-size: 2.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #00d4ff 0%, #007bff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-align: center;
+  margin-bottom: 2rem;
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.section-title-gradient::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 4px;
+  background: linear-gradient(135deg, #00d4ff 0%, #007bff 100%);
+  border-radius: 2px;
+}
+
+.section-title-white {
+  color: #fff;
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  text-shadow: 5px 5px 10px rgba(0,0,0,0.3);
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.section-title-white::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 2px;
+}
+
+/* About Section Enhancement */
+.about-illustration {
+  position: relative;
+}
+
+.about-illustration::before {
+  content: '';
+  position: absolute;
+  top: -20px;
+  left: -20px;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(0, 123, 255, 0.1) 100%);
+  border-radius: 12px;
+  z-index: -1;
+}
+
+.about-illustration img {
+  box-shadow: 0 10px 40px rgba(0, 123, 255, 0.2);
+  transition: transform 0.5s ease, box-shadow 0.5s ease;
+}
+
+.about-illustration:hover img {
+  transform: scale(1.02) translateY(-5px);
+  box-shadow: 0 15px 50px rgba(0, 123, 255, 0.3);
+}
+
+.about-card {
+  position: relative;
+}
+
+.about-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -30px;
+  width: 5px;
+  height: 100%;
+  background: linear-gradient(180deg, #00d4ff 0%, #007bff 100%);
+  border-radius: 3px;
+}
+
 /* Feature Cards Animation */
 .feature-card {
   opacity: 0;
@@ -123,6 +237,7 @@
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  border: 2px solid transparent;
 }
 
 .feature-card:nth-child(1) {
@@ -146,7 +261,23 @@
 
 .feature-card:hover {
   transform: translateY(-12px) scale(1.02);
-  box-shadow: 0 12px 40px rgba(0, 123, 255, 0.2);
+  box-shadow: 0 20px 60px rgba(0, 123, 255, 0.25);
+  border-color: rgba(0, 212, 255, 0.3);
+}
+
+.feature-icon {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  font-size: 2.5rem;
+  opacity: 0.15;
+  transition: all 0.3s ease;
+  z-index: 1;
+}
+
+.feature-card:hover .feature-icon {
+  opacity: 0.3;
+  transform: scale(1.2) rotate(10deg);
 }
 
 .feature-card:hover .card-media img {
@@ -160,6 +291,12 @@
 
 .feature-card .card-media img {
   transition: transform 0.4s ease;
+}
+
+.feature-card p {
+  color: #ffffff;
+  font-weight: 500;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .feature-card::before {
@@ -181,23 +318,132 @@
 }
 
 .feature-card h3 {
+  color: #ffffff;
+  font-weight: 700;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Member Cards Enhancement */
+.member {
+  transition: transform 0.4s ease;
+}
+
+.member-image-wrapper {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 15px;
+}
+
+.member:hover {
+  transform: translateY(-10px);
+}
+
+.member .avatar {
+  border-radius: 50%;
+  border: none;
+  transition: all 0.4s ease;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  width: 180px;
+  height: 180px;
+  object-fit: cover;
+  display: block;
+}
+
+.member:hover .avatar {
+  transform: scale(1.05);
+  box-shadow: 0 12px 35px rgba(0, 123, 255, 0.4);
+}
+
+.member-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #fff;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+/* Testimonial Enhancement */
+.testimonial-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+  transition: all 0.4s ease;
+  overflow: hidden;
+}
+
+.testimonial-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: linear-gradient(90deg, #00d4ff 0%, #007bff 100%);
+}
+
+.testimonial-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 60px rgba(0, 123, 255, 0.3);
+}
+
+.quote-icon {
+  position: absolute;
+  top: 20px;
+  left: 30px;
+  font-size: 80px;
+  color: rgba(0, 123, 255, 0.1);
+  font-family: Georgia, serif;
+  line-height: 1;
+  font-weight: bold;
+}
+
+.testimonial-text {
+  position: relative;
+  z-index: 1;
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: #333;
+  font-style: italic;
+  margin-bottom: 25px;
+}
+
+.testimonial-overlap {
+  border-radius: 50%;
+  border: none;
+  transition: all 0.4s ease;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+  width: 126px;
+  height: 126px;
+  object-fit: cover;
+  display: block;
+}
+
+.testimonial-card:hover .testimonial-overlap {
+  transform: scale(1.05);
+  box-shadow: 0 8px 30px rgba(0, 123, 255, 0.3);
+}
+
+.testimonial-name {
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: #1a202c;
   transition: color 0.3s ease;
 }
 
-.feature-card:hover h3 {
-  background: linear-gradient(135deg, #00d4ff 0%, #007bff 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.testimonial-card:hover .testimonial-name {
+  color: #007bff;
 }
 
+/* Banner Enhancement */
 .banner-slider-wrapper {
   position: relative;
   width: 100%;
   max-width: 1280px;
   margin: 0 auto;
   overflow: hidden;
-  border-radius: 12px;
+  border-radius: 16px;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
 }
 
 .banner-slider {
@@ -366,9 +612,58 @@
     font-size: 13px;
   }
 }
+
+/* Responsive adjustments for animations */
+@media (max-width: 768px) {
+  .section-title-gradient,
+  .section-title-white {
+    font-size: 1.8rem;
+  }
+  
+  .feature-icon {
+    font-size: 2rem;
+    top: -15px;
+    right: 10px;
+  }
+  
+  .testimonial-card {
+    padding: 30px;
+  }
+  
+  .quote-icon {
+    font-size: 60px;
+    top: 15px;
+    left: 20px;
+  }
+}
 </style>
 
 <script>
+// Scroll Animation Observer
+document.addEventListener('DOMContentLoaded', function() {
+  const observerOptions = {
+    threshold: 0.15,
+    rootMargin: '0px 0px -50px 0px'
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        // Stop observing after animation triggers once
+        observer.unobserve(entry.target);
+      }
+    });
+  }, observerOptions);
+
+  // Observe all elements with animate-on-scroll class
+  const animatedElements = document.querySelectorAll('.animate-on-scroll');
+  animatedElements.forEach(el => {
+    observer.observe(el);
+  });
+});
+
+// Banner Slider Script
 let currentSlideIndex = 0;
 
 function showSlide(n) {
