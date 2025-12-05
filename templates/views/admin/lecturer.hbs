@@ -545,16 +545,18 @@ function confirmDeleteLecturer() {
     }
   })
   .then(response => {
-    if (response.ok) {
+    return response.json().then(data => ({ ok: response.ok, data }));
+  })
+  .then(({ ok, data }) => {
+    if (ok) {
       window.location.reload();
     } else {
-      console.error('Gagal menghapus lecturer');
-      window.location.reload();
+      alert(data.message || 'Gagal menghapus lecturer');
     }
   })
   .catch(error => {
     console.error('Error:', error);
-    window.location.reload();
+    alert('Terjadi kesalahan saat menghapus lecturer');
   })
   .finally(() => {
     closeDeleteLecturerModal();

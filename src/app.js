@@ -176,9 +176,21 @@ app.use(async (req, res, next) => {
   }
 });
 
+// Helper: detect requests expecting JSON (AJAX/Fetch)
+function _isJsonRequest(req){
+  return !!(
+    req.xhr ||
+    (req.headers && req.headers.accept && req.headers.accept.indexOf('application/json') !== -1) ||
+    (req.headers && req.headers['content-type'] && req.headers['content-type'].indexOf('application/json') !== -1)
+  );
+}
+
 // Middleware: Check if user is admin
 const requireAdmin = (req, res, next) => {
   if (!res.locals.user || res.locals.user.role_id !== 10) {
+    if (_isJsonRequest(req)) {
+      return res.status(403).json({ success: false, message: 'Anda tidak memiliki akses ke halaman ini.' });
+    }
     return res.status(403).render('404', { 
       title: 'Akses Ditolak',
       message: 'Anda tidak memiliki akses ke halaman ini.' 
@@ -190,6 +202,9 @@ const requireAdmin = (req, res, next) => {
 // Middleware: Check if user is lecturer
 const requireLecturer = (req, res, next) => {
   if (!res.locals.user || res.locals.user.role_id !== 5) {
+    if (_isJsonRequest(req)) {
+      return res.status(403).json({ success: false, message: 'Anda tidak memiliki akses ke halaman ini.' });
+    }
     return res.status(403).render('404', { 
       title: 'Akses Ditolak',
       message: 'Anda tidak memiliki akses ke halaman ini.' 
@@ -201,6 +216,9 @@ const requireLecturer = (req, res, next) => {
 // Middleware: Check if user is admin or lecturer
 const requireAdminOrLecturer = (req, res, next) => {
   if (!res.locals.user || (res.locals.user.role_id !== 10 && res.locals.user.role_id !== 5)) {
+    if (_isJsonRequest(req)) {
+      return res.status(403).json({ success: false, message: 'Anda tidak memiliki akses ke halaman ini.' });
+    }
     return res.status(403).render('404', { 
       title: 'Akses Ditolak',
       message: 'Anda tidak memiliki akses ke halaman ini.' 
@@ -1182,7 +1200,7 @@ app.post('/login', express.urlencoded({ extended: true }), async (req, res) => {
     // Cari user berdasarkan email
     const { data: user, error: userError } = await supabase
       .from('users')
-      .select('id, full_name, username, email, password_hash, role_id, is_verified')
+      .select('id, full_name, username, email, password_hash, role_id, is_verified, is_active')
       .eq('email', email)
       .single();
 
@@ -1190,6 +1208,14 @@ app.post('/login', express.urlencoded({ extended: true }), async (req, res) => {
       return res.status(400).render('login', {
         title: 'Masuk',
         error: 'Email atau password salah',
+      });
+    }
+
+    // Check if user is inactive (soft-deleted)
+    if (user.is_active === false) {
+      return res.status(403).render('login', {
+        title: 'Masuk',
+        error: 'Akun Anda telah dinonaktifkan. Hubungi administrator untuk bantuan.',
       });
     }
 
@@ -1717,15 +1743,45 @@ app.delete('/lecturer/:id', requireAdmin, async (req, res) => {
     const { id } = req.params;
     
     // Soft delete: update is_active to false instead of actual delete
-    const { error } = await supabase
+    // Fetch current user before update for verification
+    const before = await supabase
+      .from('users')
+      .select('*')
+      .match({ id: id, role_id: 5 })
+      .maybeSingle();
+
+    // Perform soft-delete
+    const updateRes = await supabase
       .from('users')
       .update({ is_active: false })
-      .eq('id', id)
-      .eq('role_id', 5);
+      .match({ id: id, role_id: 5 })
+      .select();
 
-    if (error) throw error;
+    // Fetch after update
+    const after = await supabase
+      .from('users')
+      .select('*')
+      .match({ id: id, role_id: 5 })
+      .maybeSingle();
 
-    return res.status(200).json({ success: true, message: 'Lecturer berhasil dihapus' });
+    // Log full debugging info
+    try {
+      console.log('DELETE /lecturer debug:', JSON.stringify({ id, before, updateRes, after }, null, 2));
+    } catch (e) {
+      console.log('DELETE /lecturer debug (raw):', { id, before, updateRes, after });
+    }
+
+    if (updateRes.error) {
+      console.error('Supabase error deleting lecturer:', updateRes.error);
+      throw updateRes.error;
+    }
+
+    // If no rows were updated, inform the client
+    if (!updateRes.data || updateRes.data.length === 0) {
+      return res.status(404).json({ success: false, message: 'Lecturer tidak ditemukan atau sudah tidak aktif', before: before.data || null, after: after.data || null });
+    }
+
+    return res.status(200).json({ success: true, message: 'Lecturer berhasil dihapus', before: before.data || null, after: after.data || null });
   } catch (error) {
     console.error('Error deleting lecturer:', error);
     return res.status(500).json({ success: false, message: 'Gagal menghapus lecturer' });
