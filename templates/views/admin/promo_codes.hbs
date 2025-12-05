@@ -1,0 +1,732 @@
+{{> head}}
+
+<style>
+.site-root {
+  padding: 40px 0;
+  min-height: calc(100vh - 200px);
+}
+
+.my-courses-section {
+  width: 100%;
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.courses-panel {
+  width: 100%;
+}
+
+.promo-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  min-height: calc(100vh - 200px);
+}
+
+.management-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.management-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 12px;
+}
+
+.management-subtitle {
+  color: #718096;
+  font-size: 1.05rem;
+}
+
+.add-button-wrapper {
+  text-align: center;
+  margin-bottom: 30px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.add-button {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: #fff;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.add-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+}
+
+.add-button.btn-back {
+  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+  box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+}
+
+.add-button.btn-back:hover {
+  box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4);
+}
+
+.promo-table-wrapper {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.promo-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.promo-table thead {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+}
+
+.promo-table th {
+  padding: 18px 15px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.promo-table td {
+  padding: 18px 15px;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: middle;
+  text-align: center;
+}
+
+.promo-table tbody tr {
+  transition: all 0.3s ease;
+}
+
+.promo-table tbody tr:hover {
+  background-color: #f8f9fa;
+  transform: translateX(4px);
+}
+
+.promo-code {
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #007bff;
+  background: #e7f3ff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.discount-badge {
+  background: #28a745;
+  color: white;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.status-badge.active {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-badge.inactive {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.usage-info {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.btn-action {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-edit {
+  background: #ffc107;
+  color: #000;
+}
+
+.btn-edit:hover {
+  background: #e0a800;
+}
+
+.btn-delete {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-delete:hover {
+  background: #c82333;
+}
+
+.btn-toggle {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-toggle:hover {
+  background: #5a6268;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.6);
+  animation: fadeIn 0.3s ease;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
+  margin: 3% auto;
+  padding: 0;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 650px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  animation: slideDown 0.3s ease;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+  padding: 25px 30px;
+  border-radius: 16px 16px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0;
+  border-bottom: none;
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: white;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.close {
+  font-size: 2rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.8);
+  cursor: pointer;
+  transition: color 0.2s ease;
+  background: none;
+  border: none;
+  line-height: 1;
+}
+
+.close:hover {
+  color: white;
+  transform: scale(1.1);
+}
+
+#promoForm {
+  padding: 30px;
+}
+
+.form-group {
+  margin-bottom: 22px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.95rem;
+}
+
+.form-group label span.required {
+  color: #dc3545;
+  margin-left: 3px;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: white;
+  box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: #adb5bd;
+}
+
+.form-group small {
+  color: #6c757d;
+  font-size: 0.85rem;
+  display: block;
+  margin-top: 6px;
+  font-style: italic;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.form-section {
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.form-section-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #495057;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-submit {
+  padding: 14px 30px;
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.empty-state h3 {
+  color: #4a5568;
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.empty-state p {
+  color: #718096;
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+}
+
+.empty-cta {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: #fff;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+.empty-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+}
+
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .promo-table-wrapper {
+    overflow-x: auto;
+  }
+  
+  .promo-table {
+    min-width: 800px;
+  }
+}
+</style>
+
+{{> header}}
+
+<main class="site-root">
+  <section class="my-courses-section">
+    <div class="container">
+      <div class="courses-panel">
+        <div class="management-header">
+          <h2 class="management-title">🎫 Kelola Kode Promo</h2>
+          <p class="management-subtitle">Kelola kode promo untuk diskon pembelian paket kursus</p>
+        </div>
+
+        <div class="add-button-wrapper">
+          <a href="/paket_kursus" class="add-button btn-back">
+            <span>←</span>
+            <span>Kembali</span>
+          </a>
+          <button class="add-button" onclick="openAddModal()">
+            <span>⊕</span>
+            <span>Tambah Kode Promo</span>
+          </button>
+        </div>
+
+        <div class="promo-table-wrapper">
+          {{#if promoCodes.length}}
+            <table class="promo-table">
+        <thead>
+          <tr>
+            <th>Kode</th>
+            <th>Paket</th>
+            <th>Diskon</th>
+            <th>Deskripsi</th>
+            <th>Penggunaan</th>
+            <th>Berlaku Hingga</th>
+            <th>Status</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each promoCodes}}
+          <tr>
+            <td><span class="promo-code">{{this.code}}</span></td>
+            <td>
+              {{#if this.packages}}
+                {{this.packages.title}}
+              {{else}}
+                <span style="color: #28a745; font-weight: 600;">✨ Semua Paket</span>
+              {{/if}}
+            </td>
+            <td><span class="discount-badge">-{{this.discount_percentage}}%</span></td>
+            <td>{{this.description}}</td>
+            <td>
+              <span class="usage-info">
+                {{this.current_users}}{{#if this.max_users}} / {{this.max_users}}{{else}} / ∞{{/if}}
+              </span>
+            </td>
+            <td>
+              {{#if this.valid_until}}
+                {{formatDate this.valid_until}}
+              {{else}}
+                <span style="color: #28a745;">Tidak ada batas</span>
+              {{/if}}
+            </td>
+            <td>
+              <span class="status-badge {{#if this.is_active}}active{{else}}inactive{{/if}}">
+                {{#if this.is_active}}Aktif{{else}}Nonaktif{{/if}}
+              </span>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button class="btn-action btn-edit" onclick="editPromo({{json this}})">Edit</button>
+                <button class="btn-action btn-toggle" onclick="togglePromo('{{this.id}}', {{this.is_active}})">
+                  {{#if this.is_active}}Nonaktifkan{{else}}Aktifkan{{/if}}
+                </button>
+                <button class="btn-action btn-delete" onclick="deletePromo('{{this.id}}', '{{this.code}}')">Hapus</button>
+              </div>
+            </td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    {{else}}
+      <div class="empty-state">
+        <h3>🎫 Belum Ada Kode Promo</h3>
+        <p>Mulai tambahkan kode promo untuk platform Anda</p>
+        <button class="empty-cta" onclick="openAddModal()">Tambah Kode Promo Pertama</button>
+      </div>
+    {{/if}}
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Modal Add/Edit Promo -->
+<div id="promoModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="modalTitle">✨ Tambah Kode Promo</h2>
+      <span class="close" onclick="closeModal()">&times;</span>
+    </div>
+    <form id="promoForm" onsubmit="submitPromo(event)">
+      <input type="hidden" id="promoId" name="id">
+      
+      <div class="form-section">
+        <div class="form-section-title">📝 Informasi Dasar</div>
+        
+        <div class="form-group">
+          <label for="code">Kode Promo <span class="required">*</span></label>
+          <input type="text" id="code" name="code" required placeholder="Contoh: WELCOME2024" style="text-transform: uppercase; font-weight: 600; letter-spacing: 1px;">
+          <small>Kode unik yang akan dimasukkan member saat pembayaran. Gunakan huruf kapital dan angka tanpa spasi (contoh: DISKON50, PROMO2024)</small>
+        </div>
+
+        <div class="form-group">
+          <label for="package_id">Paket Kursus</label>
+          <select id="package_id" name="package_id" style="font-weight: 500;">
+            <option value="" selected>✨ Semua Paket (All Packages)</option>
+            {{#each packages}}
+              <option value="{{this.id}}">{{this.title}}</option>
+            {{/each}}
+          </select>
+          <small>Tentukan paket mana yang bisa menggunakan kode promo ini. Pilih "Semua Paket" agar berlaku untuk semua paket kursus, atau pilih paket spesifik untuk membatasi penggunaan</small>
+        </div>
+
+        <div class="form-group">
+          <label for="description">Deskripsi</label>
+          <textarea id="description" name="description" rows="3" placeholder="Contoh: Promo spesial untuk member baru di bulan Desember..."></textarea>
+          <small>Jelaskan tujuan kode promo ini, kapan digunakan, atau informasi tambahan lainnya (opsional)</small>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">💰 Pengaturan Diskon</div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="discount_percentage">Persentase Diskon <span class="required">*</span></label>
+            <input type="number" id="discount_percentage" name="discount_percentage" required min="1" max="100" placeholder="Contoh: 25">
+            <small>Masukkan nilai diskon dalam persen (1-100%). Contoh: isi 25 untuk diskon 25%</small>
+          </div>
+
+          <div class="form-group">
+            <label for="max_users">Batas Pengguna</label>
+            <input type="number" id="max_users" name="max_users" min="1" placeholder="Contoh: 100">
+            <small>Batasi berapa banyak member yang bisa menggunakan kode ini. Kosongkan jika ingin unlimited (tidak terbatas)</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">📅 Periode Berlaku</div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="valid_from">Mulai Berlaku</label>
+            <input type="datetime-local" id="valid_from" name="valid_from">
+            <small>Tentukan kapan kode promo mulai bisa digunakan. Kosongkan jika ingin langsung aktif mulai sekarang</small>
+          </div>
+
+          <div class="form-group">
+            <label for="valid_until">Berakhir Pada <span class="required">*</span></label>
+            <input type="datetime-local" id="valid_until" name="valid_until" required>
+            <small>Tanggal dan waktu berakhirnya kode promo (wajib diisi). Setelah tanggal ini, kode tidak bisa digunakan lagi</small>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-submit">💾 Simpan Kode Promo</button>
+    </form>
+  </div>
+</div>
+
+<script>
+function openAddModal() {
+  document.getElementById('modalTitle').textContent = '✨ Tambah Kode Promo';
+  document.getElementById('promoForm').reset();
+  document.getElementById('promoId').value = '';
+  document.getElementById('package_id').value = '';
+  document.querySelector('.btn-submit').textContent = '💾 Simpan Kode Promo';
+  document.getElementById('promoModal').style.display = 'block';
+}
+
+function editPromo(promo) {
+  document.getElementById('modalTitle').textContent = '✏️ Edit Kode Promo';
+  document.getElementById('promoId').value = promo.id;
+  document.getElementById('code').value = promo.code;
+  document.getElementById('package_id').value = promo.package_id || '';
+  document.getElementById('discount_percentage').value = promo.discount_percentage;
+  document.getElementById('max_users').value = promo.max_users || '';
+  document.getElementById('description').value = promo.description || '';
+  
+  if (promo.valid_from) {
+    document.getElementById('valid_from').value = new Date(promo.valid_from).toISOString().slice(0, 16);
+  }
+  if (promo.valid_until) {
+    document.getElementById('valid_until').value = new Date(promo.valid_until).toISOString().slice(0, 16);
+  }
+  
+  document.querySelector('.btn-submit').textContent = '💾 Update Kode Promo';
+  document.getElementById('promoModal').style.display = 'block';
+}
+
+function closeModal() {
+  document.getElementById('promoModal').style.display = 'none';
+}
+
+function submitPromo(event) {
+  event.preventDefault();
+  const formData = new FormData(event.target);
+  const data = Object.fromEntries(formData.entries());
+  
+  const id = document.getElementById('promoId').value;
+  const url = id ? `/admin/promo-codes/${id}` : '/admin/promo-codes';
+  const method = id ? 'PUT' : 'POST';
+  
+  fetch(url, {
+    method: method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
+  .then(response => response.json())
+  .then(result => {
+    if (result.success) {
+      alert(id ? 'Kode promo berhasil diupdate!' : 'Kode promo berhasil ditambahkan!');
+      window.location.reload();
+    } else {
+      alert('Error: ' + (result.message || 'Gagal menyimpan kode promo'));
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Terjadi kesalahan saat menyimpan kode promo');
+  });
+}
+
+function togglePromo(id, currentStatus) {
+  const newStatus = !currentStatus;
+  fetch(`/admin/promo-codes/${id}/toggle`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ is_active: newStatus })
+  })
+  .then(response => response.json())
+  .then(result => {
+    if (result.success) {
+      window.location.reload();
+    } else {
+      alert('Error: ' + (result.message || 'Gagal mengubah status'));
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Terjadi kesalahan');
+  });
+}
+
+function deletePromo(id, code) {
+  if (confirm(`Apakah Anda yakin ingin menghapus kode promo "${code}"?`)) {
+    fetch(`/admin/promo-codes/${id}`, {
+      method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(result => {
+      if (result.success) {
+        alert('Kode promo berhasil dihapus!');
+        window.location.reload();
+      } else {
+        alert('Error: ' + (result.message || 'Gagal menghapus kode promo'));
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Terjadi kesalahan');
+    });
+  }
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+  const modal = document.getElementById('promoModal');
+  if (event.target == modal) {
+    closeModal();
+  }
+}
+</script>
+
+{{> footer}}

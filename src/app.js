@@ -924,6 +924,45 @@ app.get('/kursus/:id/students', requireAdminOrLecturer, async (req, res) => {
   }
 });
 
+// DELETE Remove student from course (Admin or Lecturer)
+app.delete('/kursus/:courseId/students/:studentId/remove', requireAdminOrLecturer, express.json(), async (req, res) => {
+  const { courseId, studentId } = req.params;
+
+  try {
+    // Delete enrollment
+    const { error: deleteError } = await supabase
+      .from('enrollments')
+      .delete()
+      .eq('user_id', studentId)
+      .eq('course_id', courseId);
+
+    if (deleteError) throw deleteError;
+
+    // Also delete progress for this student in this course
+    const { error: progressError } = await supabase
+      .from('progress')
+      .delete()
+      .eq('user_id', studentId)
+      .eq('course_id', courseId);
+
+    if (progressError) {
+      console.error('Error deleting progress:', progressError);
+      // Continue even if progress deletion fails
+    }
+
+    return res.json({ 
+      success: true, 
+      message: 'Siswa berhasil dikeluarkan dari kursus' 
+    });
+  } catch (error) {
+    console.error('Error removing student from course:', error);
+    return res.json({ 
+      success: false, 
+      message: 'Gagal mengeluarkan siswa dari kursus' 
+    });
+  }
+});
+
 // Material access management for a specific student in a course (Admin or Lecturer)
 app.get('/kursus/:courseId/students/:studentId/materi', requireAdminOrLecturer, async (req, res) => {
   const { courseId, studentId } = req.params;
@@ -2250,14 +2289,402 @@ app.post('/pembayaran/:packageId/submit', express.urlencoded({ extended: true })
       if (insertError) throw insertError;
     }
 
-    // TODO: Save payment info (no_rek, nomor_hp, kode_diskon) to payments table if needed
-    // For now, we'll just enroll the user directly
+    // Update promo code usage if discount code was used
+    if (discount_code) {
+      console.log('Updating promo code usage for:', discount_code);
+      
+      // Get current promo data
+      const { data: promo, error: promoError } = await supabase
+        .from('promo_codes')
+        .select('current_users')
+        .eq('code', discount_code.toUpperCase())
+        .single();
+
+      if (!promoError && promo) {
+        const { error: updateError } = await supabase
+          .from('promo_codes')
+          .update({ current_users: promo.current_users + 1 })
+          .eq('code', discount_code.toUpperCase());
+
+        if (updateError) {
+          console.error('Error updating promo code usage:', updateError);
+        } else {
+          console.log('Promo code usage updated successfully');
+        }
+      }
+    }
 
     // Redirect to kursus page with success message
     return res.redirect('/kursus?enrolled=true');
   } catch (error) {
     console.error('Error processing payment:', error);
     return res.status(500).send('Gagal memproses pembayaran. Silakan coba lagi.');
+  }
+});
+
+// ========== PROMO CODES MANAGEMENT ROUTES ==========
+
+// GET Admin promo codes page
+app.get('/admin/promo-codes', requireAdmin, async (req, res) => {
+  try {
+    const { data: promoCodes, error: promoError } = await supabase
+      .from('promo_codes')
+      .select(`
+        *,
+        packages (id, title)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (promoError) throw promoError;
+
+    // Get all packages for dropdown
+    const { data: packages, error: packagesError } = await supabase
+      .from('packages')
+      .select('id, title')
+      .order('title');
+
+    if (packagesError) throw packagesError;
+
+    return res.render('admin/promo_codes', {
+      title: 'Kelola Kode Promo - Admin',
+      promoCodes: promoCodes || [],
+      packages: packages || []
+    });
+  } catch (error) {
+    console.error('Error loading promo codes:', error);
+    return res.status(500).send('Gagal memuat data kode promo');
+  }
+});
+
+// POST Create promo code
+app.post('/admin/promo-codes', requireAdmin, express.json(), async (req, res) => {
+  try {
+    const { code, package_id, discount_percentage, description, max_users, valid_from, valid_until, is_active } = req.body;
+
+    if (!code || !discount_percentage) {
+      return res.json({ success: false, message: 'Kode dan persentase diskon wajib diisi' });
+    }
+
+    if (!valid_until) {
+      return res.json({ success: false, message: 'Tanggal berakhir wajib diisi' });
+    }
+
+    const { data, error } = await supabase
+      .from('promo_codes')
+      .insert({
+        code: code.toUpperCase(),
+        package_id: package_id || null,
+        discount_percentage: parseInt(discount_percentage),
+        description: description || null,
+        max_users: max_users ? parseInt(max_users) : null,
+        current_users: 0,
+        valid_from: valid_from || new Date().toISOString(),
+        valid_until: new Date(valid_until).toISOString(),
+        is_active: is_active !== false
+      })
+      .select()
+      .single();
+
+    if (error) {
+      if (error.code === '23505') {
+        return res.json({ success: false, message: 'Kode promo sudah ada' });
+      }
+      throw error;
+    }
+
+    return res.json({ success: true, data });
+  } catch (error) {
+    console.error('Error creating promo code:', error);
+    return res.json({ success: false, message: error.message || 'Gagal membuat kode promo' });
+  }
+});
+
+// PUT Update promo code
+app.put('/admin/promo-codes/:id', requireAdmin, express.json(), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { code, package_id, discount_percentage, description, max_users, valid_from, valid_until, is_active } = req.body;
+
+    if (!valid_until) {
+      return res.json({ success: false, message: 'Tanggal berakhir wajib diisi' });
+    }
+
+    const { data, error } = await supabase
+      .from('promo_codes')
+      .update({
+        code: code.toUpperCase(),
+        package_id: package_id || null,
+        discount_percentage: parseInt(discount_percentage),
+        description: description || null,
+        max_users: max_users ? parseInt(max_users) : null,
+        valid_from: valid_from ? new Date(valid_from).toISOString() : null,
+        valid_until: new Date(valid_until).toISOString(),
+        is_active: is_active !== false,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return res.json({ success: true, data });
+  } catch (error) {
+    console.error('Error updating promo code:', error);
+    return res.json({ success: false, message: 'Gagal mengupdate kode promo' });
+  }
+});
+
+// POST Toggle promo code status
+app.post('/admin/promo-codes/:id/toggle', requireAdmin, express.json(), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { is_active } = req.body;
+
+    const { error } = await supabase
+      .from('promo_codes')
+      .update({ is_active })
+      .eq('id', id);
+
+    if (error) throw error;
+
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Error toggling promo code:', error);
+    return res.json({ success: false, message: 'Gagal mengubah status' });
+  }
+});
+
+// DELETE Promo code
+app.delete('/admin/promo-codes/:id', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const { error } = await supabase
+      .from('promo_codes')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting promo code:', error);
+    return res.json({ success: false, message: 'Gagal menghapus kode promo' });
+  }
+});
+
+// API: Validate promo code (for member payment page)
+app.post('/api/validate-promo', express.json(), async (req, res) => {
+  try {
+    const { code, packageId } = req.body;
+
+    console.log('=== VALIDATE PROMO DEBUG ===');
+    console.log('Code:', code);
+    console.log('PackageId from request:', packageId);
+
+    if (!code) {
+      return res.json({ valid: false, message: 'Kode promo tidak boleh kosong' });
+    }
+
+    if (!packageId) {
+      return res.json({ valid: false, message: 'ID paket tidak valid' });
+    }
+
+    const { data: promo, error } = await supabase
+      .from('promo_codes')
+      .select('*')
+      .eq('code', code.toUpperCase())
+      .single();
+
+    if (error || !promo) {
+      return res.json({ valid: false, message: 'Kode promo tidak valid' });
+    }
+
+    console.log('Promo package_id:', promo.package_id);
+    console.log('Promo package_id type:', typeof promo.package_id);
+    console.log('Request packageId type:', typeof packageId);
+    console.log('Are they equal?', promo.package_id === packageId);
+    console.log('Is promo.package_id null?', promo.package_id === null);
+
+    // Check if active
+    if (!promo.is_active) {
+      return res.json({ valid: false, message: 'Kode promo tidak aktif' });
+    }
+
+    // Check if promo applies to this package
+    // If promo.package_id is NULL, it applies to all packages
+    // If promo.package_id has a value, it must match the packageId
+    if (promo.package_id !== null && promo.package_id !== packageId) {
+      console.log('REJECTED: Package mismatch');
+      return res.json({ valid: false, message: 'Kode promo tidak berlaku untuk paket ini' });
+    }
+
+    console.log('ACCEPTED: Package check passed');
+
+    // Check max users
+    if (promo.max_users && promo.current_users >= promo.max_users) {
+      return res.json({ valid: false, message: 'Kode promo sudah mencapai batas penggunaan' });
+    }
+
+    // Check validity period
+    const now = new Date();
+    if (promo.valid_from && new Date(promo.valid_from) > now) {
+      return res.json({ valid: false, message: 'Kode promo belum berlaku' });
+    }
+    if (promo.valid_until && new Date(promo.valid_until) < now) {
+      return res.json({ valid: false, message: 'Kode promo sudah kadaluarsa' });
+    }
+
+    return res.json({
+      valid: true,
+      discount_percentage: promo.discount_percentage,
+      message: `Kode promo berhasil diterapkan! Hemat ${promo.discount_percentage}%`
+    });
+  } catch (error) {
+    console.error('Error validating promo code:', error);
+    return res.json({ valid: false, message: 'Terjadi kesalahan' });
+  }
+});
+
+// GET Promo code for specific package
+app.get('/api/package/:packageId/promo', requireAdmin, async (req, res) => {
+  try {
+    const { packageId } = req.params;
+
+    const { data: promo, error } = await supabase
+      .from('promo_codes')
+      .select('*')
+      .eq('package_id', packageId)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No promo found
+        return res.json({ success: true, data: null });
+      }
+      throw error;
+    }
+
+    return res.json({ success: true, data: promo });
+  } catch (error) {
+    console.error('Error fetching promo code:', error);
+    return res.status(500).json({ success: false, message: 'Gagal mengambil kode promo' });
+  }
+});
+
+// POST Create promo code for package
+app.post('/api/package/:packageId/promo', requireAdmin, express.json(), async (req, res) => {
+  try {
+    const { packageId } = req.params;
+    const { code, discount_percentage, valid_from, valid_until, max_users, description } = req.body;
+
+    // Validation
+    if (!code || !discount_percentage || !valid_until) {
+      return res.status(400).json({ success: false, message: 'Kode, diskon, dan tanggal berakhir wajib diisi' });
+    }
+
+    if (discount_percentage < 1 || discount_percentage > 100) {
+      return res.status(400).json({ success: false, message: 'Persentase diskon harus antara 1-100' });
+    }
+
+    // Check if promo code already exists for this package
+    const { data: existing } = await supabase
+      .from('promo_codes')
+      .select('id')
+      .eq('package_id', packageId)
+      .single();
+
+    if (existing) {
+      return res.status(400).json({ success: false, message: 'Paket ini sudah memiliki kode promo' });
+    }
+
+    const promoData = {
+      package_id: parseInt(packageId),
+      code: code.toUpperCase(),
+      discount_percentage: parseInt(discount_percentage),
+      description: description || null,
+      max_users: max_users ? parseInt(max_users) : null,
+      current_users: 0,
+      valid_from: valid_from ? new Date(valid_from).toISOString() : new Date().toISOString(),
+      valid_until: new Date(valid_until).toISOString(),
+      is_active: true
+    };
+
+    const { data: newPromo, error } = await supabase
+      .from('promo_codes')
+      .insert(promoData)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return res.json({ success: true, data: newPromo });
+  } catch (error) {
+    console.error('Error creating promo code:', error);
+    return res.status(500).json({ success: false, message: error.message || 'Gagal menambahkan kode promo' });
+  }
+});
+
+// PUT Update promo code
+app.put('/api/package/:packageId/promo/:promoId', requireAdmin, express.json(), async (req, res) => {
+  try {
+    const { packageId, promoId } = req.params;
+    const { code, discount_percentage, valid_from, valid_until, max_users, description } = req.body;
+
+    // Validation
+    if (!code || !discount_percentage || !valid_until) {
+      return res.status(400).json({ success: false, message: 'Kode, diskon, dan tanggal berakhir wajib diisi' });
+    }
+
+    if (discount_percentage < 1 || discount_percentage > 100) {
+      return res.status(400).json({ success: false, message: 'Persentase diskon harus antara 1-100' });
+    }
+
+    const promoData = {
+      code: code.toUpperCase(),
+      discount_percentage: parseInt(discount_percentage),
+      description: description || null,
+      max_users: max_users ? parseInt(max_users) : null,
+      valid_from: valid_from ? new Date(valid_from).toISOString() : new Date().toISOString(),
+      valid_until: new Date(valid_until).toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    const { data: updatedPromo, error } = await supabase
+      .from('promo_codes')
+      .update(promoData)
+      .eq('id', promoId)
+      .eq('package_id', packageId)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return res.json({ success: true, data: updatedPromo });
+  } catch (error) {
+    console.error('Error updating promo code:', error);
+    return res.status(500).json({ success: false, message: 'Gagal memperbarui kode promo' });
+  }
+});
+
+// DELETE Promo code
+app.delete('/api/package/:packageId/promo/:promoId', requireAdmin, async (req, res) => {
+  try {
+    const { packageId, promoId } = req.params;
+
+    const { error } = await supabase
+      .from('promo_codes')
+      .delete()
+      .eq('id', promoId)
+      .eq('package_id', packageId);
+
+    if (error) throw error;
+
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting promo code:', error);
+    return res.status(500).json({ success: false, message: 'Gagal menghapus kode promo' });
   }
 });
 

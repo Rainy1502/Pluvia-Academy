@@ -132,6 +132,10 @@
     background: linear-gradient(135deg, #ffd89b 0%, #ff9a00 100%);
   }
 
+  .btn-promo {
+    background: linear-gradient(135deg, #a8e063 0%, #56ab2f 100%);
+  }
+
   .btn-hapus {
     background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
   }
@@ -185,10 +189,14 @@
           <p class="management-subtitle">Kelola paket pembelajaran yang tersedia</p>
         </div>
 
-        <div class="add-button-wrapper">
+        <div class="add-button-wrapper" style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
           <button class="add-button" onclick="openTambahPaketModal()">
             <span>⊕</span>
             <span>Tambah Paket Baru</span>
+          </button>
+          <button class="add-button" onclick="window.location.href='/admin/promo-codes'" style="background: linear-gradient(135deg, #a8e063 0%, #56ab2f 100%);">
+            <span>🎫</span>
+            <span>Kelola Kode Promo</span>
           </button>
         </div>
 
@@ -373,6 +381,64 @@
     <div class="modal-actions">
       <button type="button" class="modal-btn modal-btn-logout" onclick="confirmDeletePaket()">Ya, Hapus</button>
       <button type="button" class="modal-btn modal-btn-batal" onclick="closeDeletePaketModal()">Batal</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Kode Promo -->
+<div id="promoModal" class="kursus-modal">
+  <div class="kursus-modal-content" style="max-width: 600px;">
+    <div class="modal-logo">
+      <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="modal-logo-img"/>
+      <h2>Pluvia Academy</h2>
+    </div>
+    <h3 class="modal-title">Kelola Kode Promo</h3>
+    <p style="color: #718096; text-align: center; margin-bottom: 20px;">Paket: <strong id="promoPackageTitle"></strong></p>
+    
+    <div style="background: #f7fafc; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 0.9rem;">
+        <div>
+          <span style="color: #718096;">Pengguna Saat Ini:</span>
+          <strong id="currentUsers" style="display: block; color: #1a202c; font-size: 1.1rem;">-</strong>
+        </div>
+        <div>
+          <span style="color: #718096;">Status:</span>
+          <strong id="promoStatus" style="display: block; font-size: 1.1rem;">-</strong>
+        </div>
+      </div>
+    </div>
+    
+    <div style="margin-bottom: 15px;">
+      <input type="text" id="promoCode" placeholder="Kode Promo (contoh: PROMO20)" class="modal-input" maxlength="50" style="text-transform: uppercase;" required/>
+    </div>
+    
+    <div style="margin-bottom: 15px;">
+      <input type="number" id="discountPercentage" placeholder="Persentase Diskon (1-100)" class="modal-input" min="1" max="100" required/>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px;">
+      <div>
+        <label style="display: block; color: #718096; font-size: 0.9rem; margin-bottom: 4px;">Tanggal Mulai</label>
+        <input type="datetime-local" id="validFrom" class="modal-input"/>
+      </div>
+      <div>
+        <label style="display: block; color: #718096; font-size: 0.9rem; margin-bottom: 4px;">Tanggal Berakhir <span style="color: #e53e3e;">*</span></label>
+        <input type="datetime-local" id="validUntil" class="modal-input" required/>
+      </div>
+    </div>
+    
+    <div style="margin-bottom: 15px;">
+      <input type="number" id="maxUsers" placeholder="Maksimal Pengguna (kosongkan untuk unlimited)" class="modal-input" min="1"/>
+    </div>
+    
+    <div style="margin-bottom: 20px;">
+      <textarea id="promoDescription" placeholder="Deskripsi Promo (opsional)" class="modal-input" rows="2"></textarea>
+    </div>
+    
+    <div class="modal-actions">
+      <button type="button" id="savePromoBtn" class="modal-btn modal-btn-tambah" onclick="savePromoCode()">Simpan Kode Promo</button>
+      <button type="button" id="deletePromoBtn" class="modal-btn modal-btn-logout" onclick="deletePromoCode()" style="display: none;">Hapus Promo</button>
+      <button type="button" class="modal-btn modal-btn-batal" onclick="closePromoModal()">Batal</button>
     </div>
   </div>
 </div>
