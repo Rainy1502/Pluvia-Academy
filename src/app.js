@@ -673,7 +673,8 @@ app.get('/lecturer', async (req, res) => {
     const { data: lecturers, error } = await supabase
       .from('users')
       .select('id, full_name, email, avatar_url, is_active')
-      .eq('role_id', 5) // Assuming role_id 5 is for lecturers
+      .eq('role_id', 5) // Lecturer role
+      .eq('is_active', true) // Show only active lecturers
       .order('full_name', { ascending: true });
 
     if (error) throw error;

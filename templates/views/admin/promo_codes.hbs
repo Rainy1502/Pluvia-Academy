@@ -47,6 +47,70 @@
   font-size: 1.05rem;
 }
 
+/* Custom Notification */
+.custom-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: white;
+  padding: 20px 30px;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  z-index: 10000;
+  min-width: 320px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  animation: slideInRight 0.4s ease;
+  border-left: 5px solid #28a745;
+}
+
+.custom-notification.error {
+  border-left-color: #dc3545;
+}
+
+.custom-notification-icon {
+  font-size: 2rem;
+}
+
+.custom-notification-content {
+  flex: 1;
+}
+
+.custom-notification-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-bottom: 5px;
+  color: #1a202c;
+}
+
+.custom-notification-message {
+  color: #718096;
+  font-size: 0.95rem;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+}
+
 .add-button-wrapper {
   text-align: center;
   margin-bottom: 30px;
@@ -666,15 +730,19 @@ function submitPromo(event) {
   .then(response => response.json())
   .then(result => {
     if (result.success) {
-      alert(id ? 'Kode promo berhasil diupdate!' : 'Kode promo berhasil ditambahkan!');
-      window.location.reload();
+      showNotification(
+        id ? 'Berhasil!' : 'Berhasil!',
+        id ? 'Kode promo berhasil diupdate!' : 'Kode promo berhasil ditambahkan!',
+        'success'
+      );
+      setTimeout(() => window.location.reload(), 1500);
     } else {
-      alert('Error: ' + (result.message || 'Gagal menyimpan kode promo'));
+      showNotification('Error!', result.message || 'Gagal menyimpan kode promo', 'error');
     }
   })
   .catch(error => {
     console.error('Error:', error);
-    alert('Terjadi kesalahan saat menyimpan kode promo');
+    showNotification('Error!', 'Terjadi kesalahan saat menyimpan kode promo', 'error');
   });
 }
 
@@ -690,12 +758,12 @@ function togglePromo(id, currentStatus) {
     if (result.success) {
       window.location.reload();
     } else {
-      alert('Error: ' + (result.message || 'Gagal mengubah status'));
+      showNotification('Error!', result.message || 'Gagal mengubah status', 'error');
     }
   })
   .catch(error => {
     console.error('Error:', error);
-    alert('Terjadi kesalahan');
+    showNotification('Error!', 'Terjadi kesalahan', 'error');
   });
 }
 
@@ -707,17 +775,42 @@ function deletePromo(id, code) {
     .then(response => response.json())
     .then(result => {
       if (result.success) {
-        alert('Kode promo berhasil dihapus!');
-        window.location.reload();
+        showNotification('Berhasil!', 'Kode promo berhasil dihapus!', 'success');
+        setTimeout(() => window.location.reload(), 1500);
       } else {
-        alert('Error: ' + (result.message || 'Gagal menghapus kode promo'));
+        showNotification('Error!', result.message || 'Gagal menghapus kode promo', 'error');
       }
     })
     .catch(error => {
       console.error('Error:', error);
-      alert('Terjadi kesalahan');
+      showNotification('Error!', 'Terjadi kesalahan', 'error');
     });
   }
+}
+
+// Custom notification function
+function showNotification(title, message, type = 'success') {
+  const notification = document.createElement('div');
+  notification.className = `custom-notification ${type}`;
+  
+  const icon = type === 'success' ? '✅' : '❌';
+  
+  notification.innerHTML = `
+    <div class="custom-notification-icon">${icon}</div>
+    <div class="custom-notification-content">
+      <div class="custom-notification-title">${title}</div>
+      <div class="custom-notification-message">${message}</div>
+    </div>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    notification.style.animation = 'slideOutRight 0.4s ease';
+    setTimeout(() => {
+      notification.remove();
+    }, 400);
+  }, 3000);
 }
 
 // Close modal when clicking outside

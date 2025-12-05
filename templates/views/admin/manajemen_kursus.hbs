@@ -23,6 +23,70 @@
     margin-bottom: 24px;
   }
 
+  /* Custom Notification */
+  .custom-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: white;
+    padding: 20px 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    z-index: 10000;
+    min-width: 320px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    animation: slideInRight 0.4s ease;
+    border-left: 5px solid #28a745;
+  }
+
+  .custom-notification.error {
+    border-left-color: #dc3545;
+  }
+
+  .custom-notification-icon {
+    font-size: 2rem;
+  }
+
+  .custom-notification-content {
+    flex: 1;
+  }
+
+  .custom-notification-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+    color: #1a202c;
+  }
+
+  .custom-notification-message {
+    color: #718096;
+    font-size: 0.95rem;
+  }
+
+  @keyframes slideInRight {
+    from {
+      transform: translateX(400px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideOutRight {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(400px);
+      opacity: 0;
+    }
+  }
+
   .btn-add-course {
     display: inline-flex;
     align-items: center;
@@ -231,6 +295,15 @@
     font-size: 1.3rem;
     font-weight: 700;
     color: #2d3748;
+  }
+
+  .logout-modal-content .logout-message {
+    padding: 0 40px 20px;
+    color: #4a5568;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    text-align: center;
+    margin: 0;
   }
 
   .modal-input,
@@ -736,7 +809,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }        // Submit form
         this.submit();
       } catch (error) {
-        alert('Gagal mengunggah gambar: ' + error.message);
+        showNotification('Error!', 'Gagal mengunggah gambar: ' + error.message, 'error');
         submitBtn.disabled = false;
         submitBtn.textContent = 'Tambah';
       }
@@ -764,13 +837,38 @@ document.addEventListener('DOMContentLoaded', function() {
     }        // Submit form
         this.submit();
       } catch (error) {
-        alert('Gagal mengunggah gambar: ' + error.message);
+        showNotification('Error!', 'Gagal mengunggah gambar: ' + error.message, 'error');
         submitBtn.disabled = false;
         submitBtn.textContent = 'Edit';
       }
     });
   }
 });
+
+// Custom notification function
+function showNotification(title, message, type = 'success') {
+  const notification = document.createElement('div');
+  notification.className = `custom-notification ${type}`;
+  
+  const icon = type === 'success' ? '✅' : '❌';
+  
+  notification.innerHTML = `
+    <div class="custom-notification-icon">${icon}</div>
+    <div class="custom-notification-content">
+      <div class="custom-notification-title">${title}</div>
+      <div class="custom-notification-message">${message}</div>
+    </div>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    notification.style.animation = 'slideOutRight 0.4s ease';
+    setTimeout(() => {
+      notification.remove();
+    }, 400);
+  }, 3000);
+}
 
 function openTambahModal() {
   document.getElementById('tambahKursusModal').style.display = 'flex';
