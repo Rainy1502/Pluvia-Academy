@@ -282,24 +282,24 @@ app.get('/', async (_req, res) => {
       });
     }
   } else if (isLecturer) {
-    // Lecturer view: show courses they teach
+    // Lecturer view: show courses they teach (management view)
     try {
       const { data: courses, error } = await supabase
         .from('courses')
-        .select('id, title, description, thumbnail, meet_link')
+        .select('id, title, description, thumbnail, meet_link, schedule_day, schedule_time_start, schedule_time_end')
         .eq('instructor_id', res.locals.user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      return res.render('lecturer/kelas', { 
-        title: 'Kelas Saya', 
+      return res.render('lecturer/manajemen_kursus', { 
+        title: 'Manajemen Kursus', 
         courses: courses || []
       });
     } catch (error) {
       console.error('Error fetching lecturer courses:', error);
-      return res.render('lecturer/kelas', { 
-        title: 'Kelas Saya', 
+      return res.render('lecturer/manajemen_kursus', { 
+        title: 'Manajemen Kursus', 
         courses: []
       });
     }
@@ -354,6 +354,7 @@ app.get('/', async (_req, res) => {
 // Materi page: shows available materials or management view for admin
 app.get('/materi', async (req, res) => {
   const isAdmin = res.locals.user && res.locals.user.role_id === 10;
+  const isLecturer = res.locals.user && res.locals.user.role_id === 5;
   
   if (isAdmin) {
     // Admin view: show all courses with their materials
@@ -392,6 +393,35 @@ app.get('/materi', async (req, res) => {
         title: 'Manajemen Materi', 
         courses: [],
         isAdmin: true 
+      });
+    }
+  } else if (isLecturer) {
+    // Lecturer view: show courses they teach with materials
+    try {
+      const lecturerId = res.locals.user.id;
+
+      // Get courses taught by this lecturer
+      const { data: courses, error } = await supabase
+        .from('courses')
+        .select(`
+          id,
+          title,
+          materials(id, title, description, thumbnail, media_url, ordinal)
+        `)
+        .eq('instructor_id', lecturerId)
+        .order('title', { ascending: true });
+
+      if (error) throw error;
+
+      return res.render('lecturer/manajemen_materi', { 
+        title: 'Manajemen Materi', 
+        courses: courses || []
+      });
+    } catch (error) {
+      console.error('Error fetching lecturer materials:', error);
+      return res.render('lecturer/manajemen_materi', { 
+        title: 'Manajemen Materi', 
+        courses: []
       });
     }
   } else {
@@ -705,71 +735,6 @@ app.get('/kelas', requireLecturer, async (req, res) => {
     console.error('Error fetching lecturer courses:', error);
     return res.render('lecturer/kelas', { 
       title: 'Kelas Yang Anda Ajar', 
-      courses: []
-    });
-  }
-});
-
-// Lecturer - Halaman Manajemen Kursus
-app.get('/manajemen_kursus', requireLecturer, async (req, res) => {
-  try {
-    const lecturerId = res.locals.user.id;
-
-    // Get courses taught by this lecturer
-    const { data: courses, error } = await supabase
-      .from('courses')
-      .select('id, title, description, schedule_day, schedule_time_start, schedule_time_end, meet_link')
-      .eq('instructor_id', lecturerId)
-      .order('title', { ascending: true });
-
-    if (error) throw error;
-
-    return res.render('lecturer/manajemen_kursus', { 
-      title: 'Manajemen Kursus', 
-      courses: courses || []
-    });
-  } catch (error) {
-    console.error('Error fetching lecturer courses:', error);
-    return res.render('lecturer/manajemen_kursus', { 
-      title: 'Manajemen Kursus', 
-      courses: []
-    });
-  }
-});
-
-// Lecturer - Halaman Manajemen Materi
-app.get('/manajemen_materi', requireLecturer, async (req, res) => {
-  try {
-    const lecturerId = res.locals.user.id;
-
-    // Get courses taught by this lecturer with their materials
-    const { data: courses, error } = await supabase
-      .from('courses')
-      .select(`
-        id,
-        title,
-        materials (
-          id,
-          title,
-          description,
-          thumbnail,
-          media_url,
-          ordinal
-        )
-      `)
-      .eq('instructor_id', lecturerId)
-      .order('title', { ascending: true });
-
-    if (error) throw error;
-
-    return res.render('lecturer/manajemen_materi', { 
-      title: 'Manajemen Materi', 
-      courses: courses || []
-    });
-  } catch (error) {
-    console.error('Error fetching lecturer materials:', error);
-    return res.render('lecturer/manajemen_materi', { 
-      title: 'Manajemen Materi', 
       courses: []
     });
   }
