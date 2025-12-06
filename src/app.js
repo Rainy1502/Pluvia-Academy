@@ -227,6 +227,22 @@ const requireAdminOrLecturer = (req, res, next) => {
   next();
 };
 
+// Middleware: Redirect if already logged in (untuk login/register pages)
+const redirectIfLoggedIn = (req, res, next) => {
+  if (res.locals.user) {
+    return res.redirect('/');
+  }
+  next();
+};
+
+// Middleware: Require login (redirect to login if not authenticated)
+const requireLogin = (req, res, next) => {
+  if (!res.locals.user) {
+    return res.redirect('/login');
+  }
+  next();
+};
+
 // API routes untuk OTP
 app.use('/api/otp', otpRoutes);
 
@@ -263,7 +279,7 @@ app.get('/', async (_req, res) => {
 });
 
   // Courses page: shows courses the user is enrolled in or management view for admin
-  app.get('/kursus', async (req, res) => {
+  app.get('/kursus', requireLogin, async (req, res) => {
   const isAdmin = res.locals.user && res.locals.user.role_id === 10;
   const isLecturer = res.locals.user && res.locals.user.role_id === 5;
   
@@ -370,7 +386,7 @@ app.get('/', async (_req, res) => {
 });
 
 // Materi page: shows available materials or management view for admin
-app.get('/materi', async (req, res) => {
+app.get('/materi', requireLogin, async (req, res) => {
   const isAdmin = res.locals.user && res.locals.user.role_id === 10;
   const isLecturer = res.locals.user && res.locals.user.role_id === 5;
   
@@ -661,7 +677,7 @@ app.get('/materi', async (req, res) => {
 });
 
 // Paket kursus / purchase page or management view for admin
-app.get('/paket_kursus', async (req, res) => {
+app.get('/paket_kursus', requireLogin, async (req, res) => {
   const isAdmin = res.locals.user && res.locals.user.role_id === 10;
   
   if (isAdmin) {
@@ -792,7 +808,7 @@ app.get('/paket_kursus/:id', async (req, res) => {
 });
 
 // Lecturer management page (Admin only)
-app.get('/lecturer', async (req, res) => {
+app.get('/lecturer', requireAdminOrLecturer, async (req, res) => {
   // Check if user is admin
   if (!res.locals.user || res.locals.user.role_id !== 10) {
     return res.redirect('/');
@@ -906,7 +922,7 @@ app.get('/manajemen_absensi', requireLecturer, async (req, res) => {
 });
 
 // Live Class page - must be before routes with :id parameter to avoid conflicts
-app.get('/live_class/:courseId', async (req, res) => {
+app.get('/live_class/:courseId', requireLogin, async (req, res) => {
   if (!res.locals.user) {
     return res.redirect('/login');
   }
@@ -1298,7 +1314,7 @@ app.post('/kursus/:courseId/students/:studentId/materi/:materialId/toggle', requ
 });
 
 // Login page (UI only)
-app.get('/login', (req, res) => {
+app.get('/login', redirectIfLoggedIn, (req, res) => {
   const registered = req.query && req.query.registered === 'true';
   res.render('login', { 
     title: 'Masuk', 
@@ -1369,7 +1385,7 @@ app.post('/login', express.urlencoded({ extended: true }), async (req, res) => {
 });
 
 // Register page (UI only)
-app.get('/register', (req, res) => res.render('register', { title: 'Daftar Akun' }));
+app.get('/register', redirectIfLoggedIn, (req, res) => res.render('register', { title: 'Daftar Akun' }));
 
 // POST handler for registration dengan validasi OTP
 app.post('/register', express.urlencoded({ extended: true }), async (req, res) => {
@@ -1522,11 +1538,7 @@ app.get('/profile', async (req, res) => {
 });
 
 // GET /profile/edit - halaman edit profile
-app.get('/profile/edit', async (req, res) => {
-  if (!res.locals || !res.locals.user) {
-    return res.redirect('/login');
-  }
-
+app.get('/profile/edit', requireLogin, async (req, res) => {
   try {
     // Ambil data user lengkap dari database
     const { data: user, error } = await supabase
@@ -1554,11 +1566,7 @@ app.get('/profile/edit', async (req, res) => {
 });
 
 // POST /profile/edit - update profile
-app.post('/profile/edit', express.urlencoded({ extended: true }), async (req, res) => {
-  if (!res.locals || !res.locals.user) {
-    return res.status(401).json({ success: false, message: 'Unauthorized' });
-  }
-
+app.post('/profile/edit', requireLogin, express.urlencoded({ extended: true }), async (req, res) => {
   try {
     const { fullName, phone, email, password, removeAvatar, avatar_url } = req.body;
     const userId = res.locals.user.id;
@@ -2476,14 +2484,9 @@ app.post('/materi/:id/edit', requireAdminOrLecturer, express.urlencoded({ extend
 });
 
 // GET Payment page for package enrollment
-app.get('/pembayaran/:packageId', async (req, res) => {
+app.get('/pembayaran/:packageId', requireLogin, async (req, res) => {
   const { packageId } = req.params;
   const userId = res.locals.user?.id;
-
-  // Check if user is logged in
-  if (!userId) {
-    return res.redirect('/login');
-  }
 
   try {
     // Get package details
@@ -2512,7 +2515,7 @@ app.get('/pembayaran/:packageId', async (req, res) => {
 });
 
 // POST Submit payment and enroll
-app.post('/pembayaran/:packageId/submit', express.urlencoded({ extended: true }), async (req, res) => {
+app.post('/pembayaran/:packageId/submit', requireLogin, express.urlencoded({ extended: true }), async (req, res) => {
   const { packageId } = req.params;
   const userId = res.locals.user?.id;
 
@@ -2974,7 +2977,7 @@ app.delete('/api/package/:packageId/promo/:promoId', requireAdmin, async (req, r
 });
 
 // POST Enroll in Package (Member only) - Legacy route, redirects to payment
-app.post('/paket_kursus/:id/enroll', express.urlencoded({ extended: true }), async (req, res) => {
+app.post('/paket_kursus/:id/enroll', requireLogin, express.urlencoded({ extended: true }), async (req, res) => {
   const packageId = req.params.id;
   const userId = res.locals.user?.id;
 
@@ -3205,11 +3208,7 @@ app.post('/lecturer/:id/edit', requireAdmin, express.urlencoded({ extended: true
 // ========== PAYMENT SYSTEM ROUTES ==========
 
 // GET Payment page for a package
-app.get('/payment/:packageId', async (req, res) => {
-  if (!res.locals.user) {
-    return res.redirect('/login');
-  }
-
+app.get('/payment/:packageId', requireLogin, async (req, res) => {
   const { packageId } = req.params;
 
   try {
@@ -3276,11 +3275,7 @@ app.post('/api/payment/validate-discount', express.json(), async (req, res) => {
 });
 
 // POST Confirm payment and enroll user
-app.post('/payment/confirm', express.urlencoded({ extended: true }), async (req, res) => {
-  if (!res.locals.user) {
-    return res.redirect('/login');
-  }
-
+app.post('/payment/confirm', requireLogin, express.urlencoded({ extended: true }), async (req, res) => {
   try {
     const {
       package_id,

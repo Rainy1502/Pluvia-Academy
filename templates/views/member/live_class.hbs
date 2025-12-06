@@ -259,20 +259,26 @@
     font-size: 1.2rem;
     font-weight: bold;
   }
+
+  #punishment-banner-container {
+    margin: 0 auto 30px;
+    max-width: 600px;
+  }
 </style>
 
 <main class="site-root">
   <section class="my-courses-section">
     <div class="container">
       <div class="courses-panel">
-        <!-- Punishment Banner Container -->
-        <div id="punishment-banner-container"></div>
         
         {{#if course}}
-        <div class="live-class-container">
-          <!-- Back Button -->
-          <a href="/kursus" class="btn-back-live">Kembali ke Kursus</a>
+        <!-- Back Button -->
+        <a href="/kursus" class="btn-back-live">Kembali ke Kursus</a>
 
+        <!-- Punishment Banner Container -->
+        <div id="punishment-banner-container"></div>
+
+        <div class="live-class-container">
           <!-- Course Title -->
           <div class="course-title-header">
             <h2>{{course.title}}</h2>

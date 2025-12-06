@@ -123,14 +123,43 @@
     font-size: 3rem;
     color: #fff;
     z-index: 1;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
   }
 
   .lock-reason {
-    font-size: 0.85rem;
-    color: #e53e3e;
+    font-size: 0.9rem;
+    color: #c53030;
     font-weight: 600;
-    margin-top: 8px;
+    margin-top: 12px;
     text-align: center;
+    line-height: 1.5;
+    padding: 8px 0;
+    letter-spacing: 0.3px;
+  }
+
+  .materi-card.locked {
+    opacity: 0.65;
+    pointer-events: none;
+  }
+
+  .materi-card.locked .materi-thumbnail::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 0;
+  }
+
+  .materi-badge.locked {
+    background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   }
 
   .page-title-materi {
@@ -143,6 +172,8 @@
     background-clip: text;
     margin-bottom: 10px;
     margin-top: -20px;
+    width: 100%;
+    display: block;
   }
 
   .page-subtitle-materi {
@@ -150,6 +181,8 @@
     color: #718096;
     font-size: 1.05rem;
     margin-bottom: 40px;
+    width: 100%;
+    display: block;
   }
 
   .btn-back-materi {
@@ -249,18 +282,23 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
+
+  #punishment-banner-container {
+    margin: 0 auto 30px;
+    max-width: 600px;
+  }
 </style>
 
 <main class="site-root">
   <section class="my-courses-section">
     <div class="container">
       <div class="courses-panel">
-        <!-- Punishment Banner Container -->
-        <div id="punishment-banner-container"></div>
-        
         {{#if selectedCourse}}
         <!-- Tampilan Materi dari Kursus yang Dipilih -->
         <a href="/materi" class="btn-back-materi">Kembali ke Pilihan Kursus</a>
+        
+        <!-- Punishment Banner Container -->
+        <div id="punishment-banner-container"></div>
         
         <h2 class="page-title-materi">{{selectedCourse.title}}</h2>
         <p class="page-subtitle-materi">Pilih materi untuk mulai belajar</p>
@@ -300,11 +338,11 @@
                 <h3 class="materi-title">{{this.title}}</h3>
                 {{#if this.access_denied_reason}}
                   {{#if (eq this.access_denied_reason 'suspended')}}
-                  <p class="lock-reason">Akun Anda di-suspend. Hubungi lecturer untuk mengaktifkan kembali.</p>
+                  <p class="lock-reason">🚫 Akun Anda sedang di-suspend<br/><span style="font-size: 0.8rem; font-weight: 500;">Hubungi lecturer untuk mengaktifkan kembali</span></p>
                   {{else if (eq this.access_denied_reason 'absent_from_meeting')}}
-                  <p class="lock-reason">Anda harus hadir di pertemuan ini untuk mengakses materi</p>
+                  <p class="lock-reason">Anda tidak hadir di pertemuan ini<br/><span style="font-size: 0.8rem; font-weight: 500;">Hadir untuk akses materi</span></p>
                   {{else if (eq this.access_denied_reason 'not_linked_to_meeting')}}
-                  <p class="lock-reason">Materi belum di-link ke pertemuan apapun</p>
+                  <p class="lock-reason">Materi belum dikonfigurasi<br/><span style="font-size: 0.8rem; font-weight: 500;">Hubungi lecturer</span></p>
                   {{/if}}
                 {{/if}}
               </div>
