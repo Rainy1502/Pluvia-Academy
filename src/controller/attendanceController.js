@@ -405,6 +405,66 @@ async function getPunishmentStatus(req, res) {
   try {
     const { user_id, course_id } = req.params;
 
+    // First, recalculate punishment status dari attendance records
+    // untuk memastikan data selalu akurat
+    const { data: meetings, error: meetingsError } = await supabase
+      .from('meetings')
+      .select('id, scheduled_date')
+      .eq('course_id', course_id)
+      .order('scheduled_date', { ascending: false });
+
+    if (!meetingsError && meetings && meetings.length > 0) {
+      // Get attendance records untuk user di semua meetings
+      const { data: attendances, error: attendError } = await supabase
+        .from('attendance')
+        .select('status, meeting_id')
+        .eq('user_id', user_id)
+        .in('meeting_id', meetings.map(m => m.id));
+
+      if (!attendError && attendances) {
+        // Calculate consecutive absence dari attendance records yang terakhir
+        let consecutiveAbsence = 0;
+        
+        // Iterate dari meeting terbaru ke yang lama
+        for (const meeting of meetings) {
+          const attendance = attendances.find(a => a.meeting_id === meeting.id);
+          
+          if (attendance && attendance.status === 'absent') {
+            consecutiveAbsence++;
+          } else if (attendance && (attendance.status === 'present' || attendance.status === 'permitted' || attendance.status === 'sick')) {
+            // Stop counting ketika ada yang hadir
+            break;
+          }
+        }
+
+        // Determine punishment status based on calculated consecutive absence
+        let calculatedStatus = 'none';
+        if (consecutiveAbsence === 1) {
+          calculatedStatus = 'warning_1';
+        } else if (consecutiveAbsence === 2) {
+          calculatedStatus = 'warning_2';
+        } else if (consecutiveAbsence >= 3) {
+          calculatedStatus = 'suspended';
+        }
+
+        // Update enrollment dengan nilai yang benar
+        if (consecutiveAbsence > 0 || calculatedStatus !== 'none') {
+          await supabase
+            .from('enrollments')
+            .update({
+              consecutive_absence: consecutiveAbsence,
+              punishment_status: calculatedStatus,
+              punishment_updated_at: new Date().toISOString()
+            })
+            .eq('user_id', user_id)
+            .eq('course_id', course_id);
+
+          console.log(`[DEBUG RECALC PUNISHMENT] User ${user_id} in course ${course_id}: recalculated consecutive_absence=${consecutiveAbsence}, punishment_status=${calculatedStatus}`);
+        }
+      }
+    }
+
+    // Now fetch the updated enrollment data
     const { data, error } = await supabase
       .from('enrollments')
       .select(`
@@ -469,34 +529,101 @@ async function checkMaterialAccess(req, res) {
   try {
     const { user_id, material_id } = req.params;
 
-    // Check via database function
-    const { data, error } = await supabase.rpc('fn_check_material_access', {
-      p_user_id: user_id,
-      p_material_id: material_id
-    });
+    // First, check if user has explicit access via progress table
+    // (this means admin/lecturer gave them access manually)
+    const { data: progressRecord, error: progressError } = await supabase
+      .from('progress')
+      .select('id')
+      .eq('user_id', user_id)
+      .eq('material_id', material_id)
+      .maybeSingle();
 
-    if (error) throw error;
+    if (!progressError && progressRecord) {
+      // User has explicit access - can access material
+      return res.json({ 
+        success: true, 
+        can_access: true,
+        reason: 'manual_access_granted'
+      });
+    }
+
+    // If no explicit access, check attendance
+    // Get the material's course
+    const { data: material, error: materialError } = await supabase
+      .from('materials')
+      .select('course_id')
+      .eq('id', material_id)
+      .single();
+
+    if (materialError || !material) {
+      return res.json({ 
+        success: true, 
+        can_access: false,
+        reason: 'material_not_found'
+      });
+    }
+
+    // Check if user has any attendance with status:
+    // - 'present' (hadir) - can access
+    // - 'permitted' (izin) - can access
+    // - 'sick' (sakit) - can access
+    // - 'absent' (tidak hadir) - cannot access
+    
+    const { data: attendances, error: attendError } = await supabase
+      .from('attendance')
+      .select('status, meeting:meeting_id(id)')
+      .eq('user_id', user_id)
+      .eq('course_id', material.course_id)
+      .in('status', ['present', 'permitted', 'sick', 'absent']);
+
+    console.log(`[DEBUG MATERIAL ACCESS] User: ${user_id}, Material: ${material_id}, Course: ${material.course_id}`);
+    console.log(`[DEBUG ATTENDANCE DATA] Found ${attendances?.length || 0} attendance records:`, 
+      attendances?.map(a => ({ status: a.status, meeting_id: a.meeting?.id })) || []);
+
+    if (attendError) {
+      console.error('Error checking attendance:', attendError);
+      return res.json({ 
+        success: true, 
+        can_access: false,
+        reason: 'no_attendance_record'
+      });
+    }
+
+    // Check if user has ANY hadir/izin/sakit status
+    // If yes, allow access. If all are absent or no records, deny access
+    const hasValidAttendance = attendances && attendances.some(a => 
+      a.status === 'present' || a.status === 'permitted' || a.status === 'sick'
+    );
+
+    console.log(`[DEBUG VALID ATTENDANCE] Result: ${hasValidAttendance}`);
+
+    if (hasValidAttendance) {
+      return res.json({ 
+        success: true, 
+        can_access: true,
+        reason: 'valid_attendance'
+      });
+    }
 
     // Get restriction details jika ada
     let restriction = null;
-    if (!data) {
-      const { data: restrictionData } = await supabase
-        .from('material_access_restrictions')
-        .select(`
-          *,
-          meeting:meeting_id(title, scheduled_date)
-        `)
-        .eq('user_id', user_id)
-        .eq('material_id', material_id)
-        .is('lifted_at', null)
-        .single();
+    const { data: restrictionData } = await supabase
+      .from('material_access_restrictions')
+      .select(`
+        *,
+        meeting:meeting_id(title, scheduled_date)
+      `)
+      .eq('user_id', user_id)
+      .eq('material_id', material_id)
+      .is('lifted_at', null)
+      .maybeSingle();
 
-      restriction = restrictionData;
-    }
+    restriction = restrictionData;
 
     res.json({ 
       success: true, 
-      can_access: data,
+      can_access: false,
+      reason: 'absent_no_access',
       restriction: restriction
     });
   } catch (error) {

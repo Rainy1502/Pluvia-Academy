@@ -579,10 +579,10 @@ app.get('/materi', requireLogin, async (req, res) => {
         // Create a set of unlocked material IDs (from progress)
         const unlockedMaterialIds = new Set((progress || []).map(p => p.material_id));
         
-        // Create a set of attended meeting IDs (present or permitted status)
+        // Create a set of attended meeting IDs (present or permitted or sick status)
         const attendedMeetingIds = new Set(
           (attendance || [])
-            .filter(a => a.status === 'present' || a.status === 'permitted')
+            .filter(a => a.status === 'present' || a.status === 'permitted' || a.status === 'sick')
             .map(a => a.meeting_id)
         );
 
