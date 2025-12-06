@@ -1,20 +1,181 @@
 {{> head}}
 {{> header}}
 
+<style>
+  .kelas-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .kelas-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #00d4ff 0%, #007bff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+
+  .kelas-subtitle {
+    color: #718096;
+    font-size: 1.05rem;
+    margin-bottom: 24px;
+  }
+
+  .kelas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 30px;
+    margin-top: 30px;
+  }
+
+  .kelas-card {
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .kelas-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+  }
+
+  .kelas-card-wrapper {
+    position: relative;
+  }
+
+  .kelas-thumbnail {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%; /* 16:9 aspect ratio */
+    overflow: hidden;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+
+  .kelas-thumbnail img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .kelas-card:hover .kelas-thumbnail img {
+    transform: scale(1.05);
+  }
+
+  .kelas-content {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+  }
+
+  .kelas-content-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0 0 12px 0;
+    line-height: 1.3;
+  }
+
+  .kelas-description {
+    color: #718096;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin: 0 0 16px 0;
+    flex-grow: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .kelas-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #e2e8f0;
+    font-size: 0.9rem;
+    color: #4a5568;
+  }
+
+  .kelas-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .kelas-badge {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  }
+</style>
+
 <main class="site-root">
   <section class="my-courses-section">
     <div class="container">
       <div class="courses-panel">
-        <!-- Lecturer View - Kelas Yang Diajar -->
-        <h2 class="my-courses-title">Kelas Yang Anda Ajar</h2>
-        {{#if courses.length}}
-        <div class="my-courses-grid">
-        {{#each courses}}
-        <div class="my-course-box">
-          <div class="box-inner"></div>
-          <div class="course-title">{{this.title}}</div>
+        <div class="kelas-header">
+          <h2 class="kelas-title">Kelas Yang Anda Ajar</h2>
+          <p class="kelas-subtitle">Kelola dan pantau kelas yang Anda ampu</p>
         </div>
-        {{/each}}
+
+        {{#if courses.length}}
+        <div class="kelas-grid">
+          {{#each courses}}
+          <div class="kelas-card-wrapper">
+            <a href="/live_class/{{this.id}}" style="text-decoration: none; color: inherit;">
+              <div class="kelas-card">
+                <div class="kelas-thumbnail">
+                  {{#if this.thumbnail}}
+                  <img src="{{this.thumbnail}}" alt="{{this.title}}" loading="lazy"/>
+                  {{else}}
+                  <img src="/img/banner.png" alt="{{this.title}}" loading="lazy"/>
+                  {{/if}}
+                  <span class="kelas-badge">📚 Kursus</span>
+                </div>
+                <div class="kelas-content">
+                  <h3 class="kelas-content-title">{{this.title}}</h3>
+                  {{#if this.description}}
+                  <p class="kelas-description">{{this.description}}</p>
+                  {{/if}}
+                  <div class="kelas-meta">
+                    <div class="kelas-meta-item">
+                      <span>👥</span>
+                      <span>{{this.student_count}} Siswa</span>
+                    </div>
+                    {{#if this.schedule_day}}
+                    <div class="kelas-meta-item">
+                      <span>📅</span>
+                      <span>{{this.schedule_day}}</span>
+                    </div>
+                    {{/if}}
+                  </div>
+                </div>
+              </div>
+            </a>
+          </div>
+          {{/each}}
         </div>
         {{else}}
         <div class="empty-courses empty-centered">

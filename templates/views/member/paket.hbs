@@ -163,6 +163,7 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
     margin-bottom: 10px;
+    margin-top: -20px;
   }
 
   .page-subtitle-paket {
@@ -199,7 +200,7 @@
               <p class="paket-duration">{{this.duration}}</p>
               {{/if}}
               <div class="paket-price-section">
-                <div class="paket-price">Rp {{this.price}}</div>
+                <div class="paket-price">{{formatPrice this.price}}</div>
                 <a href="/paket_kursus/{{this.id}}" class="btn-detail-paket">Lihat Detail</a>
               </div>
             </div>
