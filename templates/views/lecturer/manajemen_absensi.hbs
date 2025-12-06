@@ -373,6 +373,27 @@
   </div>
 </div>
 
+<!-- Material Selector Modal -->
+<div id="materialSelectorModal" class="kursus-modal" style="display: none;">
+  <div class="kursus-modal-content logout-modal-content" style="max-width: 600px; max-height: 80vh; overflow-y: auto;">
+    <div class="modal-logo">
+      <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="modal-logo-img">
+      <h2>Pluvia Academy</h2>
+    </div>
+    <h3 class="modal-title" style="margin-bottom: 0.5rem;">Pilih Materi untuk Pertemuan</h3>
+    <p style="color: #718096; font-size: 0.95rem; margin-bottom: 1.5rem;" id="materialModalMeetingInfo"></p>
+    
+    <div id="materialSelectorContainer" style="background: #f7fafc; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; max-height: 400px; overflow-y: auto;">
+      <!-- Materials checkboxes will be inserted here -->
+    </div>
+    
+    <div class="modal-actions">
+      <button type="button" class="modal-btn modal-btn-logout" onclick="saveMaterialsToMeeting()">Simpan Pilihan</button>
+      <button type="button" class="modal-btn modal-btn-batal" onclick="closeMaterialSelectorModal()">Batal</button>
+    </div>
+  </div>
+</div>
+
 <!-- Delete Meeting Confirmation Modal -->
 <div id="deleteMeetingModal" class="kursus-modal">
   <div class="kursus-modal-content logout-modal-content">
@@ -680,12 +701,18 @@ async function loadMeetingsList() {
               <div style="font-size: 0.85rem; color: #718096; margin-top: 0.25rem;">${date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</div>
             </td>
             <td style="padding: 1.25rem 1rem; text-align: center;">
-              <div style="display: flex; gap: 0.5rem; justify-content: center;">
+              <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
                 <button onclick="selectMeeting('${meeting.id}', '${safeTitle}')"
                         style="padding: 0.625rem 1.25rem; background: linear-gradient(135deg, #2d75ca 0%, #1a5a9e 100%); color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 10px rgba(45, 117, 202, 0.3);" 
                         onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 15px rgba(45, 117, 202, 0.4)'" 
                         onmouseout="this.style.transform=''; this.style.boxShadow='0 2px 10px rgba(45, 117, 202, 0.3)'">
                   <i class="fas fa-clipboard-check"></i> Lihat
+                </button>
+                <button onclick="openMaterialSelector('${meeting.id}', '${safeTitle}')"
+                        style="padding: 0.625rem 1.25rem; background: linear-gradient(135deg, #48bb78 0%, #2d7d4a 100%); color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 10px rgba(72, 187, 120, 0.3);" 
+                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 15px rgba(72, 187, 120, 0.4)'" 
+                        onmouseout="this.style.transform=''; this.style.boxShadow='0 2px 10px rgba(72, 187, 120, 0.3)'">
+                  <i class="fas fa-book"></i> Materi
                 </button>
                 <button onclick="deleteMeeting('${meeting.id}', '${safeTitle}')" 
                         style="padding: 0.625rem 1.25rem; background: linear-gradient(135deg, #f56565 0%, #c53030 100%); color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 10px rgba(245, 101, 101, 0.3);" 
@@ -795,6 +822,124 @@ async function confirmDeleteMeeting() {
   } catch (error) {
     console.error('Error deleting meeting:', error);
     showNotification('Error', 'Terjadi kesalahan saat menghapus pertemuan', 'error');
+  }
+}
+
+// ========================================
+// MATERIAL SELECTOR FUNCTIONS
+// ========================================
+
+let currentMaterialMeetingId = null;
+let currentMaterialMeetingTitle = null;
+
+// Open material selector modal
+async function openMaterialSelector(meetingId, meetingTitle) {
+  currentMaterialMeetingId = meetingId;
+  currentMaterialMeetingTitle = meetingTitle;
+  
+  try {
+    // Fetch meeting details with materials
+    const response = await fetch(`/api/attendance/meetings/${meetingId}/manage`);
+    const result = await response.json();
+    
+    if (!result.success) {
+      showNotification('Error', 'Gagal memuat data pertemuan', 'error');
+      return;
+    }
+    
+    const { meeting, materials } = result;
+    
+    // Update modal header
+    document.getElementById('materialModalMeetingInfo').textContent = 
+      `Pertemuan: ${meetingTitle} (${new Date(meeting.scheduled_date).toLocaleDateString('id-ID')})`;
+    
+    // Build materials checkboxes
+    let html = '';
+    if (materials && materials.length > 0) {
+      materials.forEach(material => {
+        const checked = material.is_linked ? 'checked' : '';
+        html += `
+          <div style="display: flex; align-items: center; padding: 0.75rem; border-bottom: 1px solid #e2e8f0; transition: background 0.2s;" onmouseover="this.style.background='#edf2f7'" onmouseout="this.style.background='transparent'">
+            <input 
+              type="checkbox" 
+              id="material_${material.id}" 
+              value="${material.id}"
+              class="material-checkbox"
+              ${checked}
+              style="width: 20px; height: 20px; cursor: pointer; accent-color: #2d75ca;"
+            />
+            <label for="material_${material.id}" style="flex: 1; margin-left: 1rem; cursor: pointer; font-weight: 500; color: #2d3748;">
+              ${material.title}
+              <span style="color: #a0aec0; font-size: 0.85rem; margin-left: 0.5rem;">(Urutan ${material.ordinal})</span>
+            </label>
+          </div>
+        `;
+      });
+    } else {
+      html = '<p style="text-align: center; color: #a0aec0; padding: 2rem;">Tidak ada materi untuk kursus ini</p>';
+    }
+    
+    document.getElementById('materialSelectorContainer').innerHTML = html;
+    
+    // Show modal
+    document.getElementById('materialSelectorModal').style.display = 'flex';
+  } catch (error) {
+    console.error('Error opening material selector:', error);
+    showNotification('Error', 'Terjadi kesalahan saat membuka pilihan materi', 'error');
+  }
+}
+
+// Close material selector modal
+function closeMaterialSelectorModal() {
+  document.getElementById('materialSelectorModal').style.display = 'none';
+  currentMaterialMeetingId = null;
+  currentMaterialMeetingTitle = null;
+}
+
+// Save materials to meeting
+async function saveMaterialsToMeeting() {
+  if (!currentMaterialMeetingId) return;
+  
+  try {
+    // Get selected material IDs
+    const checkboxes = document.querySelectorAll('.material-checkbox:checked');
+    const material_ids = Array.from(checkboxes).map(cb => cb.value);
+    
+    // Save to API
+    const response = await fetch(`/api/attendance/meetings/${currentMaterialMeetingId}/materials`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        meeting_id: currentMaterialMeetingId,
+        material_ids: material_ids 
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      showNotification(
+        'Berhasil', 
+        `${material_ids.length} materi berhasil dihubungkan dengan pertemuan "${currentMaterialMeetingTitle}"`, 
+        'success'
+      );
+      closeMaterialSelectorModal();
+      loadMeetingsList();
+    } else {
+      // Check if migration needed
+      if (response.status === 503) {
+        showNotification(
+          'Setup Diperlukan', 
+          'Silakan jalankan file SQL di Supabase:\n\ndb/create_meeting_materials.sql\n\nSetelah itu, refresh halaman ini.', 
+          'error'
+        );
+      } else {
+        showNotification('Gagal', 'Gagal menyimpan pilihan materi: ' + (result.message || result.error), 'error');
+      }
+    }
+  } catch (error) {
+    console.error('Error saving materials:', error);
+    showNotification('Error', 'Terjadi kesalahan saat menyimpan materi', 'error');
   }
 }
 

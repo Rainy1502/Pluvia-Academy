@@ -125,6 +125,14 @@
     z-index: 1;
   }
 
+  .lock-reason {
+    font-size: 0.85rem;
+    color: #e53e3e;
+    font-weight: 600;
+    margin-top: 8px;
+    text-align: center;
+  }
+
   .page-title-materi {
     text-align: center;
     font-size: 2.2rem;
@@ -260,7 +268,7 @@
         {{#if materials.length}}
         <div class="materi-grid">
           {{#each materials}}
-          {{#if this.is_unlocked}}
+          {{#if this.is_accessible}}
           <a href="{{#if this.media_url}}{{this.media_url}}{{else}}#{{/if}}" target="_blank" class="materi-card-link" data-material-id="{{this.id}}">
             <div class="materi-card">
               <div class="materi-thumbnail">
@@ -290,6 +298,15 @@
               </div>
               <div class="materi-content">
                 <h3 class="materi-title">{{this.title}}</h3>
+                {{#if this.access_denied_reason}}
+                  {{#if (eq this.access_denied_reason 'suspended')}}
+                  <p class="lock-reason">Akun Anda di-suspend. Hubungi lecturer untuk mengaktifkan kembali.</p>
+                  {{else if (eq this.access_denied_reason 'absent_from_meeting')}}
+                  <p class="lock-reason">Anda harus hadir di pertemuan ini untuk mengakses materi</p>
+                  {{else if (eq this.access_denied_reason 'not_linked_to_meeting')}}
+                  <p class="lock-reason">Materi belum di-link ke pertemuan apapun</p>
+                  {{/if}}
+                {{/if}}
               </div>
             </div>
           </div>
@@ -356,7 +373,10 @@ document.addEventListener('DOMContentLoaded', function() {
   // Display punishment banner
   displayPunishmentBanner('{{selectedCourse.id}}');
   
-  // Lock materials yang restricted
+  // Material access sudah dihitung di backend via is_accessible property
+  // Jadi tidak perlu AJAX call tambahan - backend sudah handle attendance checking
+  // DISABLED: Lock materials yang restricted via AJAX
+  /*
   document.querySelectorAll('[data-material-id]').forEach(async (element) => {
     const materialId = element.getAttribute('data-material-id');
     if (materialId) {
@@ -393,6 +413,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
   });
+  */
 });
 {{/if}}
 </script>

@@ -501,20 +501,131 @@ app.get('/materi', async (req, res) => {
         // Get user's progress to check which materials are unlocked
         const { data: progress, error: progressError } = await supabase
           .from('progress')
-          .select('material_id')
+          .select('material_id, is_complete')
           .eq('user_id', res.locals.user.id)
           .eq('course_id', selectedCourseId);
 
         if (progressError) throw progressError;
 
-        // Create a set of unlocked material IDs
-        const unlockedMaterialIds = new Set((progress || []).map(p => p.material_id));
+        // Get user's punishment status to check if suspended
+        const { data: enrollment, error: enrollmentError } = await supabase
+          .from('enrollments')
+          .select('punishment_status')
+          .eq('user_id', res.locals.user.id)
+          .eq('course_id', selectedCourseId)
+          .single();
 
-        // Add is_unlocked property to each material
-        const materialsWithAccess = (materials || []).map(material => ({
-          ...material,
-          is_unlocked: unlockedMaterialIds.has(material.id)
-        }));
+        const isSuspended = enrollment?.punishment_status === 'suspended';
+
+        // Get user's attendance to check which meetings they attended
+        const { data: attendance, error: attendanceError } = await supabase
+          .from('attendance')
+          .select('meeting_id, status')
+          .eq('user_id', res.locals.user.id)
+          .eq('course_id', selectedCourseId);
+
+        if (attendanceError) throw attendanceError;
+
+        // Get which materials are linked to which meetings (for this course only)
+        let meetingMaterials = [];
+        
+        if (materials.length > 0) {
+          // Get all meeting-material links for materials in this course
+          const { data: links, error: meetingMaterialsError } = await supabase
+            .from('meeting_materials')
+            .select('meeting_id, material_id')
+            .in('material_id', materials.map(m => m.id));
+
+          if (meetingMaterialsError && meetingMaterialsError.code !== '42P01') {
+            // Ignore if table doesn't exist yet (code 42P01 = table doesn't exist)
+            throw meetingMaterialsError;
+          }
+          
+          if (links && links.length > 0) {
+            // Now we need to verify these are actually meetings in this course
+            // Get all meeting_ids from the links
+            const meetingIds = [...new Set(links.map(l => l.meeting_id))];
+            
+            // Fetch meetings to verify they belong to this course
+            const { data: meetings, error: meetingsError } = await supabase
+              .from('meetings')
+              .select('id, course_id')
+              .in('id', meetingIds);
+            
+            if (meetingsError) throw meetingsError;
+            
+            // Filter links to only include meetings from this course
+            const courseIds = new Set(meetings.map(m => m.id));
+            meetingMaterials = links.filter(l => courseIds.has(l.meeting_id));
+          }
+        }
+
+        // Create a set of unlocked material IDs (from progress)
+        const unlockedMaterialIds = new Set((progress || []).map(p => p.material_id));
+        
+        // Create a set of attended meeting IDs (present or permitted status)
+        const attendedMeetingIds = new Set(
+          (attendance || [])
+            .filter(a => a.status === 'present' || a.status === 'permitted')
+            .map(a => a.meeting_id)
+        );
+
+        // Create a map of material_id -> meeting_ids (which meetings unlock this material)
+        const materialMeetingMap = new Map();
+        (meetingMaterials || []).forEach(mm => {
+          if (!materialMeetingMap.has(mm.material_id)) {
+            materialMeetingMap.set(mm.material_id, []);
+          }
+          materialMeetingMap.get(mm.material_id).push(mm.meeting_id);
+        });
+
+        // Add is_unlocked and is_accessible properties to each material
+        const materialsWithAccess = (materials || []).map(material => {
+          // If student is suspended, ALL materials are locked
+          if (isSuspended) {
+            return {
+              ...material,
+              is_unlocked: false,
+              is_accessible: false,
+              requires_attendance: false,
+              access_denied_reason: 'suspended'
+            };
+          }
+
+          // Check if material is linked to any meetings
+          const linkedMeetingIds = materialMeetingMap.get(material.id) || [];
+          let isAccessible = false;
+          let requiresAttendance = false;
+          let accessDeniedReason = null;
+
+          if (linkedMeetingIds.length > 0) {
+            // Material IS linked to meetings
+            requiresAttendance = true;
+            // Check if student attended at least one of the linked meetings
+            const attendedLinkedMeeting = linkedMeetingIds.some(meetingId => attendedMeetingIds.has(meetingId));
+            
+            if (attendedLinkedMeeting) {
+              // Student attended at least one linked meeting → ACCESSIBLE
+              isAccessible = true;
+            } else {
+              // Student did NOT attend any linked meetings → LOCKED
+              isAccessible = false;
+              accessDeniedReason = 'absent_from_meeting';
+            }
+          } else {
+            // Material NOT linked to any meeting → LOCKED (waiting to be linked)
+            isAccessible = false;
+            accessDeniedReason = 'not_linked_to_meeting';
+          }
+
+          return {
+            ...material,
+            is_unlocked: isAccessible,
+            is_accessible: isAccessible,
+            requires_attendance: requiresAttendance,
+            access_denied_reason: accessDeniedReason
+          };
+        });
 
         // Get course details
         const selectedCourse = courses.find(c => c.id === selectedCourseId);
@@ -1842,15 +1953,105 @@ app.post('/kursus/create', requireAdmin, express.urlencoded({ extended: true }),
   }
 });
 
+// GET Create Materi Form
+app.get('/materi/create', requireAdminOrLecturer, async (req, res) => {
+  try {
+    const { course_id } = req.query;
+
+    // Get all courses
+    const { data: courses, error: coursesError } = await supabase
+      .from('courses')
+      .select('id, title')
+      .order('title', { ascending: true });
+
+    if (coursesError) throw coursesError;
+
+    // Get meetings for selected course (if provided)
+    let meetings = [];
+    if (course_id) {
+      const { data: meetingsData, error: meetingsError } = await supabase
+        .from('meetings')
+        .select('id, title, scheduled_date')
+        .eq('course_id', course_id)
+        .order('scheduled_date', { ascending: true });
+
+      if (!meetingsError && meetingsData) {
+        meetings = meetingsData;
+      }
+    }
+
+    return res.render('admin/materi_form', {
+      title: 'Tambah Materi',
+      courses: courses || [],
+      meetings: meetings,
+      selectedCourseId: course_id || null
+    });
+  } catch (error) {
+    console.error('Error loading materi form:', error);
+    return res.render('admin/materi_form', {
+      title: 'Tambah Materi',
+      courses: [],
+      meetings: [],
+      error: 'Gagal memuat form'
+    });
+  }
+});
+
+// GET Edit Materi Form
+app.get('/materi/:id/edit', requireAdminOrLecturer, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Get material details
+    const { data: material, error: materialError } = await supabase
+      .from('materials')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (materialError || !material) {
+      return res.redirect('/materi');
+    }
+
+    // Get all courses
+    const { data: courses, error: coursesError } = await supabase
+      .from('courses')
+      .select('id, title')
+      .order('title', { ascending: true });
+
+    if (coursesError) throw coursesError;
+
+    // Get meetings for material's course
+    const { data: meetings, error: meetingsError } = await supabase
+      .from('meetings')
+      .select('id, title, scheduled_date')
+      .eq('course_id', material.course_id)
+      .order('scheduled_date', { ascending: true });
+
+    if (meetingsError) throw meetingsError;
+
+    return res.render('admin/materi_form', {
+      title: 'Edit Materi',
+      material: material,
+      courses: courses || [],
+      meetings: meetings || [],
+      selectedCourseId: material.course_id
+    });
+  } catch (error) {
+    console.error('Error loading edit materi form:', error);
+    return res.redirect('/materi');
+  }
+});
+
 // POST Create Materi
 app.post('/materi/create', requireAdminOrLecturer, express.urlencoded({ extended: true }), async (req, res) => {
   try {
     const { title, description, ordinal, thumbnail, media_url, course_id } = req.body;
 
-    if (!title || !ordinal) {
+    if (!title || !media_url) {
       return res.status(400).json({
         success: false,
-        message: 'Judul dan urutan wajib diisi'
+        message: 'Judul dan Media URL wajib diisi'
       });
     }
 
@@ -1867,7 +2068,7 @@ app.post('/materi/create', requireAdminOrLecturer, express.urlencoded({ extended
         title,
         slug,
         description: description || null,
-        ordinal: parseInt(ordinal),
+        ordinal: parseInt(ordinal) || 0,
         thumbnail: thumbnail || null,
         media_url: media_url || null,
         course_id: course_id || null,
@@ -1883,6 +2084,57 @@ app.post('/materi/create', requireAdminOrLecturer, express.urlencoded({ extended
       success: false,
       message: 'Gagal menambahkan materi'
     });
+  }
+});
+
+// ========================================
+// MEETING MANAGEMENT
+// ========================================
+
+// GET Meeting Detail - for managing materials linked to meeting
+app.get('/api/attendance/meetings/:meeting_id/manage', requireAdminOrLecturer, async (req, res) => {
+  try {
+    const { meeting_id } = req.params;
+
+    // Get meeting details
+    const { data: meeting, error: meetingError } = await supabase
+      .from('meetings')
+      .select('id, title, description, scheduled_date, course_id')
+      .eq('id', meeting_id)
+      .single();
+
+    if (meetingError) throw meetingError;
+
+    // Get all materials for this course
+    const { data: materials, error: materialsError } = await supabase
+      .from('materials')
+      .select('id, title, ordinal')
+      .eq('course_id', meeting.course_id)
+      .order('ordinal', { ascending: true });
+
+    if (materialsError) throw materialsError;
+
+    // Get materials already linked to this meeting
+    const { data: linkedMaterials, error: linkedError } = await supabase
+      .from('meeting_materials')
+      .select('material_id')
+      .eq('meeting_id', meeting_id);
+
+    if (linkedError && linkedError.code !== '42P01') throw linkedError;
+
+    const linkedMaterialIds = new Set((linkedMaterials || []).map(lm => lm.material_id));
+
+    res.json({
+      success: true,
+      meeting,
+      materials: (materials || []).map(m => ({
+        ...m,
+        is_linked: linkedMaterialIds.has(m.id)
+      }))
+    });
+  } catch (error) {
+    console.error('Error fetching meeting details:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
@@ -2131,7 +2383,7 @@ app.post('/kursus/:id/edit', requireAdminOrLecturer, express.urlencoded({ extend
 app.post('/materi/:id/edit', requireAdminOrLecturer, express.urlencoded({ extended: true }), async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, ordinal, thumbnail, media_url } = req.body;
+    const { title, description, ordinal, thumbnail, media_url, course_id, meeting_id } = req.body;
 
     if (!title || !ordinal) {
       return res.status(400).json({
@@ -2140,36 +2392,53 @@ app.post('/materi/:id/edit', requireAdminOrLecturer, express.urlencoded({ extend
       });
     }
 
-    // If new thumbnail provided, delete old one
-    if (thumbnail) {
-      const { data: oldMaterial } = await supabase
-        .from('materials')
-        .select('thumbnail')
-        .eq('id', id)
-        .single();
+    // Get current material to know course_id
+    const { data: currentMaterial, error: fetchError } = await supabase
+      .from('materials')
+      .select('course_id, thumbnail')
+      .eq('id', id)
+      .single();
 
-      if (oldMaterial && oldMaterial.thumbnail && oldMaterial.thumbnail !== thumbnail) {
-        try {
-          const url = new URL(oldMaterial.thumbnail);
-          const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/course-images\/(.+)$/);
+    if (fetchError) throw fetchError;
+
+    const resolvedCourseId = course_id || currentMaterial.course_id;
+
+    // If no meeting_id provided, try to auto-detect from course meetings by ordinal
+    let resolvedMeetingId = meeting_id || null;
+    if (!resolvedMeetingId && ordinal && resolvedCourseId) {
+      const { data: meetings, error: meetingsError } = await supabase
+        .from('meetings')
+        .select('id')
+        .eq('course_id', resolvedCourseId)
+        .order('scheduled_date', { ascending: true });
+
+      if (!meetingsError && meetings && meetings.length >= parseInt(ordinal)) {
+        resolvedMeetingId = meetings[parseInt(ordinal) - 1].id;
+      }
+    }
+
+    // If new thumbnail provided, delete old one
+    if (thumbnail && currentMaterial.thumbnail && currentMaterial.thumbnail !== thumbnail) {
+      try {
+        const url = new URL(currentMaterial.thumbnail);
+        const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/course-images\/(.+)$/);
+        
+        if (pathMatch) {
+          const filePath = pathMatch[1];
+          const { createClient } = require('@supabase/supabase-js');
+          const supabaseAdmin = createClient(
+            process.env.SUPABASE_URL,
+            process.env.SUPABASE_SERVICE_ROLE_KEY
+          );
           
-          if (pathMatch) {
-            const filePath = pathMatch[1];
-            const { createClient } = require('@supabase/supabase-js');
-            const supabaseAdmin = createClient(
-              process.env.SUPABASE_URL,
-              process.env.SUPABASE_SERVICE_ROLE_KEY
-            );
-            
-            await supabaseAdmin.storage
-              .from('course-images')
-              .remove([filePath]);
-            
-            console.log('Old thumbnail deleted:', filePath);
-          }
-        } catch (storageError) {
-          console.error('Error deleting old thumbnail:', storageError);
+          await supabaseAdmin.storage
+            .from('course-images')
+            .remove([filePath]);
+          
+          console.log('Old thumbnail deleted:', filePath);
         }
+      } catch (storageError) {
+        console.error('Error deleting old thumbnail:', storageError);
       }
     }
 
@@ -2189,6 +2458,7 @@ app.post('/materi/:id/edit', requireAdminOrLecturer, express.urlencoded({ extend
         ordinal: parseInt(ordinal),
         thumbnail: thumbnail || null,
         media_url: media_url || null,
+        meeting_id: resolvedMeetingId,
         updated_at: new Date().toISOString()
       })
       .eq('id', id);

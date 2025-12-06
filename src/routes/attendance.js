@@ -36,6 +36,19 @@ router.delete('/meetings/:meeting_id', requireAuth, requireLecturerOrAdmin, atte
 router.get('/meetings/course/:course_id', requireAuth, attendanceController.getMeetingsByCourse);
 
 // ============================================
+// MEETING MATERIALS ROUTES
+// ============================================
+
+// Get materials linked to a meeting
+router.get('/meetings/:meeting_id/materials', requireAuth, attendanceController.getMeetingMaterials);
+
+// Link materials to meeting (admin/lecturer only)
+router.post('/meetings/:meeting_id/materials', requireAuth, requireLecturerOrAdmin, attendanceController.linkMaterialsToMeeting);
+
+// Unlink material from meeting (admin/lecturer only)
+router.delete('/meetings/:meeting_id/materials/:material_id', requireAuth, requireLecturerOrAdmin, attendanceController.unlinkMaterialFromMeeting);
+
+// ============================================
 // ATTENDANCE ROUTES
 // ============================================
 

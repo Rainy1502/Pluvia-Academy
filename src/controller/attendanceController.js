@@ -199,6 +199,63 @@ async function markAttendance(req, res) {
 
     if (error) throw error;
 
+    // === MANUALLY UPDATE PUNISHMENT (jangan rely on trigger yang mungkin error) ===
+    // Get current enrollment
+    const { data: currentEnrollment, error: enrollError } = await supabase
+      .from('enrollments')
+      .select('id, consecutive_absence, punishment_status')
+      .eq('user_id', user_id)
+      .eq('course_id', meeting.course_id)
+      .single();
+
+    if (!enrollError && currentEnrollment) {
+      let newConsecutiveAbsence = currentEnrollment.consecutive_absence || 0;
+      let newPunishmentStatus = currentEnrollment.punishment_status || 'none';
+
+      if (status === 'absent') {
+        // Increment consecutive absence
+        newConsecutiveAbsence += 1;
+        
+        // Determine new punishment status
+        if (newConsecutiveAbsence === 1) {
+          newPunishmentStatus = 'warning_1';
+        } else if (newConsecutiveAbsence === 2) {
+          newPunishmentStatus = 'warning_2';
+        } else if (newConsecutiveAbsence >= 3) {
+          newPunishmentStatus = 'suspended';
+        }
+      } else if (status === 'present' || status === 'permitted' || status === 'sick') {
+        // Reset consecutive absence
+        newConsecutiveAbsence = 0;
+        newPunishmentStatus = 'none';
+      }
+
+      // Update enrollment with new punishment status
+      await supabase
+        .from('enrollments')
+        .update({
+          consecutive_absence: newConsecutiveAbsence,
+          punishment_status: newPunishmentStatus,
+          punishment_updated_at: new Date().toISOString()
+        })
+        .eq('id', currentEnrollment.id);
+
+      // Log to punishment_logs for audit trail
+      if (newPunishmentStatus !== currentEnrollment.punishment_status) {
+        await supabase
+          .from('punishment_logs')
+          .insert({
+            user_id,
+            course_id: meeting.course_id,
+            enrollment_id: currentEnrollment.id,
+            action: newPunishmentStatus,
+            consecutive_absence: newConsecutiveAbsence,
+            triggered_by: marked_by,
+            notes: 'Auto-triggered by attendance system'
+          });
+      }
+    }
+
     // Jika absent, tambahkan material restriction untuk materi terkait meeting ini
     if (status === 'absent') {
       // Ambil materials yang terkait dengan meeting ini (berdasarkan ordinal/urutan)
@@ -239,6 +296,8 @@ async function markAttendance(req, res) {
       .eq('user_id', user_id)
       .eq('course_id', meeting.course_id)
       .single();
+
+    console.log(`[DEBUG MARK ATTENDANCE] After marking - enrollment: consecutive_absence=${enrollment?.consecutive_absence}, punishment_status=${enrollment?.punishment_status}`);
 
     res.json({ 
       success: true, 
@@ -361,7 +420,7 @@ async function getPunishmentStatus(req, res) {
 
     if (error) throw error;
 
-    // Get punishment logs
+    console.log(`[DEBUG PUNISHMENT] User ${user_id} in course ${course_id}: consecutive_absence=${data?.consecutive_absence}, punishment_status=${data?.punishment_status}`);
     const { data: logs } = await supabase
       .from('punishment_logs')
       .select('*')
@@ -654,6 +713,117 @@ async function getStudentsByCourse(req, res) {
   }
 }
 
+/**
+ * Get materials linked to a meeting
+ */
+async function getMeetingMaterials(req, res) {
+  try {
+    const { meeting_id } = req.params;
+
+    const { data, error } = await supabase
+      .from('meeting_materials')
+      .select(`
+        material_id,
+        materials(id, title, ordinal)
+      `)
+      .eq('meeting_id', meeting_id)
+      .order('unlock_order', { ascending: true });
+
+    if (error && error.code !== '42P01') throw error;
+
+    res.json({ 
+      success: true, 
+      materials: data ? data.map(m => m.materials).filter(Boolean) : [] 
+    });
+  } catch (error) {
+    console.error('Error fetching meeting materials:', error);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+/**
+ * Link materials to a meeting (admin/lecturer only)
+ */
+async function linkMaterialsToMeeting(req, res) {
+  try {
+    const { meeting_id, material_ids } = req.body;
+
+    if (!meeting_id || !Array.isArray(material_ids)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'meeting_id and material_ids array required' 
+      });
+    }
+
+    // Delete existing links
+    const { error: deleteError } = await supabase
+      .from('meeting_materials')
+      .delete()
+      .eq('meeting_id', meeting_id);
+
+    // Ignore if table doesn't exist (migration not run yet)
+    if (deleteError && deleteError.code !== '42P01') throw deleteError;
+
+    // Insert new links
+    if (material_ids.length > 0) {
+      const linksToCreate = material_ids.map((materialId, idx) => ({
+        meeting_id,
+        material_id: materialId,
+        unlock_order: idx + 1
+      }));
+
+      const { error: insertError } = await supabase
+        .from('meeting_materials')
+        .insert(linksToCreate);
+
+      if (insertError) {
+        if (insertError.code === '42P01') {
+          // Table doesn't exist - migration not run
+          return res.status(503).json({ 
+            success: false, 
+            message: 'Migration belum dijalankan. Jalankan create_meeting_materials.sql di Supabase terlebih dahulu.',
+            error: insertError.message
+          });
+        }
+        throw insertError;
+      }
+    }
+
+    res.json({ 
+      success: true, 
+      message: `${material_ids.length} materials linked to meeting` 
+    });
+  } catch (error) {
+    console.error('Error linking materials to meeting:', error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message 
+    });
+  }
+}
+
+/**
+ * Unlink material from meeting
+ */
+async function unlinkMaterialFromMeeting(req, res) {
+  try {
+    const { meeting_id, material_id } = req.params;
+
+    const { error } = await supabase
+      .from('meeting_materials')
+      .delete()
+      .eq('meeting_id', meeting_id)
+      .eq('material_id', material_id);
+
+    if (error && error.code !== '42P01') throw error;
+
+    res.json({ success: true, message: 'Material unlinked from meeting' });
+  } catch (error) {
+    console.error('Error unlinking material:', error);
+    res.status(500).json({ error: error.message });
+  }
+}
+
 module.exports = {
   createMeeting,
   deleteMeeting,
@@ -667,5 +837,8 @@ module.exports = {
   getPunishmentStatus,
   getStudentsPunishmentStatus,
   checkMaterialAccess,
-  getPunishmentLogs
+  getPunishmentLogs,
+  getMeetingMaterials,
+  linkMaterialsToMeeting,
+  unlinkMaterialFromMeeting
 };
