@@ -1,0 +1,274 @@
+{{> head}}
+
+<style>
+  .site-root {
+    padding: 40px 0;
+    min-height: calc(100vh - 200px);
+  }
+
+  .my-courses-section {
+    width: 100%;
+  }
+
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  .students-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    min-height: calc(100vh - 200px);
+  }
+
+  .management-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .management-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+
+  .management-subtitle {
+    color: #718096;
+    font-size: 1.05rem;
+    margin-bottom: 8px;
+  }
+
+  .students-count {
+    color: #4a5568;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .add-button-wrapper {
+    text-align: center;
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+
+  .add-button {
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+    color: #fff;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+  }
+
+  .add-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4);
+  }
+
+  .add-button::before {
+    content: '←';
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+
+  .students-table-wrapper {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+  }
+
+  .students-grid {
+    display: grid;
+    gap: 20px;
+    padding: 20px;
+  }
+
+  .student-card {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 20px 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    border: 2px solid #e9ecef;
+  }
+
+  .student-card:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-color: #667eea;
+  }
+
+  .student-info-section {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+  }
+
+  .student-avatar {
+    width: 50px;
+    height: 50px;
+    min-width: 50px;
+    min-height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: 700;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    flex-shrink: 0;
+  }
+
+  .student-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1a202c;
+  }
+
+  .student-actions-section {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .btn-student-action {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
+  }
+
+  .btn-student-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .btn-access {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+  }
+
+  .btn-access:hover {
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+  }
+
+  .empty-state h3 {
+    color: #4a5568;
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    font-weight: 700;
+  }
+
+  .empty-state p {
+    color: #718096;
+    font-size: 1.1rem;
+  }
+
+  @media (max-width: 768px) {
+    .management-title {
+      font-size: 2rem;
+    }
+
+    .students-grid {
+      padding: 15px;
+    }
+
+    .student-card {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .student-actions-section {
+      width: 100%;
+      justify-content: stretch;
+    }
+
+    .btn-student-action {
+      flex: 1;
+    }
+  }
+</style>
+
+{{> header}}
+
+<main class="site-root">
+  <section class="my-courses-section">
+    <div class="container">
+      <div class="courses-panel">
+        
+        <div class="management-header">
+          <h1 class="management-title">👥 Daftar Siswa</h1>
+          <p class="management-subtitle">{{courseName}}</p>
+          {{#if students.length}}
+          <p class="students-count">Total: {{students.length}} siswa terdaftar</p>
+          {{/if}}
+        </div>
+
+        <div class="add-button-wrapper">
+          <a href="/kelas" class="add-button">Kembali ke Kelas</a>
+        </div>
+
+        {{#if students.length}}
+        <div class="students-table-wrapper">
+          <div class="students-grid">
+            {{#each students}}
+            <div class="student-card">
+              <div class="student-info-section">
+                <div class="student-avatar">👤</div>
+                <span class="student-name">{{this.full_name}}</span>
+              </div>
+              <div class="student-actions-section">
+                <button class="btn-student-action btn-access" onclick="window.location.href='/kursus/{{../courseId}}/students/{{this.id}}/materi'">📚 Akses Materi</button>
+              </div>
+            </div>
+            {{/each}}
+          </div>
+        </div>
+        {{else}}
+        <div class="empty-state">
+          <h3>👥 Belum Ada Siswa</h3>
+          <p>Siswa akan muncul di sini setelah mendaftar ke kursus ini</p>
+        </div>
+        {{/if}}
+      </div>
+    </div>
+  </section>
+</main>
+
+{{> footer}}

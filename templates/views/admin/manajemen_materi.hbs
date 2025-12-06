@@ -794,7 +794,7 @@ document.addEventListener('DOMContentLoaded', function() {
         submitBtn.textContent = 'Menyimpan...';
         this.submit();
       } catch (error) {
-        alert('Gagal mengunggah gambar: ' + error.message);
+        showNotification('Error', 'Gagal mengunggah file: ' + error.message, 'error');
         submitBtn.disabled = false;
         submitBtn.textContent = originalText;
       }
@@ -830,7 +830,7 @@ document.addEventListener('DOMContentLoaded', function() {
         submitBtn.textContent = 'Menyimpan...';
         this.submit();
       } catch (error) {
-        alert('Gagal mengunggah gambar: ' + error.message);
+        showNotification('Error', 'Gagal mengunggah file: ' + error.message, 'error');
         submitBtn.disabled = false;
         submitBtn.textContent = originalText;
       }

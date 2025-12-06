@@ -690,12 +690,15 @@ app.get('/lecturer', async (req, res) => {
   try {
     const { data: lecturers, error } = await supabase
       .from('users')
-      .select('id, full_name, email, avatar_url, is_active')
+      .select('id, full_name, email, avatar_url, expertise, phone, role_id')
       .eq('role_id', 5) // Lecturer role
-      .eq('is_active', true) // Show only active lecturers
       .order('full_name', { ascending: true });
 
     if (error) throw error;
+
+    // Debug: log lecturers to check role_id
+    console.log('Lecturers fetched:', lecturers?.length, 'entries');
+    lecturers?.forEach(l => console.log(`- ${l.full_name} (role_id: ${l.role_id})`));
 
     return res.render('admin/lecturer', { 
       title: 'Manajemen Lecturer', 
@@ -895,7 +898,11 @@ app.get('/kursus/:id/students', requireAdminOrLecturer, async (req, res) => {
       avatar_url: enrollment.users.avatar_url
     }));
 
-    return res.render('admin/siswa', {
+    // Determine which view to use based on role
+    const isAdmin = res.locals.user && res.locals.user.role_id === 10;
+    const viewPath = isAdmin ? 'admin/siswa' : 'lecturer/siswa';
+
+    return res.render(viewPath, {
       title: `Daftar Student - ${course.title}`,
       courseId: course.id,
       courseName: course.title,
@@ -903,7 +910,10 @@ app.get('/kursus/:id/students', requireAdminOrLecturer, async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching students:', error);
-    return res.status(500).render('admin/siswa', {
+    const isAdmin = res.locals.user && res.locals.user.role_id === 10;
+    const viewPath = isAdmin ? 'admin/siswa' : 'lecturer/siswa';
+    
+    return res.status(500).render(viewPath, {
       title: 'Daftar Siswa',
       courseId,
       courseName: 'Kursus',
@@ -1608,8 +1618,8 @@ app.delete('/kursus/:id', requireAdmin, async (req, res) => {
   }
 });
 
-// DELETE Materi (Admin only)
-app.delete('/materi/:id', requireAdmin, async (req, res) => {
+// DELETE Materi (Admin or Lecturer)
+app.delete('/materi/:id', requireAdminOrLecturer, async (req, res) => {
   try {
     const { id } = req.params;
     
@@ -1742,46 +1752,24 @@ app.delete('/lecturer/:id', requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Soft delete: update is_active to false instead of actual delete
-    // Fetch current user before update for verification
-    const before = await supabase
+    // Hard delete: permanently remove from database
+    const { data, error } = await supabase
       .from('users')
-      .select('*')
-      .match({ id: id, role_id: 5 })
-      .maybeSingle();
-
-    // Perform soft-delete
-    const updateRes = await supabase
-      .from('users')
-      .update({ is_active: false })
-      .match({ id: id, role_id: 5 })
+      .delete()
+      .eq('id', id)
+      .eq('role_id', 5)
       .select();
 
-    // Fetch after update
-    const after = await supabase
-      .from('users')
-      .select('*')
-      .match({ id: id, role_id: 5 })
-      .maybeSingle();
-
-    // Log full debugging info
-    try {
-      console.log('DELETE /lecturer debug:', JSON.stringify({ id, before, updateRes, after }, null, 2));
-    } catch (e) {
-      console.log('DELETE /lecturer debug (raw):', { id, before, updateRes, after });
+    if (error) {
+      console.error('Supabase error deleting lecturer:', error);
+      throw error;
     }
 
-    if (updateRes.error) {
-      console.error('Supabase error deleting lecturer:', updateRes.error);
-      throw updateRes.error;
+    if (!data || data.length === 0) {
+      return res.status(404).json({ success: false, message: 'Lecturer tidak ditemukan' });
     }
 
-    // If no rows were updated, inform the client
-    if (!updateRes.data || updateRes.data.length === 0) {
-      return res.status(404).json({ success: false, message: 'Lecturer tidak ditemukan atau sudah tidak aktif', before: before.data || null, after: after.data || null });
-    }
-
-    return res.status(200).json({ success: true, message: 'Lecturer berhasil dihapus', before: before.data || null, after: after.data || null });
+    return res.status(200).json({ success: true, message: 'Lecturer berhasil dihapus' });
   } catch (error) {
     console.error('Error deleting lecturer:', error);
     return res.status(500).json({ success: false, message: 'Gagal menghapus lecturer' });
@@ -1855,7 +1843,7 @@ app.post('/kursus/create', requireAdmin, express.urlencoded({ extended: true }),
 });
 
 // POST Create Materi
-app.post('/materi/create', requireAdmin, express.urlencoded({ extended: true }), async (req, res) => {
+app.post('/materi/create', requireAdminOrLecturer, express.urlencoded({ extended: true }), async (req, res) => {
   try {
     const { title, description, ordinal, thumbnail, media_url, course_id } = req.body;
 
@@ -2041,7 +2029,7 @@ app.post('/lecturer/create', requireAdmin, express.urlencoded({ extended: true }
 // ========================================
 
 // GET Edit Kursus Form
-app.get('/kursus/:id/edit', requireAdmin, async (req, res) => {
+app.get('/kursus/:id/edit', requireAdminOrLecturer, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -2066,7 +2054,7 @@ app.get('/kursus/:id/edit', requireAdmin, async (req, res) => {
 });
 
 // POST Edit Kursus
-app.post('/kursus/:id/edit', requireAdmin, express.urlencoded({ extended: true }), async (req, res) => {
+app.post('/kursus/:id/edit', requireAdminOrLecturer, express.urlencoded({ extended: true }), async (req, res) => {
   try {
     const { id } = req.params;
     const { title, description, instructor_id, meet_link, thumbnail, schedule_day, schedule_time_start, schedule_time_end } = req.body;
@@ -2140,7 +2128,7 @@ app.post('/kursus/:id/edit', requireAdmin, express.urlencoded({ extended: true }
 });
 
 // POST Edit Materi
-app.post('/materi/:id/edit', requireAdmin, express.urlencoded({ extended: true }), async (req, res) => {
+app.post('/materi/:id/edit', requireAdminOrLecturer, express.urlencoded({ extended: true }), async (req, res) => {
   try {
     const { id } = req.params;
     const { title, description, ordinal, thumbnail, media_url } = req.body;

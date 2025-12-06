@@ -118,7 +118,7 @@ async function getMeetingsByCourse(req, res) {
         creator:created_by(full_name, email)
       `)
       .eq('course_id', course_id)
-      .order('scheduled_date', { ascending: false });
+      .order('created_at', { ascending: true });
 
     if (error) throw error;
 
@@ -641,6 +641,7 @@ async function getStudentsByCourse(req, res) {
     }
 
     const students = enrollments.map(enrollment => ({
+      id: enrollment.user_id,
       user_id: enrollment.user_id,
       full_name: enrollment.users.full_name,
       email: enrollment.users.email
