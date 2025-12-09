@@ -17,6 +17,9 @@ async function checkPunishmentStatus(courseId) {
     if (result.success && result.punishment) {
       const { punishment_status, consecutive_absence } = result.punishment;
       
+      // DEBUG: Log punishment data
+      console.log(`[Punishment Check] Course: ${courseId}, Status: ${punishment_status}, Consecutive: ${consecutive_absence}`);
+      
       return {
         status: punishment_status,
         consecutive_absence,
