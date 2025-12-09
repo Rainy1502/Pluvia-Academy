@@ -119,12 +119,91 @@ Pluvia Academy/
 │       ├── app.js            # Client-side JavaScript (image crop, form validation)
 │       ├── toast.js          # Notification system
 │       └── punishment-utils.js   # Punishment system utilities
-|
+│
+│
 ├── .env.example              # Template environment variables (copy to .env)
 ├── .gitignore               # Git ignore rules (.env, node_modules, etc)
 ├── package.json             # Node.js dependencies
 ├── package-lock.json        # Dependency lock file
 └── README.md                # This file
+```
+
+## 🔧 Pengaturan & Instalasi
+
+### Prasyarat
+- **Node.js** v16 atau lebih baru
+- **PostgreSQL** database (Supabase account)
+- **Email SMTP** untuk OTP (Gmail, SendGrid, atau SMTP lainnya)
+- **Git** untuk version control
+
+### Langkah Instalasi Lengkap
+
+#### 1. Clone Repository
+```bash
+git clone https://github.com/Rainy1502/Pluvia-Academy.git
+cd "Pluvia Academy"
+```
+
+#### 2. Install Dependencies
+```bash
+npm install
+```
+
+#### 3. Setup Supabase Project
+1. Buat akun di [supabase.com](https://supabase.com)
+2. Buat project baru
+3. Jalankan SQL queries dari `db/schema.sql`:
+   ```bash
+   # Di Supabase SQL Editor, copy-paste dan run:
+   # - db/schema.sql (main tables)
+   # - db/payment_system.sql (payment feature)
+   # - db/punishment_system.sql (attendance punishment)
+   ```
+4. Catat `SUPABASE_URL` dan `SUPABASE_SERVICE_ROLE_KEY`
+
+#### 4. Setup Storage Buckets (Supabase)
+1. Buat bucket baru: `course-images`
+2. Set ke Public access
+3. Create folder: `avatars`, `thumbnails`, `materials`
+
+#### 5. Setup File Environment Variables
+Buat file `.env` di root folder dengan variabel-variabel berikut:
+
+**Template `.env` (gunakan nilai sesuai konfigurasi Anda):**
+```
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_KEY=your_anon_key_here
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASS=your_app_password_here
+PORT=3000
+NODE_ENV=development
+```
+
+**⚠️ PENTING:** File `.env` disimpan di `.gitignore` dan TIDAK dipush ke repository untuk keamanan!
+
+#### 6. Buat Admin Account
+Insert user admin di Supabase SQL Editor:
+```sql
+INSERT INTO users (full_name, username, email, password_hash, role_id, is_active, is_verified, created_at)
+VALUES (
+  'Administrator',
+  'admin',
+  'admin@pluvia.academy',
+  'admin123456',
+  10,
+  true,
+  true,
+  NOW()
+);
+```
+
+#### 7. Jalankan Aplikasi
+```bash
+# Development mode (dengan auto-reload)
+npm start
+
+# Akses aplikasi: http://localhost:3000
 ```
 
 ### Testing Checklist
@@ -137,6 +216,18 @@ Pluvia Academy/
 - [ ] Payment process works
 - [ ] Attendance marking works
 - [ ] Profile edit & avatar upload works
+
+## 📝 Environment Variables
+
+| Variabel | Tipe | Deskripsi | Wajib | Contoh |
+|----------|------|-----------|-------|--------|
+| `SUPABASE_URL` | String | URL endpoint Supabase project | ✅ | `https://xxx.supabase.co` |
+| `SUPABASE_KEY` | String | Anonymous/Public key Supabase | ✅ | `eyJhbGciOiJ...` |
+| `SUPABASE_SERVICE_ROLE_KEY` | String | Service Role Key (for admin ops) | ✅ | `eyJhbGciOiJ...` |
+| `EMAIL_USER` | String | Email address untuk SMTP | ✅ | `noreply@pluvia.com` |
+| `EMAIL_PASS` | String | App password atau SMTP password | ✅ | `xxxx xxxx xxxx xxxx` |
+| `PORT` | Number | Server port (default: 3000) | ❌ | `3000` |
+| `NODE_ENV` | String | Environment (development/production) | ❌ | `development` |
 
 ## 🔐 Role & Permissions
 
@@ -236,6 +327,41 @@ GET    /attendance         → Attendance page
 POST   /attendance/mark    → Mark attendance
 ```
 
+## 🐛 Troubleshooting
+
+### Database Connection Error
+```
+Error: connect ECONNREFUSED 127.0.0.1:5432
+```
+**Solusi:**
+- Verifikasi `SUPABASE_URL` dan keys di `.env`
+- Cek status Supabase project di dashboard
+- Pastikan service role key memiliki permissions
+
+### OTP Email Tidak Terkirim
+```
+Error: Invalid login credentials
+```
+**Solusi:**
+- Gmail: Gunakan [App Password](https://myaccount.google.com/apppasswords)
+- Enable 2-Factor Authentication
+- Verify email sender address di `.env`
+
+### File Upload Fails
+```
+Error: File too large
+```
+**Solusi:**
+- Max file size: 10MB
+- Supported formats: JPEG, PNG, GIF, WebP (images), PDF
+- Check Supabase Storage bucket permissions
+
+### Session Expires Too Quickly
+**Solusi:**
+- Session cookie lifetime default: 7 hari
+- Cookies require HttpOnly & SameSite flags
+- Check browser cookie settings
+
 ## 📊 Project Statistics
 
 | Metric | Value |
@@ -250,7 +376,7 @@ POST   /attendance/mark    → Mark attendance
 
 ## 🤝 Tim Pengembang
 
-**Pluvia Academy** dikembangkan sebagai Final Project mata kuliah **Interaksi Manusia dan Komputer (Semester 5)** di Universitas Negeri padang.
+**Pluvia Academy** dikembangkan sebagai Final Project mata kuliah **Interaksi Manusia dan Komputer (Semester 5)** di Universitas.
 
 | Nama | Role | Kontribusi |
 |------|------|-----------|
@@ -261,18 +387,61 @@ POST   /attendance/mark    → Mark attendance
 - ✅ 31 commits dalam 3 minggu development
 - ✅ 16,000+ lines of production code
 - ✅ 25+ fully functional features
-- ✅ 100% test coverage
+- ✅ 100% test coverage (manual)
 - ✅ Production-ready LMS platform
 
 ## 📄 Lisensi
 
-Proyek ini dibuat untuk tujuan memenuhi tugas akhir mata kuliah Interaksi Manusia dan Komputer.
+Proyek ini dibuat untuk tujuan edukasi mata kuliah Interaksi Manusia dan Komputer.
 
 ```
 MIT License
 
 Copyright (c) 2025 Dolly Anggara & Fattan Naufan Islami
 ```
+
+## 📞 Kontak & Support
+
+**GitHub Repository:**
+- https://github.com/Rainy1502/Pluvia-Academy
+
+**Kontributor:**
+- Fattan Naufan Islami: [@Rainy1502](https://github.com/Rainy1502)
+- Dolly Anggara: [@DollyAnggara](https://github.com/DollyAnggara)
+
+**Untuk pertanyaan atau laporan bug:**
+- Buat issue di GitHub repository
+- Hubungi tim development
+
+---
+
+## 🎯 Roadmap & Future Improvements
+
+### Fitur yang Sudah Diimplementasikan ✅
+- [x] User authentication dengan OTP
+- [x] Role-based access control
+- [x] Course management (CRUD)
+- [x] Material management with meeting links
+- [x] Attendance tracking system
+- [x] Payment processing with promo codes
+- [x] Lecturer management
+- [x] Responsive UI with animations
+- [x] Profile management with avatar upload
+- [x] Live class integration
+
+### Fitur Potential untuk Masa Depan 🔮
+- [ ] Video streaming integration
+- [ ] Quiz & assessment system
+- [ ] Certificate generation
+- [ ] Email notifications untuk updates
+- [ ] SMS notifications
+- [ ] Mobile app (React Native)
+- [ ] Advanced analytics & reporting
+- [ ] Refund system
+- [ ] Wishlist feature
+- [ ] Course ratings & reviews
+
+---
 
 **Last Updated**: December 2025  
 **Version**: 1.0.0  
