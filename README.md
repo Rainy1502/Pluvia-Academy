@@ -120,8 +120,6 @@ Pluvia Academy/
 │       ├── toast.js          # Notification system
 │       └── punishment-utils.js   # Punishment system utilities
 |
-├── .env.example              # Template environment variables (copy to .env)
-├── .gitignore               # Git ignore rules (.env, node_modules, etc)
 ├── package.json             # Node.js dependencies
 ├── package-lock.json        # Dependency lock file
 └── README.md                # This file
