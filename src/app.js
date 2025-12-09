@@ -1568,12 +1568,13 @@ app.get('/profile/edit', requireLogin, async (req, res) => {
 // POST /profile/edit - update profile
 app.post('/profile/edit', requireLogin, express.urlencoded({ extended: true }), async (req, res) => {
   try {
-    const { fullName, phone, email, password, removeAvatar, avatar_url } = req.body;
+    const { fullName, phone, email, password, confirmPassword, removeAvatar, avatar_url } = req.body;
     const userId = res.locals.user.id;
 
     // Prepare update data
     const updateData = {
       full_name: fullName,
+      username: fullName,
       phone: phone,
       email: email
     };
@@ -1640,8 +1641,24 @@ app.post('/profile/edit', requireLogin, express.urlencoded({ extended: true }), 
 
     // Only update password if provided
     if (password && password.trim() !== '') {
-      // TODO: Hash password before storing (use bcrypt or similar)
-      updateData.password = password;
+      // Validate password confirmation
+      if (password !== confirmPassword) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Password dan konfirmasi password tidak cocok' 
+        });
+      }
+
+      // Validate password length (minimum 6 characters)
+      if (password.length < 6) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Password minimal 6 karakter' 
+        });
+      }
+
+      // Update password in database (store as password_hash)
+      updateData.password_hash = password;
     }
 
     // Update user data
