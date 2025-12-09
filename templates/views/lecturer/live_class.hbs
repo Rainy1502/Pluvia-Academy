@@ -1,0 +1,330 @@
+{{> head}}
+{{> header}}
+
+<style>
+  .live-class-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .video-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    margin-bottom: 40px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .video-wrapper:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+  }
+
+  .video-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .course-description-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    padding: 32px;
+    border-radius: 16px;
+    margin-bottom: 40px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 123, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .course-description-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, #007bff, #00d4ff);
+  }
+
+  .course-description-card h3 {
+    color: #007bff;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .course-description-card h3::before {
+    content: '📚';
+    font-size: 1.8rem;
+  }
+
+  .course-description-card p {
+    color: #4a5568;
+    line-height: 1.8;
+    font-size: 1.05rem;
+    margin: 0;
+    text-align: justify;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .btn-live-class {
+    padding: 16px 48px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    border-radius: 12px;
+    text-decoration: none;
+    min-width: 200px;
+    text-align: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    position: relative;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .btn-live-class::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s ease, height 0.6s ease;
+  }
+
+  .btn-live-class:hover::before {
+    width: 300px;
+    height: 300px;
+  }
+
+  .btn-live-class:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+  }
+
+  .btn-live-class:active {
+    transform: translateY(-1px);
+  }
+
+  .btn-join {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    border: none;
+  }
+
+  .btn-join:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    color: #fff;
+  }
+
+  .btn-join::after {
+    content: '🚀';
+    font-size: 1.2rem;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .live-class-container > * {
+    animation: fadeInUp 0.6s ease-out backwards;
+  }
+
+  .live-class-container > *:nth-child(1) {
+    animation-delay: 0.1s;
+  }
+
+  .live-class-container > *:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .live-class-container > *:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+
+  .course-title-header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .course-title-header h2 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #00d4ff 0%, #007bff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 10px;
+  }
+
+  .course-title-header .subtitle {
+    color: #718096;
+    font-size: 1.1rem;
+    font-weight: 500;
+  }
+
+  .btn-back-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #fff;
+    color: #007bff;
+    border: 2px solid #007bff;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
+    margin-bottom: 20px;
+  }
+
+  .btn-back-live:hover {
+    background: #007bff;
+    color: #fff;
+    transform: translateX(-5px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+  }
+
+  .btn-back-live::before {
+    content: '←';
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+
+  .btn-attendance-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #28a745;
+    color: #fff;
+    border: 2px solid #28a745;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
+    margin-bottom: 20px;
+  }
+
+  .btn-attendance-live:hover {
+    background: #218838;
+    border-color: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+  }
+
+  .btn-attendance-live::before {
+    content: '✓';
+    font-size: 1.3rem;
+    font-weight: bold;
+  }
+
+  .header-buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .header-left {
+    display: flex;
+    gap: 12px;
+  }
+
+  .header-right {
+    display: flex;
+    gap: 12px;
+  }
+</style>
+
+<main class="site-root">
+  <section class="my-courses-section">
+    <div class="container">
+      <div class="courses-panel">
+        {{#if course}}
+        <div class="live-class-container">
+          <!-- Header Buttons -->
+          <div class="header-buttons">
+            <div class="header-left">
+              <a href="/kelas" class="btn-back-live">Kembali ke Kursus</a>
+            </div>
+            <div class="header-right">
+              <a href="/manajemen_absensi?course_id={{course.id}}" class="btn-attendance-live">Catat Kehadiran</a>
+            </div>
+          </div>
+
+          <!-- Course Title -->
+          <div class="course-title-header">
+            <h2>{{course.title}}</h2>
+            <p class="subtitle">Pembelajaran Interaktif untuk Masa Depan Anda</p>
+          </div>
+
+          <!-- Video/Image Placeholder -->
+          <div class="video-wrapper">
+            {{#if course.thumbnail}}
+            <img src="{{course.thumbnail}}" alt="{{course.title}}" loading="lazy"/>
+            {{else}}
+            <img src="/img/banner.png" alt="{{course.title}}" loading="lazy"/>
+            {{/if}}
+          </div>
+
+          <!-- Course Description -->
+          {{#if course.description}}
+          <div class="course-description-card">
+            <h3>Tentang Kursus Ini</h3>
+            <p>{{course.description}}</p>
+          </div>
+          {{/if}}
+
+          <!-- Action Buttons -->
+          <div class="action-buttons">
+            {{#if course.meet_link}}
+            <a href="{{course.meet_link}}" target="_blank" class="btn-live-class btn-join">
+              Join Kelas Live
+            </a>
+            {{/if}}
+          </div>
+        </div>
+        {{else}}
+        <div class="empty-courses empty-centered">
+          <p class="empty-message">Kursus tidak ditemukan.</p>
+          <a href="/kursus" class="btn-primary empty-cta">Kembali ke Kursus</a>
+        </div>
+        {{/if}}
+      </div>
+    </div>
+  </section>
+</main>
+
+{{> footer}}

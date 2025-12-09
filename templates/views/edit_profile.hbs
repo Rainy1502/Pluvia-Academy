@@ -365,6 +365,24 @@ document.addEventListener('DOMContentLoaded', function() {
   form.addEventListener('submit', async function(e) {
     e.preventDefault();
     
+    // Validate password fields
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    
+    if (password || confirmPassword) {
+      // If either field has value, both must match
+      if (password !== confirmPassword) {
+        alert('Password dan konfirmasi password tidak cocok!');
+        return;
+      }
+      
+      // Minimum password length
+      if (password.length < 6) {
+        alert('Password minimal 6 karakter!');
+        return;
+      }
+    }
+    
     const submitBtn = this.querySelector('button[type="submit"]');
     const originalText = submitBtn.textContent;
     

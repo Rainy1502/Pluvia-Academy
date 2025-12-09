@@ -1,0 +1,1206 @@
+{{> head title="Manajemen Meeting & Absensi"}}
+
+<style>
+  .attendance-page {
+    background: #2d75ca;
+    min-height: 100vh;
+    padding: 8rem 0 2rem 0;
+  }
+
+  .attendance-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+
+  .header-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 24px;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .header-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, #2d75ca, #ffd766);
+  }
+
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+  }
+
+  .header-text h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #2d75ca 0%, #1a5a9e 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+  }
+
+  .header-text p {
+    color: #718096;
+    font-size: 1.1rem;
+    font-weight: 500;
+  }
+
+  .btn-create-meeting {
+    background: linear-gradient(135deg, #2d75ca 0%, #1a5a9e 100%);
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 16px;
+    font-weight: 700;
+    font-size: 1.05rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 20px rgba(45, 117, 202, 0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .btn-create-meeting:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(45, 117, 202, 0.4);
+  }
+
+  .btn-create-meeting i {
+    font-size: 1.2rem;
+  }
+
+  .course-select-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    border: 2px solid #e2e8f0;
+    transition: all 0.3s ease;
+  }
+
+  .course-select-card:hover {
+    border-color: #2d75ca;
+    box-shadow: 0 10px 40px rgba(45, 117, 202, 0.15);
+  }
+
+  .tabs-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+
+  .tabs-nav {
+    display: flex;
+    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+    border-bottom: 2px solid #e2e8f0;
+  }
+
+  .tab-button {
+    flex: 1;
+    padding: 1.25rem 1.5rem;
+    background: transparent;
+    border: none;
+    font-weight: 700;
+    font-size: 1rem;
+    color: #718096;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .tab-button::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #2d75ca, #ffd766);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+  }
+
+  .tab-button:hover {
+    color: #2d75ca;
+    background: rgba(45, 117, 202, 0.05);
+  }
+
+  .tab-button.active {
+    color: #2d75ca;
+    background: white;
+  }
+
+  .tab-button.active::after {
+    transform: scaleX(1);
+  }
+
+  .tab-button i {
+    font-size: 1.2rem;
+  }
+
+  .content-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    min-height: 400px;
+  }
+
+  .content-title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #2d3748;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .content-title i {
+    color: #2d75ca;
+  }
+
+  @media (max-width: 768px) {
+    .header-content {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .header-text h1 {
+      font-size: 2rem;
+    }
+
+    .tabs-nav {
+      flex-direction: column;
+    }
+
+    .tab-button {
+      border-bottom: 1px solid #e2e8f0;
+    }
+  }
+
+  /* Custom Notification Styles */
+  .custom-notification {
+    position: fixed;
+    top: 100px;
+    right: 30px;
+    min-width: 350px;
+    max-width: 500px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    padding: 1.5rem;
+    z-index: 10000;
+    animation: slideInRight 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    border-left: 6px solid #2d75ca;
+  }
+
+  .custom-notification.success {
+    border-left-color: #48bb78;
+  }
+
+  .custom-notification.error {
+    border-left-color: #f56565;
+  }
+
+  .custom-notification.warning {
+    border-left-color: #ed8936;
+  }
+
+  @keyframes slideInRight {
+    from {
+      transform: translateX(400px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  .notification-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .notification-icon {
+    font-size: 2rem;
+  }
+
+  .notification-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #2d3748;
+    flex: 1;
+  }
+
+  .notification-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #a0aec0;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    transition: color 0.2s;
+  }
+
+  .notification-close:hover {
+    color: #718096;
+  }
+
+  .notification-message {
+    color: #4a5568;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-left: 3rem;
+  }
+
+  /* Logout message specific styling */
+  .logout-message {
+    text-align: center;
+    margin-bottom: 24px;
+    color: #000;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+</style>
+
+<div class="attendance-page">
+  {{> header}}
+  
+  <div class="attendance-container">
+    <!-- Header with Course Info -->
+    {{#if course}}
+    <div class="header-card">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap;">
+        <div class="header-text" style="flex: 1;">
+          <h1>📋 Catat Kehadiran Siswa</h1>
+          <p>Tandai kehadiran siswa untuk live class yang sedang berlangsung</p>
+        </div>
+        <a href="/kelas" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; background: white; color: #2d75ca; border: 2px solid #2d75ca; border-radius: 10px; text-decoration: none; font-weight: 700; transition: all 0.3s; white-space: nowrap; align-self: flex-start;" onmouseover="this.style.background='#2d75ca'; this.style.color='white'" onmouseout="this.style.background='white'; this.style.color='#2d75ca'">
+          <i class="fas fa-arrow-left"></i>
+          Kembali ke Kelas
+        </a>
+      </div>
+      
+      <!-- Course Info inside header -->
+      <div style="display: flex; align-items: center; gap: 1rem; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid #e2e8f0;">
+        <i class="fas fa-graduation-cap" style="font-size: 2rem; color: #2d75ca;"></i>
+        <div style="flex: 1;">
+          <p style="font-size: 0.85rem; color: #718096; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Kursus</p>
+          <h3 style="font-size: 1.5rem; font-weight: 800; color: #2d3748; margin: 0 0 0.5rem 0;">{{course.title}}</h3>
+          {{#if course.meet_link}}
+          <a href="{{course.meet_link}}" target="_blank" style="display: inline-flex; align-items: center; gap: 0.5rem; color: #2d75ca; text-decoration: none; font-weight: 600; font-size: 0.95rem;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">
+            <i class="fas fa-video"></i>
+            Buka Google Meet ↗
+          </a>
+          {{else}}
+          <p style="color: #e53e3e; font-size: 0.9rem; font-weight: 600;"><i class="fas fa-exclamation-triangle"></i> Link Google Meet belum diatur</p>
+          {{/if}}
+        </div>
+      </div>
+    </div>
+
+    <!-- Meeting Title Input & Create (Separate card) -->
+    <div class="course-select-card" style="background: linear-gradient(135deg, #2d75ca 0%, #1a5a9e 100%); border: none;">
+      <div style="display: flex; align-items: flex-end; gap: 1.5rem; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 300px;">
+          <label for="meetingTitle" style="display: block; font-size: 0.85rem; color: rgba(255, 255, 255, 0.9); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">📝 Judul Pertemuan Baru</label>
+          <input type="text" id="meetingTitle" placeholder="Contoh: Pertemuan 1, Week 2 - React Hooks, dll" style="width: 100%; padding: 0.875rem 1.25rem; border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 12px; font-size: 1.05rem; font-weight: 600; background: rgba(255, 255, 255, 0.95); color: #2d3748; transition: all 0.3s;" onfocus="this.style.background='white'; this.style.borderColor='white'" onblur="this.style.background='rgba(255, 255, 255, 0.95)'; this.style.borderColor='rgba(255, 255, 255, 0.3)'">
+        </div>
+        <button onclick="createNewMeeting()" style="padding: 0.875rem 2rem; background: #ffd766; color: #0b1220; border: 2px solid #ffd766; border-radius: 12px; font-weight: 700; font-size: 1.05rem; cursor: pointer; transition: all 0.3s; white-space: nowrap; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);" onmouseover="this.style.background='rgba(255,215,102,0.9)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='#ffd766'; this.style.transform='translateY(0)'">
+          <i class="fas fa-plus-circle"></i> Buat Pertemuan
+        </button>
+      </div>
+      <p style="font-size: 0.85rem; color: rgba(255, 255, 255, 0.85); margin-top: 1rem; font-weight: 500;"><i class="fas fa-info-circle"></i> Buat pertemuan baru, lalu pilih untuk menandai kehadiran siswa</p>
+    </div>
+    {{/if}}
+
+    <!-- Meeting List -->
+    {{#if course}}
+    <div class="content-card" style="margin-top: 1.5rem;">
+      <h2 class="content-title">
+        <i class="fas fa-calendar-alt"></i>
+        Daftar Pertemuan
+      </h2>
+      <div id="meetings-list">
+        <div style="text-align: center; padding: 4rem 2rem;">
+          <div style="font-size: 4rem; margin-bottom: 1rem;">📅</div>
+          <p style="color: #718096; font-size: 1.1rem; font-weight: 600;">Memuat daftar pertemuan...</p>
+        </div>
+      </div>
+    </div>
+    {{/if}}
+
+    <!-- Student Attendance List -->
+    <div class="content-card" style="margin-top: 1.5rem;">
+      <h2 class="content-title">
+        <i class="fas fa-user-graduate"></i>
+        Daftar Kehadiran Siswa
+      </h2>
+      <div id="attendance-info" style="background: #f7fafc; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; border-left: 4px solid #2d75ca; display: none;">
+        <p style="font-size: 0.9rem; color: #4a5568; font-weight: 600;"><i class="fas fa-info-circle"></i> <span id="selected-meeting-title">Pilih pertemuan di atas untuk melihat daftar kehadiran</span></p>
+      </div>
+      <div id="students-list">
+        <div style="text-align: center; padding: 4rem 2rem;">
+          <div style="font-size: 4rem; margin-bottom: 1rem;">👥</div>
+          <p style="color: #718096; font-size: 1.1rem; font-weight: 600;">Memuat daftar siswa...</p>
+        </div>
+  </div>
+</div>
+
+<!-- Material Selector Modal -->
+<div id="materialSelectorModal" class="kursus-modal" style="display: none;">
+  <div class="kursus-modal-content logout-modal-content" style="max-width: 600px; max-height: 80vh; overflow-y: auto;">
+    <div class="modal-logo">
+      <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="modal-logo-img">
+      <h2>Pluvia Academy</h2>
+    </div>
+    <h3 class="modal-title" style="margin-bottom: 0.5rem;">Pilih Materi untuk Pertemuan</h3>
+    <p style="color: #718096; font-size: 0.95rem; margin-bottom: 1.5rem;" id="materialModalMeetingInfo"></p>
+    
+    <div id="materialSelectorContainer" style="background: #f7fafc; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; max-height: 400px; overflow-y: auto;">
+      <!-- Materials checkboxes will be inserted here -->
+    </div>
+    
+    <div class="modal-actions">
+      <button type="button" class="modal-btn modal-btn-logout" onclick="saveMaterialsToMeeting()">Simpan Pilihan</button>
+      <button type="button" class="modal-btn modal-btn-batal" onclick="closeMaterialSelectorModal()">Batal</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Meeting Confirmation Modal -->
+<div id="deleteMeetingModal" class="kursus-modal">
+  <div class="kursus-modal-content logout-modal-content">
+    <div class="modal-logo">
+      <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="modal-logo-img">
+      <h2>Pluvia Academy</h2>
+    </div>
+    <h3 class="modal-title">Hapus Pertemuan?</h3>
+    <p class="logout-message" id="deleteMeetingMessage" style="text-align: center; margin-bottom: 24px;">
+      Apakah Anda yakin ingin menghapus pertemuan ini?<br>
+      Semua data kehadiran untuk pertemuan ini akan ikut terhapus.
+    </p>
+    <div class="modal-actions">
+      <button type="button" class="modal-btn modal-btn-logout" onclick="confirmDeleteMeeting()">Ya, Hapus</button>
+      <button type="button" class="modal-btn modal-btn-batal" onclick="closeDeleteMeetingModal()">Batal</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Mark Student Attendance Status -->
+<div id="markAttendanceModal" class="modal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center;">
+  <div style="background: white; border-radius: 24px; padding: 2.5rem; max-width: 500px; width: 90%; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+      <h2 style="font-size: 1.75rem; font-weight: 800; background: linear-gradient(135deg, #2d75ca 0%, #1a5a9e 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">✓ Tandai Kehadiran</h2>
+      <button onclick="closeMarkAttendanceModal()" style="background: none; border: none; font-size: 1.5rem; color: #718096; cursor: pointer; transition: color 0.3s;">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div id="modalStudentInfo" style="background: #f7fafc; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem;">
+      <!-- Student info will be inserted here -->
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+      <button onclick="markStudentStatus('present')" style="padding: 1.5rem 1rem; background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; border: none; border-radius: 16px; font-weight: 700; font-size: 1.05rem; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(72, 187, 120, 0.4)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 15px rgba(72, 187, 120, 0.3)'">
+        <i class="fas fa-check-circle" style="font-size: 2rem; display: block; margin-bottom: 0.5rem;"></i>
+        Hadir
+      </button>
+      <button onclick="markStudentStatus('absent')" style="padding: 1.5rem 1rem; background: linear-gradient(135deg, #fc8181 0%, #f56565 100%); color: white; border: none; border-radius: 16px; font-weight: 700; font-size: 1.05rem; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(252, 129, 129, 0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(252, 129, 129, 0.4)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 15px rgba(252, 129, 129, 0.3)'">
+        <i class="fas fa-times-circle" style="font-size: 2rem; display: block; margin-bottom: 0.5rem;"></i>
+        Tidak Hadir
+      </button>
+      <button onclick="markStudentStatus('permitted')" style="padding: 1.5rem 1rem; background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%); color: white; border: none; border-radius: 16px; font-weight: 700; font-size: 1.05rem; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(66, 153, 225, 0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(66, 153, 225, 0.4)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 15px rgba(66, 153, 225, 0.3)'">
+        <i class="fas fa-file-alt" style="font-size: 2rem; display: block; margin-bottom: 0.5rem;"></i>
+        Izin
+      </button>
+      <button onclick="markStudentStatus('sick')" style="padding: 1.5rem 1rem; background: linear-gradient(135deg, #9f7aea 0%, #805ad5 100%); color: white; border: none; border-radius: 16px; font-weight: 700; font-size: 1.05rem; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(159, 122, 234, 0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(159, 122, 234, 0.4)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 4px 15px rgba(159, 122, 234, 0.3)'">
+        <i class="fas fa-hospital" style="font-size: 2rem; display: block; margin-bottom: 0.5rem;"></i>
+        Sakit
+      </button>
+    </div>
+  </div>
+</div><!-- Modal: Create Meeting -->
+<div id="createMeetingModal" class="modal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center;">
+  <div style="background: white; border-radius: 24px; padding: 2.5rem; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+      <h2 style="font-size: 1.75rem; font-weight: 800; background: linear-gradient(135deg, #2d75ca 0%, #1a5a9e 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">✨ Buat Meeting Baru</h2>
+      <button onclick="closeCreateMeetingModal()" style="background: none; border: none; font-size: 1.5rem; color: #718096; cursor: pointer; transition: color 0.3s;">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <form id="createMeetingForm" onsubmit="submitCreateMeeting(event)">
+      <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <input type="hidden" name="course_id" value="{{course.id}}">
+        <div style="background: #f7fafc; padding: 1rem; border-radius: 12px; border-left: 4px solid #2d75ca; margin-bottom: 0.5rem;">
+          <p style="font-size: 0.85rem; color: #718096; font-weight: 600; margin-bottom: 0.25rem;">📚 Kursus</p>
+          <p style="font-size: 1.1rem; font-weight: 700; color: #2d3748;">{{course.title}}</p>
+        </div>
+        <div>
+          <label style="display: block; font-weight: 700; color: #2d3748; margin-bottom: 0.5rem; font-size: 0.95rem;">📝 Judul Meeting *</label>
+          <input type="text" name="title" required placeholder="Contoh: Pertemuan 1 - Pengenalan" style="width: 100%; padding: 0.875rem 1rem; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 1rem; transition: all 0.3s;">
+        </div>
+        <div>
+          <label style="display: block; font-weight: 700; color: #2d3748; margin-bottom: 0.5rem; font-size: 0.95rem;">💬 Deskripsi</label>
+          <textarea name="description" rows="3" placeholder="Deskripsi singkat tentang meeting ini" style="width: 100%; padding: 0.875rem 1rem; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 1rem; transition: all 0.3s; resize: vertical;"></textarea>
+        </div>
+        <div>
+          <label style="display: block; font-weight: 700; color: #2d3748; margin-bottom: 0.5rem; font-size: 0.95rem;">🔗 Link Google Meet</label>
+          <input type="url" name="meet_link" placeholder="https://meet.google.com/xxx-xxxx-xxx" style="width: 100%; padding: 0.875rem 1rem; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 1rem; transition: all 0.3s;">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div>
+            <label style="display: block; font-weight: 700; color: #2d3748; margin-bottom: 0.5rem; font-size: 0.95rem;">📅 Tanggal & Waktu *</label>
+            <input type="datetime-local" name="scheduled_date" required style="width: 100%; padding: 0.875rem 1rem; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 1rem; transition: all 0.3s;">
+          </div>
+          <div>
+            <label style="display: block; font-weight: 700; color: #2d3748; margin-bottom: 0.5rem; font-size: 0.95rem;">⏱�E�EDurasi (menit)</label>
+            <input type="number" name="duration_minutes" value="60" min="15" max="300" style="width: 100%; padding: 0.875rem 1rem; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 1rem; transition: all 0.3s;">
+          </div>
+        </div>
+      </div>
+      <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+        <button type="submit" style="flex: 1; background: linear-gradient(135deg, #2d75ca 0%, #1a5a9e 100%); color: white; padding: 1rem; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(45, 117, 202, 0.3);">
+          ✁EBuat Meeting
+        </button>
+        <button type="button" onclick="closeCreateMeetingModal()" style="padding: 1rem 1.5rem; border: 2px solid #e2e8f0; border-radius: 12px; font-weight: 700; background: white; color: #718096; cursor: pointer; transition: all 0.3s;">
+          Batal
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Attendance -->
+<div id="attendanceModal" class="modal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center;">
+  <div style="background: white; border-radius: 24px; padding: 2.5rem; max-width: 900px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+      <h2 id="attendanceModalTitle" style="font-size: 1.75rem; font-weight: 800; background: linear-gradient(135deg, #2d75ca 0%, #1a5a9e 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">📋 Catat Kehadiran</h2>
+      <button onclick="closeAttendanceModal()" style="background: none; border: none; font-size: 1.5rem; color: #718096; cursor: pointer; transition: color 0.3s;">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div id="attendanceContent">
+      <!-- Will be populated by JavaScript -->
+    </div>
+  </div>
+</div>
+
+<style>
+.tab-button.active {
+  color: #2d75ca;
+  border-bottom-color: #2d75ca;
+}
+
+.badge-warning_1 {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badge-warning_2 {
+  background: #fed7aa;
+  color: #9a3412;
+}
+
+.badge-suspended {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.badge-none {
+  background: #d1fae5;
+  color: #065f46;
+}
+</style>
+
+<script>
+let currentCourseId = '{{course.id}}';
+let currentStudentId = null;
+let currentStudentName = null;
+let currentMeetingId = null;
+let currentMeetingTitle = null;
+let pendingDeleteMeetingId = null;
+let pendingDeleteMeetingTitle = null;
+
+// Debug: Check if courseId is set
+console.log('Current Course ID:', currentCourseId);
+console.log('Course Title:', '{{course.title}}');
+
+if (!currentCourseId || currentCourseId === '') {
+  console.error('CRITICAL ERROR: Course ID is not set!');
+  alert('Error: Course ID tidak ditemukan. Silakan kembali ke halaman kelas.');
+} else {
+  console.log('Course ID is valid, initializing...');
+}
+
+// Custom Notification Function
+function showNotification(title, message, type = 'success') {
+  // Remove existing notification if any
+  const existing = document.querySelector('.custom-notification');
+  if (existing) {
+    existing.remove();
+  }
+
+  // Create notification element
+  const notification = document.createElement('div');
+  notification.className = `custom-notification ${type}`;
+  
+  const icons = {
+    success: '✅',
+    error: '❌',
+    warning: '⚠️',
+    info: 'ℹ️'
+  };
+
+  notification.innerHTML = `
+    <div class="notification-header">
+      <span class="notification-icon">${icons[type] || icons.info}</span>
+      <h3 class="notification-title">${title}</h3>
+      <button class="notification-close" onclick="this.parentElement.parentElement.remove()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <p class="notification-message">${message}</p>
+  `;
+
+  document.body.appendChild(notification);
+
+  // Auto remove after 4 seconds
+  setTimeout(() => {
+    if (notification.parentElement) {
+      notification.style.animation = 'slideInRight 0.3s reverse';
+      setTimeout(() => notification.remove(), 300);
+    }
+  }, 4000);
+}
+
+// Load on page load
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('Page loaded, currentCourseId:', currentCourseId);
+  if (currentCourseId && currentCourseId !== '') {
+    loadMeetingsList();
+    loadAllStudents(); // Load students list initially
+  } else {
+    console.error('Course ID is not set!');
+  }
+});
+
+// Create new meeting
+async function createNewMeeting() {
+  console.log('=== CREATE NEW MEETING CLICKED ===');
+  console.log('Current Course ID:', currentCourseId);
+  
+  const meetingTitle = document.getElementById('meetingTitle').value.trim();
+  console.log('Meeting Title:', meetingTitle);
+  
+  if (!meetingTitle) {
+    showNotification('Peringatan', 'Silakan isi judul pertemuan terlebih dahulu!', 'warning');
+    document.getElementById('meetingTitle').focus();
+    return;
+  }
+  
+  console.log('Sending create meeting request...');
+  
+  try {
+    const response = await fetch('/api/attendance/meetings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        course_id: currentCourseId,
+        title: meetingTitle,
+        scheduled_date: new Date().toISOString(),
+        status: 'ongoing'
+      })
+    });
+    
+    console.log('Response status:', response.status);
+    const result = await response.json();
+    console.log('Result:', result);
+    
+    if (result.success) {
+      showNotification('Berhasil', `Pertemuan "${meetingTitle}" berhasil dibuat!`, 'success');
+      document.getElementById('meetingTitle').value = '';
+      
+      // Reload list after short delay so notification is visible
+      setTimeout(() => {
+        loadMeetingsList();
+      }, 1500);
+    } else {
+      showNotification('Gagal', 'Gagal membuat pertemuan: ' + result.error, 'error');
+    }
+  } catch (error) {
+    console.error('Error creating meeting:', error);
+    showNotification('Error', 'Terjadi kesalahan saat membuat pertemuan', 'error');
+  }
+}
+
+// Load meetings list
+async function loadMeetingsList() {
+  console.log('Loading meetings list for course:', currentCourseId);
+  try {
+    const response = await fetch(`/api/attendance/meetings/course/${currentCourseId}`);
+    console.log('Meetings response status:', response.status);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    console.log('Meetings result:', result);
+    
+    if (result.success && result.meetings && result.meetings.length > 0) {
+      let html = `
+        <div style="overflow-x: auto; border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);">
+          <table style="width: 100%; border-collapse: collapse; background: white;">
+            <thead>
+              <tr style="background: linear-gradient(135deg, #2d75ca 0%, #1a5a9e 100%);">
+                <th style="padding: 1.25rem 1rem; text-align: left; font-size: 0.85rem; font-weight: 800; color: white; text-transform: uppercase; letter-spacing: 0.05em;">Pertemuan</th>
+                <th style="padding: 1.25rem 1rem; text-align: center; font-size: 0.85rem; font-weight: 800; color: white; text-transform: uppercase; letter-spacing: 0.05em;">Tanggal</th>
+                <th style="padding: 1.25rem 1rem; text-align: center; font-size: 0.85rem; font-weight: 800; color: white; text-transform: uppercase; letter-spacing: 0.05em;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+      
+      result.meetings.forEach((meeting, index) => {
+        const date = new Date(meeting.scheduled_date);
+        const safeTitle = meeting.title.replace(/'/g, "\\'");
+        
+        html += `
+          <tr style="border-bottom: 1px solid #f7fafc; transition: background 0.2s;" onmouseover="this.style.background='#f7fafc'" onmouseout="this.style.background='white'">
+            <td style="padding: 1.25rem 1rem;">
+              <div style="font-weight: 700; color: #2d3748; font-size: 1.05rem;">${meeting.title}</div>
+              ${meeting.description ? `<div style="font-size: 0.85rem; color: #718096; margin-top: 0.25rem;">${meeting.description}</div>` : ''}
+            </td>
+            <td style="padding: 1.25rem 1rem; text-align: center; color: #4a5568;">
+              ${date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+              <div style="font-size: 0.85rem; color: #718096; margin-top: 0.25rem;">${date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</div>
+            </td>
+            <td style="padding: 1.25rem 1rem; text-align: center;">
+              <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
+                <button onclick="selectMeeting('${meeting.id}', '${safeTitle}')"
+                        style="padding: 0.625rem 1.25rem; background: linear-gradient(135deg, #2d75ca 0%, #1a5a9e 100%); color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 10px rgba(45, 117, 202, 0.3);" 
+                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 15px rgba(45, 117, 202, 0.4)'" 
+                        onmouseout="this.style.transform=''; this.style.boxShadow='0 2px 10px rgba(45, 117, 202, 0.3)'">
+                  <i class="fas fa-clipboard-check"></i> Lihat
+                </button>
+                <button onclick="openMaterialSelector('${meeting.id}', '${safeTitle}')"
+                        style="padding: 0.625rem 1.25rem; background: linear-gradient(135deg, #48bb78 0%, #2d7d4a 100%); color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 10px rgba(72, 187, 120, 0.3);" 
+                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 15px rgba(72, 187, 120, 0.4)'" 
+                        onmouseout="this.style.transform=''; this.style.boxShadow='0 2px 10px rgba(72, 187, 120, 0.3)'">
+                  <i class="fas fa-book"></i> Materi
+                </button>
+                <button onclick="deleteMeeting('${meeting.id}', '${safeTitle}')" 
+                        style="padding: 0.625rem 1.25rem; background: linear-gradient(135deg, #f56565 0%, #c53030 100%); color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 10px rgba(245, 101, 101, 0.3);" 
+                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 15px rgba(245, 101, 101, 0.4)'" 
+                        onmouseout="this.style.transform=''; this.style.boxShadow='0 2px 10px rgba(245, 101, 101, 0.3)'">
+                  <i class="fas fa-trash"></i> Hapus
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+      
+      html += '</tbody></table></div>';
+      document.getElementById('meetings-list').innerHTML = html;
+    } else {
+      document.getElementById('meetings-list').innerHTML = `
+        <div style="text-align: center; padding: 4rem 2rem;">
+          <div style="font-size: 4rem; margin-bottom: 1rem;">📅</div>
+          <p style="color: #718096; font-size: 1.1rem; font-weight: 600;">Belum ada pertemuan</p>
+          <p style="color: #a0aec0; font-size: 0.95rem; margin-top: 0.5rem;">Buat pertemuan baru untuk mulai mencatat kehadiran</p>
+        </div>
+      `;
+    }
+  } catch (error) {
+    console.error('Error loading meetings:', error);
+    document.getElementById('meetings-list').innerHTML = `
+      <div style="background: #fed7d7; border: 2px solid #fc8181; border-radius: 12px; padding: 1.5rem; color: #742a2a; text-align: center;">
+        <i class="fas fa-exclamation-triangle"></i> Gagal memuat daftar pertemuan
+      </div>
+    `;
+  }
+}
+
+// Select meeting to view/edit attendance
+async function selectMeeting(meetingId, meetingTitle) {
+  currentMeetingId = meetingId;
+  currentMeetingTitle = meetingTitle;
+  
+  // Show info
+  document.getElementById('attendance-info').style.display = 'block';
+  document.getElementById('selected-meeting-title').innerHTML = `Menampilkan kehadiran untuk: <strong>${meetingTitle}</strong>`;
+  
+  // Load attendance for this meeting
+  loadAttendanceForMeeting(meetingId);
+  
+  // Scroll to students list
+  document.getElementById('students-list').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// Delete meeting
+async function deleteMeeting(meetingId, meetingTitle) {
+  pendingDeleteMeetingId = meetingId;
+  pendingDeleteMeetingTitle = meetingTitle;
+  
+  // Update modal message with meeting title
+  document.getElementById('deleteMeetingMessage').innerHTML = `
+    Apakah Anda yakin ingin menghapus pertemuan <strong>"${meetingTitle}"</strong>?<br>
+    Semua data kehadiran untuk pertemuan ini akan ikut terhapus.
+  `;
+  
+  // Show modal
+  document.getElementById('deleteMeetingModal').style.display = 'flex';
+}
+
+// Close delete meeting modal
+function closeDeleteMeetingModal() {
+  document.getElementById('deleteMeetingModal').style.display = 'none';
+  pendingDeleteMeetingId = null;
+  pendingDeleteMeetingTitle = null;
+}
+
+// Confirm delete meeting
+async function confirmDeleteMeeting() {
+  if (!pendingDeleteMeetingId) return;
+  
+  const meetingId = pendingDeleteMeetingId;
+  const meetingTitle = pendingDeleteMeetingTitle;
+  
+  closeDeleteMeetingModal();
+  
+  try {
+    const response = await fetch(`/api/attendance/meetings/${meetingId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      showNotification('Berhasil', `Pertemuan "${meetingTitle}" berhasil dihapus`, 'success');
+      
+      // Clear attendance list if this meeting was selected
+      if (currentMeetingId === meetingId) {
+        currentMeetingId = null;
+        currentMeetingTitle = null;
+        loadAllStudents();
+      }
+      
+      // Reload meetings list after short delay
+      setTimeout(() => {
+        loadMeetingsList();
+      }, 1500);
+    } else {
+      showNotification('Gagal', 'Gagal menghapus pertemuan: ' + result.error, 'error');
+    }
+  } catch (error) {
+    console.error('Error deleting meeting:', error);
+    showNotification('Error', 'Terjadi kesalahan saat menghapus pertemuan', 'error');
+  }
+}
+
+// ========================================
+// MATERIAL SELECTOR FUNCTIONS
+// ========================================
+
+let currentMaterialMeetingId = null;
+let currentMaterialMeetingTitle = null;
+
+// Open material selector modal
+async function openMaterialSelector(meetingId, meetingTitle) {
+  currentMaterialMeetingId = meetingId;
+  currentMaterialMeetingTitle = meetingTitle;
+  
+  try {
+    // Fetch meeting details with materials
+    const response = await fetch(`/api/attendance/meetings/${meetingId}/manage`);
+    const result = await response.json();
+    
+    if (!result.success) {
+      showNotification('Error', 'Gagal memuat data pertemuan', 'error');
+      return;
+    }
+    
+    const { meeting, materials } = result;
+    
+    // Update modal header
+    document.getElementById('materialModalMeetingInfo').textContent = 
+      `Pertemuan: ${meetingTitle} (${new Date(meeting.scheduled_date).toLocaleDateString('id-ID')})`;
+    
+    // Build materials checkboxes
+    let html = '';
+    if (materials && materials.length > 0) {
+      materials.forEach(material => {
+        const checked = material.is_linked ? 'checked' : '';
+        html += `
+          <div style="display: flex; align-items: center; padding: 0.75rem; border-bottom: 1px solid #e2e8f0; transition: background 0.2s;" onmouseover="this.style.background='#edf2f7'" onmouseout="this.style.background='transparent'">
+            <input 
+              type="checkbox" 
+              id="material_${material.id}" 
+              value="${material.id}"
+              class="material-checkbox"
+              ${checked}
+              style="width: 20px; height: 20px; cursor: pointer; accent-color: #2d75ca;"
+            />
+            <label for="material_${material.id}" style="flex: 1; margin-left: 1rem; cursor: pointer; font-weight: 500; color: #2d3748;">
+              ${material.title}
+              <span style="color: #a0aec0; font-size: 0.85rem; margin-left: 0.5rem;">(Urutan ${material.ordinal})</span>
+            </label>
+          </div>
+        `;
+      });
+    } else {
+      html = '<p style="text-align: center; color: #a0aec0; padding: 2rem;">Tidak ada materi untuk kursus ini</p>';
+    }
+    
+    document.getElementById('materialSelectorContainer').innerHTML = html;
+    
+    // Show modal
+    document.getElementById('materialSelectorModal').style.display = 'flex';
+  } catch (error) {
+    console.error('Error opening material selector:', error);
+    showNotification('Error', 'Terjadi kesalahan saat membuka pilihan materi', 'error');
+  }
+}
+
+// Close material selector modal
+function closeMaterialSelectorModal() {
+  document.getElementById('materialSelectorModal').style.display = 'none';
+  currentMaterialMeetingId = null;
+  currentMaterialMeetingTitle = null;
+}
+
+// Save materials to meeting
+async function saveMaterialsToMeeting() {
+  if (!currentMaterialMeetingId) return;
+  
+  try {
+    // Get selected material IDs
+    const checkboxes = document.querySelectorAll('.material-checkbox:checked');
+    const material_ids = Array.from(checkboxes).map(cb => cb.value);
+    
+    // Save to API
+    const response = await fetch(`/api/attendance/meetings/${currentMaterialMeetingId}/materials`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        meeting_id: currentMaterialMeetingId,
+        material_ids: material_ids 
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      showNotification(
+        'Berhasil', 
+        `${material_ids.length} materi berhasil dihubungkan dengan pertemuan "${currentMaterialMeetingTitle}"`, 
+        'success'
+      );
+      closeMaterialSelectorModal();
+      loadMeetingsList();
+    } else {
+      // Check if migration needed
+      if (response.status === 503) {
+        showNotification(
+          'Setup Diperlukan', 
+          'Silakan jalankan file SQL di Supabase:\n\ndb/create_meeting_materials.sql\n\nSetelah itu, refresh halaman ini.', 
+          'error'
+        );
+      } else {
+        showNotification('Gagal', 'Gagal menyimpan pilihan materi: ' + (result.message || result.error), 'error');
+      }
+    }
+  } catch (error) {
+    console.error('Error saving materials:', error);
+    showNotification('Error', 'Terjadi kesalahan saat menyimpan materi', 'error');
+  }
+}
+
+// Load attendance for specific meeting
+async function loadAttendanceForMeeting(meetingId) {
+  try {
+    // First, get all students in the course
+    const studentsResponse = await fetch(`/api/attendance/students/course/${currentCourseId}`);
+    const studentsResult = await studentsResponse.json();
+    
+    if (!studentsResult.success || studentsResult.students.length === 0) {
+      document.getElementById('students-list').innerHTML = `
+        <div style="text-align: center; padding: 4rem 2rem;">
+          <div style="font-size: 4rem; margin-bottom: 1rem;">👥</div>
+          <p style="color: #718096; font-size: 1.1rem; font-weight: 600;">Tidak ada siswa terdaftar</p>
+          <p style="color: #a0aec0; font-size: 0.95rem; margin-top: 0.5rem;">Belum ada siswa yang mendaftar di kursus ini</p>
+        </div>
+      `;
+      return;
+    }
+    
+    // Get attendance records for this meeting
+    const attendanceResponse = await fetch(`/api/attendance/attendance/meeting/${meetingId}`);
+    const attendanceResult = await attendanceResponse.json();
+    
+    // Create a map of user_id to attendance record
+    const attendanceMap = {};
+    if (attendanceResult.success && attendanceResult.attendance) {
+      attendanceResult.attendance.forEach(record => {
+        attendanceMap[record.user_id] = record.status;
+      });
+    }
+    
+    // Build the table with all students
+    let html = `
+      <div style="overflow-x: auto; border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);">
+        <table style="width: 100%; border-collapse: collapse; background: white;">
+          <thead>
+            <tr style="background: linear-gradient(135deg, #2d75ca 0%, #1a5a9e 100%);">
+              <th style="padding: 1.25rem 1rem; text-align: left; font-size: 0.85rem; font-weight: 800; color: white; text-transform: uppercase; letter-spacing: 0.05em;">No</th>
+              <th style="padding: 1.25rem 1rem; text-align: left; font-size: 0.85rem; font-weight: 800; color: white; text-transform: uppercase; letter-spacing: 0.05em;">Nama Siswa</th>
+              <th style="padding: 1.25rem 1rem; text-align: left; font-size: 0.85rem; font-weight: 800; color: white; text-transform: uppercase; letter-spacing: 0.05em;">Email</th>
+              <th style="padding: 1.25rem 1rem; text-align: center; font-size: 0.85rem; font-weight: 800; color: white; text-transform: uppercase; letter-spacing: 0.05em;">Status</th>
+              <th style="padding: 1.25rem 1rem; text-align: center; font-size: 0.85rem; font-weight: 800; color: white; text-transform: uppercase; letter-spacing: 0.05em;">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+    
+    studentsResult.students.forEach((student, index) => {
+      const currentStatus = attendanceMap[student.id] || null;
+      
+      const statusConfig = {
+        present: { bg: '#c6f6d5', color: '#22543d', icon: '✅', text: 'Hadir' },
+        absent: { bg: '#fed7d7', color: '#742a2a', icon: '❌', text: 'Tidak Hadir' },
+        permitted: { bg: '#bee3f8', color: '#2c5282', icon: '📝', text: 'Izin' },
+        sick: { bg: '#e9d5ff', color: '#6b21a8', icon: '🏥', text: 'Sakit' },
+        null: { bg: '#f7fafc', color: '#718096', icon: '⏺️', text: 'Belum Ditandai' }
+      };
+      
+      const status = statusConfig[currentStatus] || statusConfig.null;
+      
+      html += `
+        <tr style="border-bottom: 1px solid #f7fafc; transition: background 0.2s;" onmouseover="this.style.background='#f7fafc'" onmouseout="this.style.background='white'">
+          <td style="padding: 1.25rem 1rem; font-weight: 600; color: #718096;">${index + 1}</td>
+          <td style="padding: 1.25rem 1rem;">
+            <div style="font-weight: 700; color: #2d3748; font-size: 1.05rem;">${student.full_name}</div>
+          </td>
+          <td style="padding: 1.25rem 1rem; color: #718096;">${student.email}</td>
+          <td style="padding: 1.25rem 1rem; text-align: center;">
+            <span style="padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 700; background: ${status.bg}; color: ${status.color}; white-space: nowrap;">
+              ${status.icon} ${status.text}
+            </span>
+          </td>
+          <td style="padding: 1.25rem 1rem; text-align: center;">
+            <button onclick="openMarkAttendanceModal('${student.id}', '${student.full_name.replace(/'/g, "\\'")}', ${currentStatus ? "'" + currentStatus + "'" : 'null'})" 
+                    style="padding: 0.625rem 1.5rem; background: linear-gradient(135deg, ${currentStatus ? '#48bb78' : '#2d75ca'} 0%, ${currentStatus ? '#38a169' : '#1a5a9e'} 100%); color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 10px rgba(45, 117, 202, 0.3);" 
+                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 15px rgba(45, 117, 202, 0.4)'" 
+                    onmouseout="this.style.transform=''; this.style.boxShadow='0 2px 10px rgba(45, 117, 202, 0.3)'">
+              <i class="fas fa-${currentStatus ? 'edit' : 'check-circle'}"></i> ${currentStatus ? 'Ubah' : 'Tandai'}
+            </button>
+          </td>
+        </tr>
+      `;
+    });
+    
+    html += '</tbody></table></div>';
+    document.getElementById('students-list').innerHTML = html;
+    
+  } catch (error) {
+    console.error('Error loading attendance:', error);
+    document.getElementById('students-list').innerHTML = `
+      <div style="background: #fed7d7; border: 2px solid #fc8181; border-radius: 12px; padding: 1.5rem; color: #742a2a; text-align: center;">
+        <i class="fas fa-exclamation-triangle"></i> Gagal memuat data kehadiran
+      </div>
+    `;
+  }
+}
+
+// Load all students enrolled in course (shown when no meeting selected)
+async function loadAllStudents() {
+  console.log('Loading all students for course:', currentCourseId);
+  try {
+    const response = await fetch(`/api/attendance/students/course/${currentCourseId}`);
+    console.log('Students response status:', response.status);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    console.log('Students result:', result);
+    
+    if (result.success && result.students && result.students.length > 0) {
+      let html = `
+        <div style="overflow-x: auto; border-radius: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);">
+          <table style="width: 100%; border-collapse: collapse; background: white;">
+            <thead>
+              <tr style="background: linear-gradient(135deg, #2d75ca 0%, #1a5a9e 100%);">
+                <th style="padding: 1.25rem 1rem; text-align: left; font-size: 0.85rem; font-weight: 800; color: white; text-transform: uppercase; letter-spacing: 0.05em;">No</th>
+                <th style="padding: 1.25rem 1rem; text-align: left; font-size: 0.85rem; font-weight: 800; color: white; text-transform: uppercase; letter-spacing: 0.05em;">Nama Siswa</th>
+                <th style="padding: 1.25rem 1rem; text-align: left; font-size: 0.85rem; font-weight: 800; color: white; text-transform: uppercase; letter-spacing: 0.05em;">Email</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+      
+      result.students.forEach((student, index) => {
+        html += `
+          <tr style="border-bottom: 1px solid #f7fafc; transition: background 0.2s;" onmouseover="this.style.background='#f7fafc'" onmouseout="this.style.background='white'">
+            <td style="padding: 1.25rem 1rem; font-weight: 600; color: #718096;">${index + 1}</td>
+            <td style="padding: 1.25rem 1rem;">
+              <div style="font-weight: 700; color: #2d3748; font-size: 1.05rem;">${student.full_name}</div>
+            </td>
+            <td style="padding: 1.25rem 1rem; color: #718096;">${student.email}</td>
+          </tr>
+        `;
+      });
+      
+      html += '</tbody></table></div>';
+      document.getElementById('students-list').innerHTML = html;
+      
+      // Update info banner
+      document.getElementById('attendance-info').style.display = 'block';
+      document.getElementById('selected-meeting-title').textContent = 'Pilih pertemuan di atas untuk menandai kehadiran';
+    } else {
+      console.log('No students found or empty array');
+      document.getElementById('students-list').innerHTML = `
+        <div style="text-align: center; padding: 4rem 2rem;">
+          <div style="font-size: 4rem; margin-bottom: 1rem;">👥</div>
+          <p style="color: #718096; font-size: 1.1rem; font-weight: 600;">Tidak ada siswa terdaftar</p>
+          <p style="color: #a0aec0; font-size: 0.95rem; margin-top: 0.5rem;">Belum ada siswa yang mendaftar di kursus ini</p>
+        </div>
+      `;
+      
+      // Also hide the info banner
+      document.getElementById('attendance-info').style.display = 'none';
+    }
+  } catch (error) {
+    console.error('Error loading students:', error);
+    document.getElementById('students-list').innerHTML = `
+      <div style="background: #fed7d7; border: 2px solid #fc8181; border-radius: 12px; padding: 1.5rem; color: #742a2a; text-align: center;">
+        <i class="fas fa-exclamation-triangle"></i> Gagal memuat daftar siswa
+      </div>
+    `;
+  }
+}
+
+// Open mark attendance modal (with optional current status for editing)
+function openMarkAttendanceModal(userId, studentName, currentStatus = null) {
+  currentStudentId = userId;
+  currentStudentName = studentName;
+  
+  document.getElementById('modalStudentInfo').innerHTML = `
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <i class="fas fa-user-circle" style="font-size: 2.5rem; color: #2d75ca;"></i>
+      <div>
+        <p style="font-size: 0.85rem; color: #718096; font-weight: 600; margin-bottom: 0.25rem;">SISWA</p>
+        <p style="font-size: 1.25rem; font-weight: 800; color: #2d3748;">${studentName}</p>
+      </div>
+    </div>
+  `;
+  
+  // Pre-select current status if editing
+  if (currentStatus) {
+    const radioButtons = document.querySelectorAll('input[name="status"]');
+    radioButtons.forEach(radio => {
+      radio.checked = (radio.value === currentStatus);
+    });
+  } else {
+    // Reset radio buttons for new entry
+    const radioButtons = document.querySelectorAll('input[name="status"]');
+    radioButtons.forEach(radio => radio.checked = false);
+  }
+  
+  document.getElementById('markAttendanceModal').style.display = 'flex';
+}
+
+// Close mark attendance modal
+function closeMarkAttendanceModal() {
+  document.getElementById('markAttendanceModal').style.display = 'none';
+  currentStudentId = null;
+  currentStudentName = null;
+}
+
+// Mark student status
+async function markStudentStatus(status) {
+  if (!currentMeetingId) {
+    showNotification('Peringatan', 'Silakan pilih pertemuan terlebih dahulu!', 'warning');
+    closeMarkAttendanceModal();
+    return;
+  }
+  
+  if (!currentStudentId) {
+    showNotification('Error', 'Student ID tidak ditemukan', 'error');
+    return;
+  }
+  
+  try {
+    const response = await fetch('/api/attendance/attendance/mark', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        meeting_id: currentMeetingId,
+        user_id: currentStudentId,
+        status: status
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      const statusText = {
+        present: 'Hadir',
+        absent: 'Tidak Hadir',
+        permitted: 'Izin',
+        sick: 'Sakit'
+      };
+      showNotification('Berhasil', `${currentStudentName} ditandai sebagai: ${statusText[status]}`, 'success');
+      closeMarkAttendanceModal();
+      
+      // Refresh attendance list after short delay
+      setTimeout(() => {
+        loadAttendanceForMeeting(currentMeetingId);
+      }, 1500);
+    } else {
+      showNotification('Gagal', 'Gagal menandai kehadiran: ' + result.error, 'error');
+    }
+  } catch (error) {
+    console.error('Error marking attendance:', error);
+    showNotification('Error', 'Terjadi kesalahan saat menandai kehadiran', 'error');
+  }
+}
+
+// Close modals on ESC key
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeMarkAttendanceModal();
+    closeDeleteMeetingModal();
+  }
+});
+</script>
+
+{{> footer}}

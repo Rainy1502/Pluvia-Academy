@@ -2,20 +2,44 @@
 {{> header}}
 
 <style>
+  @keyframes slideIn {
+    from {
+      transform: translateX(400px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideOut {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(400px);
+      opacity: 0;
+    }
+  }
+
   .live-class-container {
     max-width: 1000px;
-    margin: 0 auto;
+    margin: -35px auto 0;
     padding: 20px;
   }
 
   .video-wrapper {
     position: relative;
     width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
     aspect-ratio: 16/9;
     border-radius: 16px;
     overflow: hidden;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-    margin-bottom: 40px;
+    margin-bottom: 10px;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
 
@@ -187,7 +211,8 @@
 
   .course-title-header {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 25px;
+    margin-top: -30px;
   }
 
   .course-title-header h2 {
@@ -234,17 +259,26 @@
     font-size: 1.2rem;
     font-weight: bold;
   }
+
+  #punishment-banner-container {
+    margin: 0 auto 30px;
+    max-width: 600px;
+  }
 </style>
 
 <main class="site-root">
   <section class="my-courses-section">
     <div class="container">
       <div class="courses-panel">
+        
         {{#if course}}
-        <div class="live-class-container">
-          <!-- Back Button -->
-          <a href="/kursus" class="btn-back-live">Kembali ke Kursus</a>
+        <!-- Back Button -->
+        <a href="/kursus" class="btn-back-live">Kembali ke Kursus</a>
 
+        <!-- Punishment Banner Container -->
+        <div id="punishment-banner-container"></div>
+
+        <div class="live-class-container">
           <!-- Course Title -->
           <div class="course-title-header">
             <h2>{{course.title}}</h2>
@@ -271,7 +305,7 @@
           <!-- Action Buttons -->
           <div class="action-buttons">
             {{#if course.meet_link}}
-            <a href="{{course.meet_link}}" target="_blank" class="btn-live-class btn-join">
+            <a href="{{course.meet_link}}" target="_blank" onclick="markAttendanceAndJoin(event, '{{course.id}}')" class="btn-live-class btn-join">
               Join Kelas Live
             </a>
             {{/if}}
@@ -290,5 +324,111 @@
     </div>
   </section>
 </main>
+
+<!-- Include Punishment Utils -->
+<script src="/js/punishment-utils.js"></script>
+<script>
+// Set current user untuk punishment check
+window.currentUser = {
+  id: '{{user.id}}'
+};
+
+// Mark attendance otomatis ketika join live class
+async function markAttendanceAndJoin(event, courseId) {
+  try {
+    // Call auto-attendance endpoint
+    const response = await fetch(`/api/attendance/attendance/auto-join/${courseId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      if (result.status === 'marked_present') {
+        // Show success notification
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+          color: white;
+          padding: 16px 24px;
+          border-radius: 12px;
+          box-shadow: 0 4px 20px rgba(72, 187, 120, 0.4);
+          z-index: 9999;
+          font-weight: 600;
+          animation: slideIn 0.3s ease;
+        `;
+        notification.innerHTML = '✅ Kehadiran Anda berhasil tercatat!';
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.style.animation = 'slideOut 0.3s ease';
+          setTimeout(() => notification.remove(), 300);
+        }, 3000);
+      } else if (result.status === 'already_marked') {
+        console.log('✓ Kehadiran sudah tercatat sebelumnya');
+      }
+    } else {
+      // Show warning if time expired or other error
+      if (result.status === 'time_expired') {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%);
+          color: white;
+          padding: 16px 24px;
+          border-radius: 12px;
+          box-shadow: 0 4px 20px rgba(246, 173, 85, 0.4);
+          z-index: 9999;
+          font-weight: 600;
+        `;
+        notification.innerHTML = '⚠️ Batas waktu absensi otomatis telah berakhir';
+        document.body.appendChild(notification);
+        
+        setTimeout(() => notification.remove(), 4000);
+      } else {
+        console.warn('⚠️ Gagal mencatat kehadiran:', result.error);
+      }
+    }
+  } catch (error) {
+    console.error('❌ Error saat mencatat kehadiran:', error);
+  }
+}
+
+// Initialize punishment check
+{{#if course}}
+document.addEventListener('DOMContentLoaded', function() {
+  displayPunishmentBanner('{{course.id}}');
+  
+  // Check if suspended, disable buttons
+  checkPunishmentStatus('{{course.id}}').then(result => {
+    if (result.status === 'suspended') {
+      // Disable action buttons
+      const joinBtn = document.querySelector('.btn-join');
+      const materiBtn = document.querySelector('.btn-materi');
+      
+      if (joinBtn) {
+        joinBtn.style.opacity = '0.5';
+        joinBtn.style.pointerEvents = 'none';
+        joinBtn.style.cursor = 'not-allowed';
+      }
+      
+      if (materiBtn) {
+        materiBtn.style.opacity = '0.5';
+        materiBtn.style.pointerEvents = 'none';
+        materiBtn.style.cursor = 'not-allowed';
+      }
+    }
+  });
+});
+{{/if}}
+</script>
 
 {{> footer}}

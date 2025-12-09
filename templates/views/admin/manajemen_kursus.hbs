@@ -23,19 +23,83 @@
     margin-bottom: 24px;
   }
 
+  /* Custom Notification */
+  .custom-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: white;
+    padding: 20px 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    z-index: 10000;
+    min-width: 320px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    animation: slideInRight 0.4s ease;
+    border-left: 5px solid #28a745;
+  }
+
+  .custom-notification.error {
+    border-left-color: #dc3545;
+  }
+
+  .custom-notification-icon {
+    font-size: 2rem;
+  }
+
+  .custom-notification-content {
+    flex: 1;
+  }
+
+  .custom-notification-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+    color: #1a202c;
+  }
+
+  .custom-notification-message {
+    color: #718096;
+    font-size: 0.95rem;
+  }
+
+  @keyframes slideInRight {
+    from {
+      transform: translateX(400px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideOutRight {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(400px);
+      opacity: 0;
+    }
+  }
+
   .btn-add-course {
     display: inline-flex;
     align-items: center;
     gap: 10px;
     padding: 14px 32px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #00d4ff 0%, #007bff 100%);
     color: #fff;
     border: none;
     border-radius: 12px;
     font-size: 1.05rem;
     font-weight: 700;
     cursor: pointer;
-    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 20px rgba(0, 123, 255, 0.3);
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
@@ -61,7 +125,7 @@
 
   .btn-add-course:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 8px 30px rgba(0, 123, 255, 0.4);
   }
 
   .btn-add-course .icon {
@@ -104,15 +168,19 @@
     min-width: 60px;
     min-height: 60px;
     border-radius: 16px;
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #fff;
     font-size: 1.8rem;
     font-weight: 700;
-    box-shadow: 0 4px 15px rgba(240, 147, 251, 0.3);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
     flex-shrink: 0;
+    overflow: hidden;
   }
 
   .course-item-content h3 {
@@ -167,6 +235,260 @@
   .btn-delete {
     background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
   }
+
+  /* Modal Styles */
+  .kursus-modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.3s ease;
+  }
+
+  .kursus-modal-content {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    margin: 3% auto;
+    padding: 0;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 550px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    animation: slideDown 0.3s ease;
+    position: relative;
+  }
+
+  .modal-logo {
+    background: #007bff;
+    padding: 25px;
+    border-radius: 20px 20px 0 0;
+    text-align: center;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .modal-logo-img {
+    height: 50px;
+    width: auto;
+  }
+
+  .modal-logo h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white;
+  }
+
+  .modal-title {
+    text-align: center;
+    padding: 20px 30px 10px;
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #2d3748;
+  }
+
+  .logout-modal-content .logout-message {
+    padding: 0 40px 20px;
+    color: #4a5568;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    text-align: center;
+    margin: 0;
+  }
+
+  .modal-input,
+  .modal-select {
+    width: 100%;
+    padding: 14px 18px;
+    margin: 12px 30px;
+    max-width: calc(100% - 60px);
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+    box-sizing: border-box;
+    font-family: inherit;
+  }
+
+  .modal-input:focus,
+  .modal-select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    transform: translateY(-1px);
+  }
+
+  .modal-input::placeholder {
+    color: #a0aec0;
+  }
+
+  .form-section {
+    margin: 20px 0;
+    padding: 0;
+  }
+
+  .form-section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 30px;
+    margin-bottom: 15px;
+  }
+
+  .form-section-icon {
+    font-size: 1.2rem;
+  }
+
+  .form-section-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #2d3748;
+  }
+
+  .time-input-group {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 0 30px;
+    margin: 12px 0;
+  }
+
+  .time-input-wrapper {
+    flex: 1;
+  }
+
+  .time-label {
+    display: block;
+    font-size: 0.85rem;
+    color: #718096;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+
+  .time-input {
+    margin: 0 !important;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .time-separator {
+    font-size: 1.5rem;
+    color: #a0aec0;
+    margin-top: 20px;
+  }
+
+  .file-input-wrapper {
+    margin: 15px 30px;
+    position: relative;
+  }
+
+  .modal-file-input {
+    display: none;
+  }
+
+  .file-input-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+    border: 2px dashed #cbd5e0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    color: #4a5568;
+  }
+
+  .file-input-label:hover {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+  }
+
+  .file-icon {
+    font-size: 1.5rem;
+    transition: transform 0.3s ease;
+  }
+
+  .file-input-label:hover .file-icon {
+    transform: scale(1.1);
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 12px;
+    padding: 20px 30px 30px;
+    justify-content: center;
+  }
+
+  .modal-btn {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 120px;
+    font-family: inherit;
+  }
+
+  .modal-btn-tambah,
+  .modal-btn-edit {
+    background: #667eea;
+    color: white;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  }
+
+  .modal-btn-tambah:hover,
+  .modal-btn-edit:hover {
+    background: #5568d3;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  }
+
+  .modal-btn-batal {
+    background: #dc3545;
+    color: white;
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+  }
+
+  .modal-btn-batal:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-50px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 </style>
 
 <main class="site-root">
@@ -187,7 +509,7 @@
           {{#each courses}}
           <div class="course-item-card">
             <div class="course-item-info">
-              <div class="course-item-icon">📚</div>
+              <div class="course-item-icon" style="{{#if this.thumbnail}}background-image: url('{{this.thumbnail}}');{{/if}}">{{#unless this.thumbnail}}📚{{/unless}}</div>
               <div class="course-item-content">
                 <h3>{{this.title}}</h3>
                 {{#if this.description}}
@@ -239,57 +561,75 @@
       <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="modal-logo-img"/>
       <h2>Pluvia Academy</h2>
     </div>
-    <h3 class="modal-title">Tambah Kursus</h3>
+    <h3 class="modal-title">➕ Tambah Kursus - Manajemen Kursus</h3>
     
     <form id="tambahKursusForm" method="POST" action="/kursus/create">
-      <input type="text" name="title" placeholder="Nama Kursus" required class="modal-input"/>
-      
-      <select name="instructor_id" class="modal-select" required>
-        <option value="">Nama Lecturer</option>
-        {{#each lecturers}}
-        <option value="{{this.id}}">{{this.full_name}}</option>
-        {{/each}}
-      </select>
-      
-      <textarea name="description" placeholder="Deskripsi" class="modal-input" rows="3"></textarea>
-      
-      <input type="url" name="meet_link" placeholder="Link Meet Kursus" class="modal-input"/>
-      
-      <select name="schedule_day" class="modal-select">
-        <option value="">Pilih Hari</option>
-        <option value="Senin">Senin</option>
-        <option value="Selasa">Selasa</option>
-        <option value="Rabu">Rabu</option>
-        <option value="Kamis">Kamis</option>
-        <option value="Jumat">Jumat</option>
-        <option value="Sabtu">Sabtu</option>
-        <option value="Minggu">Minggu</option>
-      </select>
-      
-      <div class="time-input-group">
-        <div class="time-input-wrapper">
-          <label class="time-label">Mulai</label>
-          <input type="time" name="schedule_time_start" class="modal-input time-input"/>
+      <div class="form-section">
+        <div class="form-section-header">
+          <span class="form-section-icon">📝</span>
+          <h4 class="form-section-title">Informasi Dasar</h4>
         </div>
-        <span class="time-separator">-</span>
-        <div class="time-input-wrapper">
-          <label class="time-label">Selesai</label>
-          <input type="time" name="schedule_time_end" class="modal-input time-input"/>
+        <input type="text" name="title" placeholder="Nama Kursus" required class="modal-input"/>
+        
+        <select name="instructor_id" class="modal-select" required>
+          <option value="">Pilih Lecturer</option>
+          {{#each lecturers}}
+          <option value="{{this.id}}">{{this.full_name}}</option>
+          {{/each}}
+        </select>
+        
+        <textarea name="description" placeholder="Deskripsi Kursus" class="modal-input" rows="3"></textarea>
+        
+        <input type="url" name="meet_link" placeholder="Link Google Meet Kursus" class="modal-input"/>
+      </div>
+      
+      <div class="form-section">
+        <div class="form-section-header">
+          <span class="form-section-icon">📅</span>
+          <h4 class="form-section-title">Jadwal Kursus</h4>
+        </div>
+        <select name="schedule_day" class="modal-select">
+          <option value="">Pilih Hari</option>
+          <option value="Senin">Senin</option>
+          <option value="Selasa">Selasa</option>
+          <option value="Rabu">Rabu</option>
+          <option value="Kamis">Kamis</option>
+          <option value="Jumat">Jumat</option>
+          <option value="Sabtu">Sabtu</option>
+          <option value="Minggu">Minggu</option>
+        </select>
+        
+        <div class="time-input-group">
+          <div class="time-input-wrapper">
+            <label class="time-label">⏰ Waktu Mulai</label>
+            <input type="time" name="schedule_time_start" class="modal-input time-input"/>
+          </div>
+          <span class="time-separator">→</span>
+          <div class="time-input-wrapper">
+            <label class="time-label">⏰ Waktu Selesai</label>
+            <input type="time" name="schedule_time_end" class="modal-input time-input"/>
+          </div>
         </div>
       </div>
       
-      <div class="file-input-wrapper">
-        <input type="file" id="thumbnailInput" accept="image/*" class="modal-file-input"/>
-        <label for="thumbnailInput" class="file-input-label">
-          <span>Pilih Gambar</span>
-          <span class="file-icon">🖼️</span>
-        </label>
+      <div class="form-section">
+        <div class="form-section-header">
+          <span class="form-section-icon">🖼️</span>
+          <h4 class="form-section-title">Thumbnail Kursus</h4>
+        </div>
+        <div class="file-input-wrapper">
+          <input type="file" id="thumbnailInput" accept="image/*" class="modal-file-input"/>
+          <label for="thumbnailInput" class="file-input-label">
+            <span>Pilih Gambar Thumbnail</span>
+            <span class="file-icon">📸</span>
+          </label>
+        </div>
+        <input type="hidden" name="thumbnail" id="thumbnailUrl"/>
       </div>
-      <input type="hidden" name="thumbnail" id="thumbnailUrl"/>
       
       <div class="modal-actions">
-        <button type="submit" class="modal-btn modal-btn-tambah">Tambah</button>
-        <button type="button" class="modal-btn modal-btn-batal" onclick="closeTambahModal()">Batal</button>
+        <button type="submit" class="modal-btn modal-btn-tambah">💾 Tambah Kursus</button>
+        <button type="button" class="modal-btn modal-btn-batal" onclick="closeTambahModal()">❌ Batal</button>
       </div>
     </form>
   </div>
@@ -302,57 +642,75 @@
       <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="modal-logo-img"/>
       <h2>Pluvia Academy</h2>
     </div>
-    <h3 class="modal-title">Edit Kursus</h3>
+    <h3 class="modal-title">✏️ Edit Kursus - Manajemen Kursus</h3>
     
     <form id="editKursusForm" method="POST">
-      <input type="text" name="title" id="editTitle" placeholder="Nama Kursus" required class="modal-input"/>
-      
-      <select name="instructor_id" id="editInstructorId" class="modal-select" required>
-        <option value="">Nama Lecturer</option>
-        {{#each lecturers}}
-        <option value="{{this.id}}">{{this.full_name}}</option>
-        {{/each}}
-      </select>
-      
-      <textarea name="description" id="editDescription" placeholder="Deskripsi" class="modal-input" rows="3"></textarea>
-      
-      <input type="url" name="meet_link" id="editMeetLink" placeholder="Link Meet Kursus" class="modal-input"/>
-      
-      <select name="schedule_day" id="editScheduleDay" class="modal-select">
-        <option value="">Pilih Hari</option>
-        <option value="Senin">Senin</option>
-        <option value="Selasa">Selasa</option>
-        <option value="Rabu">Rabu</option>
-        <option value="Kamis">Kamis</option>
-        <option value="Jumat">Jumat</option>
-        <option value="Sabtu">Sabtu</option>
-        <option value="Minggu">Minggu</option>
-      </select>
-      
-      <div class="time-input-group">
-        <div class="time-input-wrapper">
-          <label class="time-label">Mulai</label>
-          <input type="time" name="schedule_time_start" id="editScheduleTimeStart" class="modal-input time-input"/>
+      <div class="form-section">
+        <div class="form-section-header">
+          <span class="form-section-icon">📝</span>
+          <h4 class="form-section-title">Informasi Dasar</h4>
         </div>
-        <span class="time-separator">-</span>
-        <div class="time-input-wrapper">
-          <label class="time-label">Selesai</label>
-          <input type="time" name="schedule_time_end" id="editScheduleTimeEnd" class="modal-input time-input"/>
+        <input type="text" name="title" id="editTitle" placeholder="Nama Kursus" required class="modal-input"/>
+        
+        <select name="instructor_id" id="editInstructorId" class="modal-select" required>
+          <option value="">Pilih Lecturer</option>
+          {{#each lecturers}}
+          <option value="{{this.id}}">{{this.full_name}}</option>
+          {{/each}}
+        </select>
+        
+        <textarea name="description" id="editDescription" placeholder="Deskripsi Kursus" class="modal-input" rows="3"></textarea>
+        
+        <input type="url" name="meet_link" id="editMeetLink" placeholder="Link Google Meet Kursus" class="modal-input"/>
+      </div>
+      
+      <div class="form-section">
+        <div class="form-section-header">
+          <span class="form-section-icon">📅</span>
+          <h4 class="form-section-title">Jadwal Kursus</h4>
+        </div>
+        <select name="schedule_day" id="editScheduleDay" class="modal-select">
+          <option value="">Pilih Hari</option>
+          <option value="Senin">Senin</option>
+          <option value="Selasa">Selasa</option>
+          <option value="Rabu">Rabu</option>
+          <option value="Kamis">Kamis</option>
+          <option value="Jumat">Jumat</option>
+          <option value="Sabtu">Sabtu</option>
+          <option value="Minggu">Minggu</option>
+        </select>
+        
+        <div class="time-input-group">
+          <div class="time-input-wrapper">
+            <label class="time-label">⏰ Waktu Mulai</label>
+            <input type="time" name="schedule_time_start" id="editScheduleTimeStart" class="modal-input time-input"/>
+          </div>
+          <span class="time-separator">→</span>
+          <div class="time-input-wrapper">
+            <label class="time-label">⏰ Waktu Selesai</label>
+            <input type="time" name="schedule_time_end" id="editScheduleTimeEnd" class="modal-input time-input"/>
+          </div>
         </div>
       </div>
       
-      <div class="file-input-wrapper">
-        <input type="file" id="editThumbnailInput" accept="image/*" class="modal-file-input"/>
-        <label for="editThumbnailInput" class="file-input-label">
-          <span>Pilih Gambar</span>
-          <span class="file-icon">🖼️</span>
-        </label>
+      <div class="form-section">
+        <div class="form-section-header">
+          <span class="form-section-icon">🖼️</span>
+          <h4 class="form-section-title">Thumbnail Kursus</h4>
+        </div>
+        <div class="file-input-wrapper">
+          <input type="file" id="editThumbnailInput" accept="image/*" class="modal-file-input"/>
+          <label for="editThumbnailInput" class="file-input-label">
+            <span>Pilih Gambar Thumbnail</span>
+            <span class="file-icon">📸</span>
+          </label>
+        </div>
+        <input type="hidden" name="thumbnail" id="editThumbnailUrl"/>
       </div>
-      <input type="hidden" name="thumbnail" id="editThumbnailUrl"/>
       
       <div class="modal-actions">
-        <button type="submit" class="modal-btn modal-btn-edit">Edit</button>
-        <button type="button" class="modal-btn modal-btn-batal" onclick="closeEditModal()">Batal</button>
+        <button type="submit" class="modal-btn modal-btn-edit">💾 Simpan Perubahan</button>
+        <button type="button" class="modal-btn modal-btn-batal" onclick="closeEditModal()">❌ Batal</button>
       </div>
     </form>
   </div>
@@ -452,7 +810,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }        // Submit form
         this.submit();
       } catch (error) {
-        alert('Gagal mengunggah gambar: ' + error.message);
+        showNotification('Error!', 'Gagal mengunggah gambar: ' + error.message, 'error');
         submitBtn.disabled = false;
         submitBtn.textContent = 'Tambah';
       }
@@ -480,13 +838,38 @@ document.addEventListener('DOMContentLoaded', function() {
     }        // Submit form
         this.submit();
       } catch (error) {
-        alert('Gagal mengunggah gambar: ' + error.message);
+        showNotification('Error!', 'Gagal mengunggah gambar: ' + error.message, 'error');
         submitBtn.disabled = false;
         submitBtn.textContent = 'Edit';
       }
     });
   }
 });
+
+// Custom notification function
+function showNotification(title, message, type = 'success') {
+  const notification = document.createElement('div');
+  notification.className = `custom-notification ${type}`;
+  
+  const icon = type === 'success' ? '✅' : '❌';
+  
+  notification.innerHTML = `
+    <div class="custom-notification-icon">${icon}</div>
+    <div class="custom-notification-content">
+      <div class="custom-notification-title">${title}</div>
+      <div class="custom-notification-message">${message}</div>
+    </div>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    notification.style.animation = 'slideOutRight 0.4s ease';
+    setTimeout(() => {
+      notification.remove();
+    }, 400);
+  }, 3000);
+}
 
 function openTambahModal() {
   document.getElementById('tambahKursusModal').style.display = 'flex';

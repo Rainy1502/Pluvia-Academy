@@ -1,0 +1,981 @@
+{{> head}}
+{{> header}}
+
+<style>
+  .payment-page {
+    min-height: calc(100vh - 80px);
+    background: #2d75ca;
+    padding: 120px 20px 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .payment-container {
+    background: #ffffff;
+    border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 600px;
+    width: 100%;
+    padding: 48px;
+    animation: slideUp 0.5s ease;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .payment-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .payment-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .payment-logo img {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+  }
+
+  .payment-logo h2 {
+    font-size: 2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #00d4ff 0%, #007bff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
+  }
+
+  .payment-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0;
+  }
+
+  .payment-form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 4px;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 14px 16px;
+    font-size: 1rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #1a202c;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+  }
+
+  .form-input:focus {
+    outline: none;
+    border-color: #00d4ff;
+    box-shadow: 0 0 0 4px rgba(0, 212, 255, 0.1);
+  }
+
+  .form-input::placeholder {
+    color: #a0aec0;
+  }
+
+  .form-input:disabled {
+    background: #f7fafc;
+    color: #718096;
+    cursor: not-allowed;
+    border-color: #e2e8f0;
+  }
+
+  .package-display {
+    background: linear-gradient(135deg, #00d4ff15 0%, #007bff15 100%);
+    border: 2px dashed #00d4ff;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .package-thumbnail {
+    width: 100%;
+    max-width: 400px;
+    height: 200px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+
+  .package-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .package-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #007bff;
+    margin: 0;
+  }
+
+  .package-price {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #1a202c;
+    margin-top: 8px;
+  }
+
+  .discount-section {
+    background: #f7fafc;
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .discount-header {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 12px;
+  }
+
+  .discount-input-group {
+    display: flex;
+    gap: 12px;
+  }
+
+  .discount-input {
+    flex: 1;
+    padding: 12px 16px;
+    font-size: 0.95rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    background: #ffffff;
+    transition: all 0.3s ease;
+  }
+
+  .discount-input:focus {
+    outline: none;
+    border-color: #00d4ff;
+    box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+  }
+
+  .apply-btn {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #00d4ff 0%, #007bff 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+  }
+
+  .apply-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 123, 255, 0.4);
+  }
+
+  .apply-btn:active {
+    transform: translateY(0);
+  }
+
+  .discount-status {
+    margin-top: 12px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .discount-status.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+  }
+
+  .discount-status.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+  }
+
+  .price-summary {
+    background: linear-gradient(135deg, #f6f8fb 0%, #f1f3f6 100%);
+    border-radius: 16px;
+    padding: 24px;
+    margin-top: 8px;
+  }
+
+  .price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+  }
+
+  .price-row:last-child {
+    margin-bottom: 0;
+  }
+
+  .price-label {
+    color: #718096;
+    font-weight: 500;
+  }
+
+  .price-value {
+    color: #1a202c;
+    font-weight: 600;
+  }
+
+  .price-value.discount {
+    color: #28a745;
+  }
+
+  .price-value.strike {
+    text-decoration: line-through;
+    color: #a0aec0;
+    font-size: 0.875rem;
+  }
+
+  .total-row {
+    border-top: 2px solid #e2e8f0;
+    padding-top: 16px;
+    margin-top: 16px;
+  }
+
+  .total-label {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #1a202c;
+  }
+
+  .total-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #00d4ff 0%, #007bff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .submit-btn {
+    width: 100%;
+    padding: 16px 32px;
+    background: linear-gradient(135deg, #00d4ff 0%, #007bff 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.125rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 8px;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+  }
+
+  .submit-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0, 123, 255, 0.5);
+  }
+
+  .submit-btn:active {
+    transform: translateY(-1px);
+  }
+
+  .payment-note {
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 24px;
+  }
+
+  .payment-note p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #856404;
+    line-height: 1.6;
+  }
+
+  .payment-note strong {
+    font-weight: 700;
+  }
+
+  @media (max-width: 640px) {
+    .payment-container {
+      padding: 32px 24px;
+    }
+
+    .payment-logo h2 {
+      font-size: 1.5rem;
+    }
+
+    .payment-title {
+      font-size: 1.5rem;
+    }
+
+    .discount-input-group {
+      flex-direction: column;
+    }
+
+    .apply-btn {
+      width: 100%;
+    }
+  }
+</style>
+
+<main class="payment-page">
+  <div class="payment-container">
+    <!-- Header -->
+    <div class="payment-header">
+      <div class="payment-logo">
+        <img src="/img/logo-pngegg.png" alt="Pluvia Academy"/>
+        <h2>Pluvia Academy</h2>
+      </div>
+      <h1 class="payment-title">Pembayaran Kursus</h1>
+    </div>
+
+    <!-- Package Display -->
+    <div class="package-display">
+      {{#if package.thumbnail}}
+      <div class="package-thumbnail">
+        <img src="{{package.thumbnail}}" alt="{{package.title}}" />
+      </div>
+      {{/if}}
+      <p class="package-name">{{package.title}}</p>
+      <p class="package-price" id="displayPrice">{{formatPrice package.price}}</p>
+    </div>
+
+    <!-- Payment Form -->
+    <form class="payment-form" id="paymentForm" method="POST" action="/pembayaran/{{package.id}}/submit">
+      <input type="hidden" name="package_id" value="{{package.id}}"/>
+      <input type="hidden" id="originalPrice" value="{{package.price}}"/>
+      <input type="hidden" id="discountPercentage" name="discount_percentage" value="0"/>
+      <input type="hidden" id="discountCode" name="discount_code" value=""/>
+      
+      <!-- User Information -->
+      <div class="form-section">
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input 
+            type="email" 
+            class="form-input" 
+            name="email" 
+            value="{{user.email}}" 
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Nomor Telepon</label>
+          <input 
+            type="tel" 
+            class="form-input" 
+            name="phone" 
+            value="{{user.phone}}" 
+            placeholder="08123456789"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Nomor Rekening / E-Wallet</label>
+          <input 
+            type="text" 
+            class="form-input" 
+            id="accountNumber"
+            name="account_number" 
+            placeholder="Contoh: 1234567890 atau 081234567890"
+            required
+          />
+        </div>
+      </div>
+
+      <!-- Discount Section -->
+      <div class="discount-section">
+        <p class="discount-header">🎁 Punya Kode Promo?</p>
+        <div class="discount-input-group">
+          <input 
+            type="text" 
+            class="discount-input" 
+            id="discountInput"
+            placeholder="Masukkan kode promo"
+          />
+          <button type="button" class="apply-btn" onclick="applyDiscount()">Terapkan</button>
+        </div>
+        <div id="discountStatus"></div>
+      </div>
+
+      <!-- Price Summary -->
+      <div class="price-summary">
+        <div class="price-row">
+          <span class="price-label">Harga Paket</span>
+          <span class="price-value" id="originalPriceDisplay">{{formatPrice package.price}}</span>
+        </div>
+        <div class="price-row" id="discountRow" style="display: none;">
+          <span class="price-label">Diskon (<span id="discountPercent">0</span>%)</span>
+          <span class="price-value discount" id="discountAmount">- Rp0</span>
+        </div>
+        <div class="price-row total-row">
+          <span class="total-label">Total Pembayaran</span>
+          <span class="total-value" id="finalPrice">{{formatPrice package.price}}</span>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="button" class="submit-btn" onclick="openPaymentMethodModal()">
+        Pilih Metode Pembayaran →
+      </button>
+
+      <!-- Payment Note -->
+      <div class="payment-note">
+        <p><strong>📌 Catatan:</strong> Setelah melakukan pembayaran, admin akan memverifikasi dalam waktu 1x24 jam. Anda akan menerima notifikasi melalui email setelah pembayaran dikonfirmasi.</p>
+      </div>
+    </form>
+  </div>
+</main>
+
+<!-- Modal Metode Pembayaran -->
+<div id="paymentMethodModal" class="payment-modal">
+  <div class="payment-modal-content">
+    <span class="close-modal" onclick="closePaymentMethodModal()">&times;</span>
+    
+    <div class="modal-header">
+      <h2>Pilih Metode Pembayaran</h2>
+      <p class="modal-subtitle">Pilih metode pembayaran yang Anda inginkan</p>
+    </div>
+
+    <div class="payment-summary-modal">
+      <div class="summary-item">
+        <span>Paket:</span>
+        <strong id="modalPackageName">{{package.title}}</strong>
+      </div>
+      <div class="summary-item">
+        <span>Harga:</span>
+        <span id="modalOriginalPrice">{{formatPrice package.price}}</span>
+      </div>
+      <div class="summary-item" id="modalDiscountRow" style="display: none; color: #28a745;">
+        <span>Diskon (<span id="modalDiscountPercent">0</span>%):</span>
+        <span id="modalDiscountAmount">- Rp0</span>
+      </div>
+      <div class="summary-item total-summary">
+        <span>Total Bayar:</span>
+        <strong id="modalFinalPrice">{{formatPrice package.price}}</strong>
+      </div>
+    </div>
+
+    <div class="payment-methods-grid">
+      <div class="payment-method-card" onclick="selectPaymentMethod('gopay', this)">
+        <div class="method-icon">💳</div>
+        <div class="method-name">GoPay</div>
+        <div class="method-desc">E-Wallet</div>
+      </div>
+
+      <div class="payment-method-card" onclick="selectPaymentMethod('ovo', this)">
+        <div class="method-icon">💰</div>
+        <div class="method-name">OVO</div>
+        <div class="method-desc">E-Wallet</div>
+      </div>
+
+      <div class="payment-method-card" onclick="selectPaymentMethod('dana', this)">
+        <div class="method-icon">💵</div>
+        <div class="method-name">DANA</div>
+        <div class="method-desc">E-Wallet</div>
+      </div>
+
+      <div class="payment-method-card" onclick="selectPaymentMethod('shopeepay', this)">
+        <div class="method-icon">🛍️</div>
+        <div class="method-name">ShopeePay</div>
+        <div class="method-desc">E-Wallet</div>
+      </div>
+
+      <div class="payment-method-card" onclick="selectPaymentMethod('bca', this)">
+        <div class="method-icon">🏦</div>
+        <div class="method-name">BCA</div>
+        <div class="method-desc">Virtual Account</div>
+      </div>
+
+      <div class="payment-method-card" onclick="selectPaymentMethod('mandiri', this)">
+        <div class="method-icon">🏧</div>
+        <div class="method-name">Mandiri</div>
+        <div class="method-desc">Virtual Account</div>
+      </div>
+    </div>
+
+    <input type="hidden" id="selectedPaymentMethod" value=""/>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-cancel" onclick="closePaymentMethodModal()">Batal</button>
+      <button type="button" class="btn-confirm" id="btnConfirmPayment" onclick="confirmPayment()" disabled>Konfirmasi Pembayaran</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .payment-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.6);
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .payment-modal-content {
+    background: #ffffff;
+    margin: 3% auto;
+    padding: 40px;
+    border-radius: 20px;
+    max-width: 700px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    position: relative;
+    animation: slideDown 0.3s ease;
+  }
+
+  @keyframes slideDown {
+    from {
+      transform: translateY(-50px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .close-modal {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    font-size: 32px;
+    font-weight: bold;
+    color: #999;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    line-height: 1;
+  }
+
+  .close-modal:hover {
+    color: #dc3545;
+    transform: rotate(90deg);
+  }
+
+  .modal-header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .modal-header h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0 0 8px 0;
+  }
+
+  .modal-subtitle {
+    color: #718096;
+    font-size: 0.95rem;
+    margin: 0;
+  }
+
+  .payment-summary-modal {
+    background: #f7fafc;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 30px;
+  }
+
+  .summary-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+  }
+
+  .summary-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .summary-item.total-summary {
+    border-top: 2px solid #e2e8f0;
+    padding-top: 12px;
+    margin-top: 12px;
+    font-size: 1.125rem;
+  }
+
+  .payment-methods-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 30px;
+  }
+
+  .payment-method-card {
+    background: #ffffff;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .payment-method-card:hover {
+    border-color: #00d4ff;
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 212, 255, 0.2);
+  }
+
+  .payment-method-card.selected {
+    border-color: #00d4ff;
+    background: linear-gradient(135deg, #00d4ff10 0%, #007bff10 100%);
+  }
+
+  .method-icon {
+    font-size: 2.5rem;
+    margin-bottom: 8px;
+  }
+
+  .method-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin-bottom: 4px;
+  }
+
+  .method-desc {
+    font-size: 0.8rem;
+    color: #718096;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+  }
+
+  .btn-cancel {
+    padding: 14px 32px;
+    background: #ffffff;
+    color: #1a202c;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .btn-cancel:hover {
+    background: #f7fafc;
+    border-color: #cbd5e0;
+  }
+
+  .btn-confirm {
+    padding: 14px 32px;
+    background: linear-gradient(135deg, #00d4ff 0%, #007bff 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .btn-confirm:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 123, 255, 0.4);
+  }
+
+  .btn-confirm:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 640px) {
+    .payment-methods-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .modal-actions {
+      flex-direction: column;
+    }
+
+    .btn-cancel,
+    .btn-confirm {
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+const originalPrice = parseFloat(document.getElementById('originalPrice').value);
+let appliedDiscountCode = '';
+let appliedDiscountPercent = 0;
+let selectedMethod = '';
+
+function formatRupiah(amount) {
+  return 'Rp' + Math.floor(amount).toLocaleString('id-ID');
+}
+
+async function applyDiscount() {
+  const code = document.getElementById('discountInput').value.trim().toUpperCase();
+  const statusDiv = document.getElementById('discountStatus');
+  
+  if (!code) {
+    statusDiv.innerHTML = '<div class="discount-status error">Masukkan kode promo terlebih dahulu</div>';
+    setTimeout(() => statusDiv.innerHTML = '', 3000);
+    return;
+  }
+
+  // Validate promo code from database via API
+  try {
+    const packageId = document.querySelector('input[name="package_id"]').value;
+    
+    const response = await fetch('/api/validate-promo', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ 
+        code,
+        packageId 
+      })
+    });
+
+    const result = await response.json();
+
+    if (result.valid) {
+      const percent = result.discount_percentage;
+      const discountAmount = originalPrice * (percent / 100);
+      const finalPrice = originalPrice - discountAmount;
+
+      // Update display
+      document.getElementById('discountPercent').textContent = percent;
+      document.getElementById('discountAmount').textContent = '- ' + formatRupiah(discountAmount);
+      document.getElementById('finalPrice').textContent = formatRupiah(finalPrice);
+      document.getElementById('discountRow').style.display = 'flex';
+      document.getElementById('originalPriceDisplay').classList.add('strike');
+      document.getElementById('displayPrice').textContent = formatRupiah(finalPrice);
+
+      // Update hidden inputs
+      document.getElementById('discountPercentage').value = percent;
+      document.getElementById('discountCode').value = code;
+
+      // Save applied discount
+      appliedDiscountCode = code;
+      appliedDiscountPercent = percent;
+
+      // Show success message
+      statusDiv.innerHTML = `<div class="discount-status success">✓ ${result.message}</div>`;
+      
+      // Disable input after success
+      document.getElementById('discountInput').disabled = true;
+    } else {
+      statusDiv.innerHTML = `<div class="discount-status error">✗ ${result.message}</div>`;
+      setTimeout(() => statusDiv.innerHTML = '', 3000);
+    }
+  } catch (error) {
+    console.error('Error validating promo code:', error);
+    statusDiv.innerHTML = '<div class="discount-status error">✗ Terjadi kesalahan saat memvalidasi kode promo</div>';
+    setTimeout(() => statusDiv.innerHTML = '', 3000);
+  }
+}
+
+// Open payment method modal
+function openPaymentMethodModal() {
+  const form = document.getElementById('paymentForm');
+  
+  // Validate form
+  const email = document.querySelector('input[name="email"]').value.trim();
+  const phone = document.querySelector('input[name="phone"]').value.trim();
+  const accountNumber = document.querySelector('input[name="account_number"]').value.trim();
+
+  if (!email) {
+    alert('Email wajib diisi!');
+    return;
+  }
+
+  if (!phone) {
+    alert('Nomor telepon wajib diisi!');
+    return;
+  }
+
+  if (!accountNumber) {
+    alert('Nomor rekening / E-Wallet wajib diisi!');
+    return;
+  }
+
+  // Update modal with current prices
+  const finalPrice = appliedDiscountPercent > 0 
+    ? originalPrice - (originalPrice * appliedDiscountPercent / 100)
+    : originalPrice;
+
+  document.getElementById('modalOriginalPrice').textContent = formatRupiah(originalPrice);
+  document.getElementById('modalFinalPrice').textContent = formatRupiah(finalPrice);
+
+  if (appliedDiscountPercent > 0) {
+    const discountAmount = originalPrice * (appliedDiscountPercent / 100);
+    document.getElementById('modalDiscountPercent').textContent = appliedDiscountPercent;
+    document.getElementById('modalDiscountAmount').textContent = '- ' + formatRupiah(discountAmount);
+    document.getElementById('modalDiscountRow').style.display = 'flex';
+  }
+
+  // Show modal
+  document.getElementById('paymentMethodModal').style.display = 'block';
+}
+
+// Close payment method modal
+function closePaymentMethodModal() {
+  document.getElementById('paymentMethodModal').style.display = 'none';
+}
+
+// Select payment method
+function selectPaymentMethod(method, element) {
+  // Remove previous selection
+  document.querySelectorAll('.payment-method-card').forEach(card => {
+    card.classList.remove('selected');
+  });
+  
+  // Add selection
+  element.classList.add('selected');
+  selectedMethod = method;
+  document.getElementById('selectedPaymentMethod').value = method;
+  
+  // Enable confirm button
+  document.getElementById('btnConfirmPayment').disabled = false;
+}
+
+// Confirm payment
+function confirmPayment() {
+  if (!selectedMethod) {
+    alert('Pilih metode pembayaran terlebih dahulu!');
+    return;
+  }
+
+  // Add payment method to form
+  const form = document.getElementById('paymentForm');
+  const methodInput = document.createElement('input');
+  methodInput.type = 'hidden';
+  methodInput.name = 'payment_method';
+  methodInput.value = selectedMethod;
+  form.appendChild(methodInput);
+
+  // Submit form
+  form.submit();
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+  const modal = document.getElementById('paymentMethodModal');
+  if (event.target == modal) {
+    closePaymentMethodModal();
+  }
+}
+
+// Allow Enter key to apply discount
+document.getElementById('discountInput')?.addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    applyDiscount();
+  }
+});
+
+// Form validation before submit
+document.getElementById('paymentForm')?.addEventListener('submit', function(e) {
+  const email = document.querySelector('input[name="email"]').value.trim();
+  const phone = document.querySelector('input[name="phone"]').value.trim();
+  const accountNumber = document.querySelector('input[name="account_number"]').value.trim();
+
+  if (!email) {
+    e.preventDefault();
+    alert('Email wajib diisi!');
+    return false;
+  }
+
+  if (!phone) {
+    e.preventDefault();
+    alert('Nomor telepon wajib diisi!');
+    return false;
+  }
+
+  if (!accountNumber) {
+    e.preventDefault();
+    alert('Nomor rekening / E-Wallet wajib diisi!');
+    return false;
+  }
+
+  // Validasi email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    e.preventDefault();
+    alert('Format email tidak valid!');
+    return false;
+  }
+
+  // Validasi phone (harus angka)
+  if (!/^\d+$/.test(phone)) {
+    e.preventDefault();
+    alert('Nomor telepon hanya boleh berisi angka!');
+    return false;
+  }
+
+  // All validations passed
+  return true;
+});
+</script>
+
+{{> footer}}

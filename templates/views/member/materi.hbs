@@ -93,6 +93,75 @@
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
   }
 
+  .materi-card.locked {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  .materi-card.locked .materi-thumbnail::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .materi-badge.locked {
+    background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
+  }
+
+  .lock-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 3rem;
+    color: #fff;
+    z-index: 1;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  }
+
+  .lock-reason {
+    font-size: 0.9rem;
+    color: #c53030;
+    font-weight: 600;
+    margin-top: 12px;
+    text-align: center;
+    line-height: 1.5;
+    padding: 8px 0;
+    letter-spacing: 0.3px;
+  }
+
+  .materi-card.locked {
+    opacity: 0.65;
+    pointer-events: none;
+  }
+
+  .materi-card.locked .materi-thumbnail::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 0;
+  }
+
+  .materi-badge.locked {
+    background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
   .page-title-materi {
     text-align: center;
     font-size: 2.2rem;
@@ -102,6 +171,9 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
     margin-bottom: 10px;
+    margin-top: -20px;
+    width: 100%;
+    display: block;
   }
 
   .page-subtitle-materi {
@@ -109,6 +181,8 @@
     color: #718096;
     font-size: 1.05rem;
     margin-bottom: 40px;
+    width: 100%;
+    display: block;
   }
 
   .btn-back-materi {
@@ -208,6 +282,11 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
+
+  #punishment-banner-container {
+    margin: 0 auto 30px;
+    max-width: 600px;
+  }
 </style>
 
 <main class="site-root">
@@ -218,13 +297,17 @@
         <!-- Tampilan Materi dari Kursus yang Dipilih -->
         <a href="/materi" class="btn-back-materi">Kembali ke Pilihan Kursus</a>
         
+        <!-- Punishment Banner Container -->
+        <div id="punishment-banner-container"></div>
+        
         <h2 class="page-title-materi">{{selectedCourse.title}}</h2>
         <p class="page-subtitle-materi">Pilih materi untuk mulai belajar</p>
 
         {{#if materials.length}}
         <div class="materi-grid">
           {{#each materials}}
-          <a href="{{#if this.media_url}}{{this.media_url}}{{else}}#{{/if}}" target="_blank" class="materi-card-link">
+          {{#if this.is_accessible}}
+          <a href="{{#if this.media_url}}{{this.media_url}}{{else}}#{{/if}}" target="_blank" class="materi-card-link" data-material-id="{{this.id}}">
             <div class="materi-card">
               <div class="materi-thumbnail">
                 {{#if this.thumbnail}}
@@ -239,6 +322,33 @@
               </div>
             </div>
           </a>
+          {{else}}
+          <div class="materi-card-link" data-material-id="{{this.id}}">
+            <div class="materi-card locked">
+              <div class="materi-thumbnail">
+                {{#if this.thumbnail}}
+                <img src="{{this.thumbnail}}" alt="{{this.title}}" loading="lazy"/>
+                {{else}}
+                <img src="/img/banner.png" alt="{{this.title}}" loading="lazy"/>
+                {{/if}}
+                <span class="materi-badge locked">🔒 Terkunci</span>
+                <div class="lock-icon">🔒</div>
+              </div>
+              <div class="materi-content">
+                <h3 class="materi-title">{{this.title}}</h3>
+                {{#if this.access_denied_reason}}
+                  {{#if (eq this.access_denied_reason 'suspended')}}
+                  <p class="lock-reason">🚫 Akun Anda sedang di-suspend<br/><span style="font-size: 0.8rem; font-weight: 500;">Hubungi lecturer untuk mengaktifkan kembali</span></p>
+                  {{else if (eq this.access_denied_reason 'absent_from_meeting')}}
+                  <p class="lock-reason">Anda tidak hadir di pertemuan ini<br/><span style="font-size: 0.8rem; font-weight: 500;">Hadir untuk akses materi</span></p>
+                  {{else if (eq this.access_denied_reason 'not_linked_to_meeting')}}
+                  <p class="lock-reason">Materi belum dikonfigurasi<br/><span style="font-size: 0.8rem; font-weight: 500;">Hubungi lecturer</span></p>
+                  {{/if}}
+                {{/if}}
+              </div>
+            </div>
+          </div>
+          {{/if}}
           {{/each}}
         </div>
         {{else}}
@@ -286,5 +396,64 @@
     </div>
   </section>
 </main>
+
+<!-- Include Punishment Utils -->
+<script src="/js/punishment-utils.js"></script>
+<script>
+// Set current user untuk punishment check
+window.currentUser = {
+  id: '{{user.id}}'
+};
+
+// Initialize punishment check jika ada course yang dipilih
+{{#if selectedCourse}}
+document.addEventListener('DOMContentLoaded', function() {
+  // Display punishment banner
+  displayPunishmentBanner('{{selectedCourse.id}}');
+  
+  // Material access sudah dihitung di backend via is_accessible property
+  // Jadi tidak perlu AJAX call tambahan - backend sudah handle attendance checking
+  // DISABLED: Lock materials yang restricted via AJAX
+  /*
+  document.querySelectorAll('[data-material-id]').forEach(async (element) => {
+    const materialId = element.getAttribute('data-material-id');
+    if (materialId) {
+      const result = await checkMaterialAccess(materialId);
+      if (!result.canAccess) {
+        // Tambahkan locked state
+        element.classList.add('locked-by-punishment');
+        element.querySelector('.materi-card').classList.add('locked');
+        
+        // Ganti badge
+        const badge = element.querySelector('.materi-badge');
+        if (badge) {
+          badge.className = 'materi-badge locked';
+          badge.textContent = '🔒 Tidak Hadir';
+        }
+        
+        // Tambahkan lock icon jika belum ada
+        if (!element.querySelector('.lock-icon')) {
+          const lockIcon = document.createElement('div');
+          lockIcon.className = 'lock-icon';
+          lockIcon.textContent = '🔒';
+          element.querySelector('.materi-thumbnail').appendChild(lockIcon);
+        }
+        
+        // Disable link
+        element.style.pointerEvents = 'none';
+        element.style.opacity = '0.7';
+        
+        // Tambahkan click handler untuk info
+        element.addEventListener('click', function(e) {
+          e.preventDefault();
+          alert('Anda tidak dapat mengakses materi ini karena tidak hadir pada meeting terkait. Silakan hubungi lecturer.');
+        });
+      }
+    }
+  });
+  */
+});
+{{/if}}
+</script>
 
 {{> footer}}

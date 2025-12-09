@@ -124,7 +124,11 @@ document.addEventListener('DOMContentLoaded',function(){
 			const usernameInput = form.querySelector('input[name="username"]');
 
 			if(!emailInput || !emailInput.value){
-				alert('Email wajib diisi terlebih dahulu');
+				if (typeof toast !== 'undefined') {
+					toast.warning('Email wajib diisi terlebih dahulu');
+				} else {
+					alert('Email wajib diisi terlebih dahulu');
+				}
 				emailInput && emailInput.focus();
 				return;
 			}
@@ -149,16 +153,29 @@ document.addEventListener('DOMContentLoaded',function(){
 				const data = await response.json();
 
 				if(response.ok && data.success){
-					alert('Kode OTP telah dikirim ke email Anda. Silakan cek inbox atau folder spam.');
+					if (typeof toast !== 'undefined') {
+						toast.success('Kode OTP telah dikirim ke email Anda!');
+					} else {
+						alert('Kode OTP telah dikirim ke email Anda');
+					}
 					// Focus ke input OTP
 					const otpInput = form.querySelector('input[name="otp"]');
 					otpInput && otpInput.focus();
 				} else {
-					alert(data.error || 'Gagal mengirim kode OTP');
+					const errorMsg = data.error || 'Gagal mengirim kode OTP';
+					if (typeof toast !== 'undefined') {
+						toast.error(errorMsg);
+					} else {
+						alert(errorMsg);
+					}
 				}
 			} catch(error){
 				console.error('Error sending OTP:', error);
-				alert('Terjadi kesalahan saat mengirim OTP');
+				if (typeof toast !== 'undefined') {
+					toast.error('Terjadi kesalahan saat mengirim OTP');
+				} else {
+					alert('Terjadi kesalahan saat mengirim OTP');
+				}
 			} finally {
 				// Re-enable button
 				otpBtn.disabled = false;

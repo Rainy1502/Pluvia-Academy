@@ -245,9 +245,9 @@
                 Anda sudah terdaftar di paket ini
               </div>
               {{else}}
-              <form method="POST" action="/paket_kursus/{{package.id}}/enroll" style="margin:0;">
-                <button type="submit" class="btn-register-paket">Daftar Sekarang</button>
-              </form>
+              <button type="button" class="btn-register-paket" onclick="window.location.href='/payment/{{package.id}}'">
+                Daftar Sekarang
+              </button>
               {{/if}}
             </div>
           </div>

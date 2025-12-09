@@ -272,7 +272,26 @@
   <span class="toast-message" id="toastMessage"></span>
 </div>
 
+<!-- Modal Konfirmasi Toggle Akses -->
+<div id="toggleAccessModal" class="kursus-modal">
+  <div class="kursus-modal-content logout-modal-content">
+    <div class="modal-logo">
+      <img src="/img/logo-pngegg.png" alt="Pluvia Academy" class="modal-logo-img"/>
+      <h2>Pluvia Academy</h2>
+    </div>
+    <h3 class="modal-title" id="toggleModalTitle">Konfirmasi</h3>
+    <p class="logout-message" id="toggleModalMessage">Apakah Anda yakin?</p>
+    
+    <div class="modal-actions">
+      <button type="button" class="modal-btn modal-btn-logout" id="confirmToggleBtn" onclick="confirmToggle()">Ya, Lanjutkan</button>
+      <button type="button" class="modal-btn modal-btn-batal" onclick="closeToggleModal()">Batal</button>
+    </div>
+  </div>
+</div>
+
 <script>
+let toggleTarget = { materialId: null, currentlyUnlocked: false };
+
 function showToast(message, isSuccess) {
   const toast = document.getElementById('toastNotification');
   const icon = document.getElementById('toastIcon');
@@ -290,39 +309,72 @@ function showToast(message, isSuccess) {
 }
 
 function toggleMaterialAccess(materialId, currentlyUnlocked) {
-  const action = currentlyUnlocked ? 'mengunci' : 'membuka';
-  const actionText = currentlyUnlocked ? 'Mengunci' : 'Membuka';
+  toggleTarget = { materialId, currentlyUnlocked };
+  
+  const modalTitle = document.getElementById('toggleModalTitle');
+  const modalMessage = document.getElementById('toggleModalMessage');
+  const confirmBtn = document.getElementById('confirmToggleBtn');
+  
+  if (currentlyUnlocked) {
+    modalTitle.textContent = '🔒 Kunci Akses Materi';
+    modalMessage.textContent = 'Siswa tidak akan bisa mengakses materi ini setelah dikunci. Yakin ingin melanjutkan?';
+    confirmBtn.textContent = 'Ya, Kunci';
+    confirmBtn.className = 'modal-btn modal-btn-logout';
+  } else {
+    modalTitle.textContent = '🔓 Buka Akses Materi';
+    modalMessage.textContent = 'Siswa akan bisa mengakses dan mempelajari materi ini. Yakin ingin melanjutkan?';
+    confirmBtn.textContent = 'Ya, Buka';
+    confirmBtn.className = 'modal-btn modal-btn-tambah';
+  }
+  
+  document.getElementById('toggleAccessModal').style.display = 'flex';
+}
+
+function closeToggleModal() {
+  document.getElementById('toggleAccessModal').style.display = 'none';
+  toggleTarget = { materialId: null, currentlyUnlocked: false };
+}
+
+function confirmToggle() {
+  if (!toggleTarget.materialId) return;
+  
+  const { materialId, currentlyUnlocked } = toggleTarget;
   const emoji = currentlyUnlocked ? '🔒' : '🔓';
   
-  const confirmMessage = currentlyUnlocked 
-    ? `🔒 Yakin ingin mengunci akses materi ini?\n\nSiswa tidak akan bisa mengakses materi ini setelah dikunci.`
-    : `🔓 Yakin ingin membuka akses materi ini?\n\nSiswa akan bisa mengakses dan mempelajari materi ini.`;
-  
-  if (confirm(confirmMessage)) {
-    fetch(`/kursus/{{courseId}}/students/{{studentId}}/materi/${materialId}/toggle`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        const successMessage = currentlyUnlocked 
-          ? `${emoji} Akses materi berhasil dikunci!`
-          : `${emoji} Akses materi berhasil dibuka!`;
-        showToast(successMessage, true);
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
-      } else {
-        showToast(data.message || 'Gagal mengubah akses materi', false);
-      }
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      showToast('Terjadi kesalahan saat mengubah akses materi', false);
-    });
+  fetch(`/kursus/{{courseId}}/students/{{studentId}}/materi/${materialId}/toggle`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      const successMessage = currentlyUnlocked 
+        ? `${emoji} Akses materi berhasil dikunci!`
+        : `${emoji} Akses materi berhasil dibuka!`;
+      showToast(successMessage, true);
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } else {
+      showToast(data.message || 'Gagal mengubah akses materi', false);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    showToast('Terjadi kesalahan saat mengubah akses materi', false);
+  })
+  .finally(() => {
+    closeToggleModal();
+  });
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+  const toggleModal = document.getElementById('toggleAccessModal');
+  if (event.target === toggleModal) {
+    closeToggleModal();
   }
 }
 </script>

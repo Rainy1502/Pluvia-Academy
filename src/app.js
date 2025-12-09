@@ -64,7 +64,34 @@ const hbs = create({
   helpers: {
     eq: (a, b) => a === b,
     neq: (a, b) => a !== b,
-    json: (context) => JSON.stringify(context)
+    json: (context) => JSON.stringify(context),
+    formatPrice: (price) => {
+      if (!price) return 'Rp0';
+      return 'Rp' + parseInt(price).toLocaleString('id-ID');
+    },
+    formatDate: (dateString) => {
+      if (!dateString) return '-';
+      const date = new Date(dateString);
+      const options = { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      };
+      return date.toLocaleDateString('id-ID', options);
+    },
+    capitalize: (str) => {
+      if (!str) return '';
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    },
+    substring: (str, start, end) => {
+      if (!str) return '';
+      return str.substring(start, end).toUpperCase();
+    },
+    subtract: (a, b) => {
+      return parseFloat(a) - parseFloat(b);
+    }
   }
 });
 app.engine('hbs', hbs.engine);
@@ -90,6 +117,7 @@ const courseData = require('./utils/courseData');
 const materiData = require('./utils/materiData');
 const otpRoutes = require('./routes/otp');
 const uploadRoutes = require('./routes/upload');
+const attendanceRoutes = require('./routes/attendance');
 
 // expose whether courses exist to templates so header can adapt links
 app.use((req, res, next) => {
@@ -103,7 +131,10 @@ app.use((req, res, next) => {
 app.use(async (req, res, next) => {
   try {
     const cookieHeader = req.headers && req.headers.cookie;
-    if (!cookieHeader) return next();
+    if (!cookieHeader) {
+      res.locals.user = null;
+      return next();
+    }
 
     const cookies = {};
     cookieHeader.split(';').forEach(pair => {
@@ -115,7 +146,10 @@ app.use(async (req, res, next) => {
     });
 
     const userId = cookies['user_id'];
-    if (!userId) return next();
+    if (!userId) {
+      res.locals.user = null;
+      return next();
+    }
 
     // fetch minimal user info
     const { data, error } = await supabase
@@ -126,22 +160,85 @@ app.use(async (req, res, next) => {
 
     if (!error && data) {
       res.locals.user = data;
+      // Prevent caching for authenticated users
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+    } else {
+      res.locals.user = null;
     }
 
     return next();
   } catch (err) {
     console.error('Error loading user from cookie:', err);
+    res.locals.user = null;
     return next();
   }
 });
 
+// Helper: detect requests expecting JSON (AJAX/Fetch)
+function _isJsonRequest(req){
+  return !!(
+    req.xhr ||
+    (req.headers && req.headers.accept && req.headers.accept.indexOf('application/json') !== -1) ||
+    (req.headers && req.headers['content-type'] && req.headers['content-type'].indexOf('application/json') !== -1)
+  );
+}
+
 // Middleware: Check if user is admin
 const requireAdmin = (req, res, next) => {
   if (!res.locals.user || res.locals.user.role_id !== 10) {
+    if (_isJsonRequest(req)) {
+      return res.status(403).json({ success: false, message: 'Anda tidak memiliki akses ke halaman ini.' });
+    }
     return res.status(403).render('404', { 
       title: 'Akses Ditolak',
       message: 'Anda tidak memiliki akses ke halaman ini.' 
     });
+  }
+  next();
+};
+
+// Middleware: Check if user is lecturer
+const requireLecturer = (req, res, next) => {
+  if (!res.locals.user || res.locals.user.role_id !== 5) {
+    if (_isJsonRequest(req)) {
+      return res.status(403).json({ success: false, message: 'Anda tidak memiliki akses ke halaman ini.' });
+    }
+    return res.status(403).render('404', { 
+      title: 'Akses Ditolak',
+      message: 'Anda tidak memiliki akses ke halaman ini.' 
+    });
+  }
+  next();
+};
+
+// Middleware: Check if user is admin or lecturer
+const requireAdminOrLecturer = (req, res, next) => {
+  if (!res.locals.user || (res.locals.user.role_id !== 10 && res.locals.user.role_id !== 5)) {
+    if (_isJsonRequest(req)) {
+      return res.status(403).json({ success: false, message: 'Anda tidak memiliki akses ke halaman ini.' });
+    }
+    return res.status(403).render('404', { 
+      title: 'Akses Ditolak',
+      message: 'Anda tidak memiliki akses ke halaman ini.' 
+    });
+  }
+  next();
+};
+
+// Middleware: Redirect if already logged in (untuk login/register pages)
+const redirectIfLoggedIn = (req, res, next) => {
+  if (res.locals.user) {
+    return res.redirect('/');
+  }
+  next();
+};
+
+// Middleware: Require login (redirect to login if not authenticated)
+const requireLogin = (req, res, next) => {
+  if (!res.locals.user) {
+    return res.redirect('/login');
   }
   next();
 };
@@ -151,6 +248,9 @@ app.use('/api/otp', otpRoutes);
 
 // API routes untuk Upload
 app.use('/api/upload', uploadRoutes);
+
+// API routes untuk Attendance & Punishment
+app.use('/api/attendance', attendanceRoutes);
 
 // Homepage - akan menampilkan menu sesuai status login berkat middleware di atas
 app.get('/', async (_req, res) => {
@@ -179,8 +279,9 @@ app.get('/', async (_req, res) => {
 });
 
   // Courses page: shows courses the user is enrolled in or management view for admin
-  app.get('/kursus', async (req, res) => {
+  app.get('/kursus', requireLogin, async (req, res) => {
   const isAdmin = res.locals.user && res.locals.user.role_id === 10;
+  const isLecturer = res.locals.user && res.locals.user.role_id === 5;
   
   if (isAdmin) {
     // Admin view: show all courses with management options
@@ -212,6 +313,28 @@ app.get('/', async (_req, res) => {
         courses: [],
         lecturers: [],
         isAdmin: true 
+      });
+    }
+  } else if (isLecturer) {
+    // Lecturer view: show courses they teach (management view)
+    try {
+      const { data: courses, error } = await supabase
+        .from('courses')
+        .select('id, title, description, thumbnail, meet_link, schedule_day, schedule_time_start, schedule_time_end')
+        .eq('instructor_id', res.locals.user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      return res.render('lecturer/manajemen_kursus', { 
+        title: 'Manajemen Kursus', 
+        courses: courses || []
+      });
+    } catch (error) {
+      console.error('Error fetching lecturer courses:', error);
+      return res.render('lecturer/manajemen_kursus', { 
+        title: 'Manajemen Kursus', 
+        courses: []
       });
     }
   } else {
@@ -263,8 +386,9 @@ app.get('/', async (_req, res) => {
 });
 
 // Materi page: shows available materials or management view for admin
-app.get('/materi', async (req, res) => {
+app.get('/materi', requireLogin, async (req, res) => {
   const isAdmin = res.locals.user && res.locals.user.role_id === 10;
+  const isLecturer = res.locals.user && res.locals.user.role_id === 5;
   
   if (isAdmin) {
     // Admin view: show all courses with their materials
@@ -303,6 +427,35 @@ app.get('/materi', async (req, res) => {
         title: 'Manajemen Materi', 
         courses: [],
         isAdmin: true 
+      });
+    }
+  } else if (isLecturer) {
+    // Lecturer view: show courses they teach with materials
+    try {
+      const lecturerId = res.locals.user.id;
+
+      // Get courses taught by this lecturer
+      const { data: courses, error } = await supabase
+        .from('courses')
+        .select(`
+          id,
+          title,
+          materials(id, title, description, thumbnail, media_url, ordinal)
+        `)
+        .eq('instructor_id', lecturerId)
+        .order('title', { ascending: true });
+
+      if (error) throw error;
+
+      return res.render('lecturer/manajemen_materi', { 
+        title: 'Manajemen Materi', 
+        courses: courses || []
+      });
+    } catch (error) {
+      console.error('Error fetching lecturer materials:', error);
+      return res.render('lecturer/manajemen_materi', { 
+        title: 'Manajemen Materi', 
+        courses: []
       });
     }
   } else {
@@ -361,6 +514,135 @@ app.get('/materi', async (req, res) => {
 
         if (materialsError) throw materialsError;
 
+        // Get user's progress to check which materials are unlocked
+        const { data: progress, error: progressError } = await supabase
+          .from('progress')
+          .select('material_id, is_complete')
+          .eq('user_id', res.locals.user.id)
+          .eq('course_id', selectedCourseId);
+
+        if (progressError) throw progressError;
+
+        // Get user's punishment status to check if suspended
+        const { data: enrollment, error: enrollmentError } = await supabase
+          .from('enrollments')
+          .select('punishment_status')
+          .eq('user_id', res.locals.user.id)
+          .eq('course_id', selectedCourseId)
+          .single();
+
+        const isSuspended = enrollment?.punishment_status === 'suspended';
+
+        // Get user's attendance to check which meetings they attended
+        const { data: attendance, error: attendanceError } = await supabase
+          .from('attendance')
+          .select('meeting_id, status')
+          .eq('user_id', res.locals.user.id)
+          .eq('course_id', selectedCourseId);
+
+        if (attendanceError) throw attendanceError;
+
+        // Get which materials are linked to which meetings (for this course only)
+        let meetingMaterials = [];
+        
+        if (materials.length > 0) {
+          // Get all meeting-material links for materials in this course
+          const { data: links, error: meetingMaterialsError } = await supabase
+            .from('meeting_materials')
+            .select('meeting_id, material_id')
+            .in('material_id', materials.map(m => m.id));
+
+          if (meetingMaterialsError && meetingMaterialsError.code !== '42P01') {
+            // Ignore if table doesn't exist yet (code 42P01 = table doesn't exist)
+            throw meetingMaterialsError;
+          }
+          
+          if (links && links.length > 0) {
+            // Now we need to verify these are actually meetings in this course
+            // Get all meeting_ids from the links
+            const meetingIds = [...new Set(links.map(l => l.meeting_id))];
+            
+            // Fetch meetings to verify they belong to this course
+            const { data: meetings, error: meetingsError } = await supabase
+              .from('meetings')
+              .select('id, course_id')
+              .in('id', meetingIds);
+            
+            if (meetingsError) throw meetingsError;
+            
+            // Filter links to only include meetings from this course
+            const courseIds = new Set(meetings.map(m => m.id));
+            meetingMaterials = links.filter(l => courseIds.has(l.meeting_id));
+          }
+        }
+
+        // Create a set of unlocked material IDs (from progress)
+        const unlockedMaterialIds = new Set((progress || []).map(p => p.material_id));
+        
+        // Create a set of attended meeting IDs (present or permitted or sick status)
+        const attendedMeetingIds = new Set(
+          (attendance || [])
+            .filter(a => a.status === 'present' || a.status === 'permitted' || a.status === 'sick')
+            .map(a => a.meeting_id)
+        );
+
+        // Create a map of material_id -> meeting_ids (which meetings unlock this material)
+        const materialMeetingMap = new Map();
+        (meetingMaterials || []).forEach(mm => {
+          if (!materialMeetingMap.has(mm.material_id)) {
+            materialMeetingMap.set(mm.material_id, []);
+          }
+          materialMeetingMap.get(mm.material_id).push(mm.meeting_id);
+        });
+
+        // Add is_unlocked and is_accessible properties to each material
+        const materialsWithAccess = (materials || []).map(material => {
+          // If student is suspended, ALL materials are locked
+          if (isSuspended) {
+            return {
+              ...material,
+              is_unlocked: false,
+              is_accessible: false,
+              requires_attendance: false,
+              access_denied_reason: 'suspended'
+            };
+          }
+
+          // Check if material is linked to any meetings
+          const linkedMeetingIds = materialMeetingMap.get(material.id) || [];
+          let isAccessible = false;
+          let requiresAttendance = false;
+          let accessDeniedReason = null;
+
+          if (linkedMeetingIds.length > 0) {
+            // Material IS linked to meetings
+            requiresAttendance = true;
+            // Check if student attended at least one of the linked meetings
+            const attendedLinkedMeeting = linkedMeetingIds.some(meetingId => attendedMeetingIds.has(meetingId));
+            
+            if (attendedLinkedMeeting) {
+              // Student attended at least one linked meeting → ACCESSIBLE
+              isAccessible = true;
+            } else {
+              // Student did NOT attend any linked meetings → LOCKED
+              isAccessible = false;
+              accessDeniedReason = 'absent_from_meeting';
+            }
+          } else {
+            // Material NOT linked to any meeting → LOCKED (waiting to be linked)
+            isAccessible = false;
+            accessDeniedReason = 'not_linked_to_meeting';
+          }
+
+          return {
+            ...material,
+            is_unlocked: isAccessible,
+            is_accessible: isAccessible,
+            requires_attendance: requiresAttendance,
+            access_denied_reason: accessDeniedReason
+          };
+        });
+
         // Get course details
         const selectedCourse = courses.find(c => c.id === selectedCourseId);
 
@@ -368,7 +650,7 @@ app.get('/materi', async (req, res) => {
           title: 'Materi', 
           courses: courses || [],
           selectedCourse: selectedCourse,
-          materials: materials || [],
+          materials: materialsWithAccess,
           isAdmin: false 
         });
       }
@@ -395,7 +677,7 @@ app.get('/materi', async (req, res) => {
 });
 
 // Paket kursus / purchase page or management view for admin
-app.get('/paket_kursus', async (req, res) => {
+app.get('/paket_kursus', requireLogin, async (req, res) => {
   const isAdmin = res.locals.user && res.locals.user.role_id === 10;
   
   if (isAdmin) {
@@ -501,16 +783,16 @@ app.get('/paket_kursus/:id', async (req, res) => {
         .eq('package_id', packageId);
       
       if (packageCourses && packageCourses.length > 0) {
-        // Check if user is enrolled in at least one course from this package
+        // Check if user is enrolled in ALL courses from this package
         const courseIds = packageCourses.map(pc => pc.course_id);
         const { data: enrollments } = await supabase
           .from('enrollments')
           .select('course_id')
           .eq('user_id', userId)
-          .in('course_id', courseIds)
-          .limit(1);
+          .in('course_id', courseIds);
         
-        isEnrolled = enrollments && enrollments.length > 0;
+        // User is considered enrolled only if they're enrolled in ALL courses
+        isEnrolled = enrollments && enrollments.length === packageCourses.length;
       }
     }
 
@@ -526,7 +808,7 @@ app.get('/paket_kursus/:id', async (req, res) => {
 });
 
 // Lecturer management page (Admin only)
-app.get('/lecturer', async (req, res) => {
+app.get('/lecturer', requireAdminOrLecturer, async (req, res) => {
   // Check if user is admin
   if (!res.locals.user || res.locals.user.role_id !== 10) {
     return res.redirect('/');
@@ -535,11 +817,15 @@ app.get('/lecturer', async (req, res) => {
   try {
     const { data: lecturers, error } = await supabase
       .from('users')
-      .select('id, full_name, email, avatar_url, is_active')
-      .eq('role_id', 5) // Assuming role_id 5 is for lecturers
+      .select('id, full_name, email, avatar_url, expertise, phone, role_id')
+      .eq('role_id', 5) // Lecturer role
       .order('full_name', { ascending: true });
 
     if (error) throw error;
+
+    // Debug: log lecturers to check role_id
+    console.log('Lecturers fetched:', lecturers?.length, 'entries');
+    lecturers?.forEach(l => console.log(`- ${l.full_name} (role_id: ${l.role_id})`));
 
     return res.render('admin/lecturer', { 
       title: 'Manajemen Lecturer', 
@@ -554,8 +840,150 @@ app.get('/lecturer', async (req, res) => {
   }
 });
 
-// Student management for a specific course (Admin only)
-app.get('/kursus/:id/students', requireAdmin, async (req, res) => {
+// Lecturer - Halaman Kelas (Kursus yang diajar)
+app.get('/kelas', requireLecturer, async (req, res) => {
+  try {
+    const lecturerId = res.locals.user.id;
+
+    // Get courses taught by this lecturer with student count
+    const { data: courses, error } = await supabase
+      .from('courses')
+      .select(`
+        id, 
+        title, 
+        description, 
+        thumbnail,
+        schedule_day,
+        schedule_time_start,
+        schedule_time_end
+      `)
+      .eq('instructor_id', lecturerId)
+      .order('title', { ascending: true });
+
+    if (error) throw error;
+
+    // Get student count for each course
+    const coursesWithCount = await Promise.all((courses || []).map(async (course) => {
+      const { count } = await supabase
+        .from('enrollments')
+        .select('*', { count: 'exact', head: true })
+        .eq('course_id', course.id)
+        .eq('status', 'active');
+
+      return {
+        ...course,
+        student_count: count || 0
+      };
+    }));
+
+    return res.render('lecturer/kelas', { 
+      title: 'Kelas Yang Anda Ajar', 
+      courses: coursesWithCount
+    });
+  } catch (error) {
+    console.error('Error fetching lecturer courses:', error);
+    return res.render('lecturer/kelas', { 
+      title: 'Kelas Yang Anda Ajar', 
+      courses: []
+    });
+  }
+});
+
+// Lecturer - Halaman Manajemen Absensi & Punishment
+app.get('/manajemen_absensi', requireLecturer, async (req, res) => {
+  try {
+    const lecturerId = res.locals.user.id;
+    const courseId = req.query.course_id;
+
+    if (!courseId) {
+      return res.redirect('/kelas');
+    }
+
+    // Get specific course info
+    const { data: course, error } = await supabase
+      .from('courses')
+      .select('id, title, meet_link')
+      .eq('id', courseId)
+      .eq('instructor_id', lecturerId)
+      .single();
+
+    if (error || !course) {
+      return res.redirect('/kelas');
+    }
+
+    return res.render('lecturer/manajemen_absensi', { 
+      title: 'Manajemen Absensi - ' + course.title, 
+      course: course
+    });
+  } catch (error) {
+    console.error('Error fetching course for attendance:', error);
+    return res.redirect('/kelas');
+  }
+});
+
+// Live Class page - must be before routes with :id parameter to avoid conflicts
+app.get('/live_class/:courseId', requireLogin, async (req, res) => {
+  if (!res.locals.user) {
+    return res.redirect('/login');
+  }
+
+  try {
+    const { courseId } = req.params;
+    const isLecturer = res.locals.user.role_id === 5;
+
+    // For lecturer, check if they are teaching this course
+    if (isLecturer) {
+      const { data: course, error } = await supabase
+        .from('courses')
+        .select('id, title, description, thumbnail, meet_link')
+        .eq('id', courseId)
+        .eq('instructor_id', res.locals.user.id)
+        .single();
+
+      if (error || !course) {
+        return res.redirect('/kursus');
+      }
+
+      return res.render('lecturer/live_class', {
+        title: 'Live Class',
+        course: course
+      });
+    }
+
+    // For members, check if user is enrolled in this course
+    const { data: enrollment } = await supabase
+      .from('enrollments')
+      .select('id')
+      .eq('user_id', res.locals.user.id)
+      .eq('course_id', courseId)
+      .eq('status', 'active')
+      .single();
+
+    if (!enrollment) {
+      return res.redirect('/kursus');
+    }
+
+    // Get course details for members
+    const { data: memberCourse, error: memberError } = await supabase
+      .from('courses')
+      .select('id, title, description, thumbnail, meet_link')
+      .eq('id', courseId)
+      .single();
+
+    if (memberError) throw memberError;
+
+    return res.render('member/live_class', {
+      title: 'Live Class',
+      course: memberCourse
+    });
+  } catch (error) {
+    console.error('Error fetching live class:', error);
+    return res.redirect('/kursus');
+  }
+});
+
+// Student management for a specific course (Admin or Lecturer)
+app.get('/kursus/:id/students', requireAdminOrLecturer, async (req, res) => {
   const courseId = req.params.id;
 
   try {
@@ -597,7 +1025,11 @@ app.get('/kursus/:id/students', requireAdmin, async (req, res) => {
       avatar_url: enrollment.users.avatar_url
     }));
 
-    return res.render('admin/siswa', {
+    // Determine which view to use based on role
+    const isAdmin = res.locals.user && res.locals.user.role_id === 10;
+    const viewPath = isAdmin ? 'admin/siswa' : 'lecturer/siswa';
+
+    return res.render(viewPath, {
       title: `Daftar Student - ${course.title}`,
       courseId: course.id,
       courseName: course.title,
@@ -605,7 +1037,10 @@ app.get('/kursus/:id/students', requireAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching students:', error);
-    return res.status(500).render('admin/siswa', {
+    const isAdmin = res.locals.user && res.locals.user.role_id === 10;
+    const viewPath = isAdmin ? 'admin/siswa' : 'lecturer/siswa';
+    
+    return res.status(500).render(viewPath, {
       title: 'Daftar Siswa',
       courseId,
       courseName: 'Kursus',
@@ -615,8 +1050,47 @@ app.get('/kursus/:id/students', requireAdmin, async (req, res) => {
   }
 });
 
-// Material access management for a specific student in a course (Admin only)
-app.get('/kursus/:courseId/students/:studentId/materi', requireAdmin, async (req, res) => {
+// DELETE Remove student from course (Admin or Lecturer)
+app.delete('/kursus/:courseId/students/:studentId/remove', requireAdminOrLecturer, express.json(), async (req, res) => {
+  const { courseId, studentId } = req.params;
+
+  try {
+    // Delete enrollment
+    const { error: deleteError } = await supabase
+      .from('enrollments')
+      .delete()
+      .eq('user_id', studentId)
+      .eq('course_id', courseId);
+
+    if (deleteError) throw deleteError;
+
+    // Also delete progress for this student in this course
+    const { error: progressError } = await supabase
+      .from('progress')
+      .delete()
+      .eq('user_id', studentId)
+      .eq('course_id', courseId);
+
+    if (progressError) {
+      console.error('Error deleting progress:', progressError);
+      // Continue even if progress deletion fails
+    }
+
+    return res.json({ 
+      success: true, 
+      message: 'Siswa berhasil dikeluarkan dari kursus' 
+    });
+  } catch (error) {
+    console.error('Error removing student from course:', error);
+    return res.json({ 
+      success: false, 
+      message: 'Gagal mengeluarkan siswa dari kursus' 
+    });
+  }
+});
+
+// Material access management for a specific student in a course (Admin or Lecturer)
+app.get('/kursus/:courseId/students/:studentId/materi', requireAdminOrLecturer, async (req, res) => {
   const { courseId, studentId } = req.params;
 
   try {
@@ -792,8 +1266,8 @@ app.delete('/materi/:materialId/students/:studentId', requireAdmin, async (req, 
   }
 });
 
-// Toggle material access for student (Admin only)
-app.post('/kursus/:courseId/students/:studentId/materi/:materialId/toggle', requireAdmin, async (req, res) => {
+// Toggle material access for student (Admin or Lecturer)
+app.post('/kursus/:courseId/students/:studentId/materi/:materialId/toggle', requireAdminOrLecturer, async (req, res) => {
   const { courseId, studentId, materialId } = req.params;
 
   try {
@@ -840,7 +1314,7 @@ app.post('/kursus/:courseId/students/:studentId/materi/:materialId/toggle', requ
 });
 
 // Login page (UI only)
-app.get('/login', (req, res) => {
+app.get('/login', redirectIfLoggedIn, (req, res) => {
   const registered = req.query && req.query.registered === 'true';
   res.render('login', { 
     title: 'Masuk', 
@@ -863,7 +1337,7 @@ app.post('/login', express.urlencoded({ extended: true }), async (req, res) => {
     // Cari user berdasarkan email
     const { data: user, error: userError } = await supabase
       .from('users')
-      .select('id, full_name, username, email, password_hash, role_id, is_verified')
+      .select('id, full_name, username, email, password_hash, role_id, is_verified, is_active')
       .eq('email', email)
       .single();
 
@@ -871,6 +1345,14 @@ app.post('/login', express.urlencoded({ extended: true }), async (req, res) => {
       return res.status(400).render('login', {
         title: 'Masuk',
         error: 'Email atau password salah',
+      });
+    }
+
+    // Check if user is inactive (soft-deleted)
+    if (user.is_active === false) {
+      return res.status(403).render('login', {
+        title: 'Masuk',
+        error: 'Akun Anda telah dinonaktifkan. Hubungi administrator untuk bantuan.',
       });
     }
 
@@ -888,8 +1370,8 @@ app.post('/login', express.urlencoded({ extended: true }), async (req, res) => {
       .update({ last_login: new Date().toISOString() })
       .eq('id', user.id);
 
-    // Set cookie dengan user_id
-    res.setHeader('Set-Cookie', `user_id=${user.id}; Path=/; HttpOnly; Max-Age=2592000`); // 30 days
+    // Set cookie dengan user_id (session cookie - akan hilang saat browser ditutup)
+    res.setHeader('Set-Cookie', `user_id=${user.id}; Path=/; HttpOnly; SameSite=Lax`);
 
     // Redirect ke home
     return res.redirect('/');
@@ -903,7 +1385,7 @@ app.post('/login', express.urlencoded({ extended: true }), async (req, res) => {
 });
 
 // Register page (UI only)
-app.get('/register', (req, res) => res.render('register', { title: 'Daftar Akun' }));
+app.get('/register', redirectIfLoggedIn, (req, res) => res.render('register', { title: 'Daftar Akun' }));
 
 // POST handler for registration dengan validasi OTP
 app.post('/register', express.urlencoded({ extended: true }), async (req, res) => {
@@ -1004,49 +1486,6 @@ app.post('/register', express.urlencoded({ extended: true }), async (req, res) =
   }
 });
 
-// (routes continue below)
-
-// Live Class page: menampilkan detail kursus dan tombol join meeting
-app.get('/live_class/:courseId', async (req, res) => {
-  if (!res.locals.user) {
-    return res.redirect('/login');
-  }
-
-  try {
-    const { courseId } = req.params;
-
-    // Check if user is enrolled in this course
-    const { data: enrollment } = await supabase
-      .from('enrollments')
-      .select('id')
-      .eq('user_id', res.locals.user.id)
-      .eq('course_id', courseId)
-      .eq('status', 'active')
-      .single();
-
-    if (!enrollment) {
-      return res.redirect('/kursus');
-    }
-
-    // Get course details
-    const { data: course, error } = await supabase
-      .from('courses')
-      .select('id, title, description, thumbnail, meet_link')
-      .eq('id', courseId)
-      .single();
-
-    if (error) throw error;
-
-    return res.render('member/live_class', {
-      title: 'Live Class',
-      course: course
-    });
-  } catch (error) {
-    console.error('Error fetching live class:', error);
-    return res.redirect('/kursus');
-  }
-});
-
 // Profile page: menampilkan informasi user yang sedang login
 app.get('/profile', async (req, res) => {
   if (!res.locals || !res.locals.user) {
@@ -1099,11 +1538,7 @@ app.get('/profile', async (req, res) => {
 });
 
 // GET /profile/edit - halaman edit profile
-app.get('/profile/edit', async (req, res) => {
-  if (!res.locals || !res.locals.user) {
-    return res.redirect('/login');
-  }
-
+app.get('/profile/edit', requireLogin, async (req, res) => {
   try {
     // Ambil data user lengkap dari database
     const { data: user, error } = await supabase
@@ -1131,18 +1566,15 @@ app.get('/profile/edit', async (req, res) => {
 });
 
 // POST /profile/edit - update profile
-app.post('/profile/edit', express.urlencoded({ extended: true }), async (req, res) => {
-  if (!res.locals || !res.locals.user) {
-    return res.status(401).json({ success: false, message: 'Unauthorized' });
-  }
-
+app.post('/profile/edit', requireLogin, express.urlencoded({ extended: true }), async (req, res) => {
   try {
-    const { fullName, phone, email, password, removeAvatar, avatar_url } = req.body;
+    const { fullName, phone, email, password, confirmPassword, removeAvatar, avatar_url } = req.body;
     const userId = res.locals.user.id;
 
     // Prepare update data
     const updateData = {
       full_name: fullName,
+      username: fullName,
       phone: phone,
       email: email
     };
@@ -1209,8 +1641,24 @@ app.post('/profile/edit', express.urlencoded({ extended: true }), async (req, re
 
     // Only update password if provided
     if (password && password.trim() !== '') {
-      // TODO: Hash password before storing (use bcrypt or similar)
-      updateData.password = password;
+      // Validate password confirmation
+      if (password !== confirmPassword) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Password dan konfirmasi password tidak cocok' 
+        });
+      }
+
+      // Validate password length (minimum 6 characters)
+      if (password.length < 6) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Password minimal 6 karakter' 
+        });
+      }
+
+      // Update password in database (store as password_hash)
+      updateData.password_hash = password;
     }
 
     // Update user data
@@ -1238,7 +1686,13 @@ app.post('/profile/edit', express.urlencoded({ extended: true }), async (req, re
 // Simple logout route: clear `user_id` cookie and redirect home
 app.get('/logout', (req, res) => {
   // Clear cookie by setting expired Set-Cookie header
-  res.setHeader('Set-Cookie', 'user_id=; Max-Age=0; Path=/; HttpOnly');
+  res.setHeader('Set-Cookie', 'user_id=; Max-Age=0; Path=/; HttpOnly; SameSite=Lax');
+  // Clear res.locals.user to ensure no user data persists
+  res.locals.user = null;
+  // Prevent browser caching
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   return res.redirect('/');
 });
 
@@ -1300,8 +1754,8 @@ app.delete('/kursus/:id', requireAdmin, async (req, res) => {
   }
 });
 
-// DELETE Materi (Admin only)
-app.delete('/materi/:id', requireAdmin, async (req, res) => {
+// DELETE Materi (Admin or Lecturer)
+app.delete('/materi/:id', requireAdminOrLecturer, async (req, res) => {
   try {
     const { id } = req.params;
     
@@ -1434,14 +1888,22 @@ app.delete('/lecturer/:id', requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Soft delete: update is_active to false instead of actual delete
-    const { error } = await supabase
+    // Hard delete: permanently remove from database
+    const { data, error } = await supabase
       .from('users')
-      .update({ is_active: false })
+      .delete()
       .eq('id', id)
-      .eq('role_id', 5);
+      .eq('role_id', 5)
+      .select();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase error deleting lecturer:', error);
+      throw error;
+    }
+
+    if (!data || data.length === 0) {
+      return res.status(404).json({ success: false, message: 'Lecturer tidak ditemukan' });
+    }
 
     return res.status(200).json({ success: true, message: 'Lecturer berhasil dihapus' });
   } catch (error) {
@@ -1516,15 +1978,105 @@ app.post('/kursus/create', requireAdmin, express.urlencoded({ extended: true }),
   }
 });
 
+// GET Create Materi Form
+app.get('/materi/create', requireAdminOrLecturer, async (req, res) => {
+  try {
+    const { course_id } = req.query;
+
+    // Get all courses
+    const { data: courses, error: coursesError } = await supabase
+      .from('courses')
+      .select('id, title')
+      .order('title', { ascending: true });
+
+    if (coursesError) throw coursesError;
+
+    // Get meetings for selected course (if provided)
+    let meetings = [];
+    if (course_id) {
+      const { data: meetingsData, error: meetingsError } = await supabase
+        .from('meetings')
+        .select('id, title, scheduled_date')
+        .eq('course_id', course_id)
+        .order('scheduled_date', { ascending: true });
+
+      if (!meetingsError && meetingsData) {
+        meetings = meetingsData;
+      }
+    }
+
+    return res.render('admin/materi_form', {
+      title: 'Tambah Materi',
+      courses: courses || [],
+      meetings: meetings,
+      selectedCourseId: course_id || null
+    });
+  } catch (error) {
+    console.error('Error loading materi form:', error);
+    return res.render('admin/materi_form', {
+      title: 'Tambah Materi',
+      courses: [],
+      meetings: [],
+      error: 'Gagal memuat form'
+    });
+  }
+});
+
+// GET Edit Materi Form
+app.get('/materi/:id/edit', requireAdminOrLecturer, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Get material details
+    const { data: material, error: materialError } = await supabase
+      .from('materials')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (materialError || !material) {
+      return res.redirect('/materi');
+    }
+
+    // Get all courses
+    const { data: courses, error: coursesError } = await supabase
+      .from('courses')
+      .select('id, title')
+      .order('title', { ascending: true });
+
+    if (coursesError) throw coursesError;
+
+    // Get meetings for material's course
+    const { data: meetings, error: meetingsError } = await supabase
+      .from('meetings')
+      .select('id, title, scheduled_date')
+      .eq('course_id', material.course_id)
+      .order('scheduled_date', { ascending: true });
+
+    if (meetingsError) throw meetingsError;
+
+    return res.render('admin/materi_form', {
+      title: 'Edit Materi',
+      material: material,
+      courses: courses || [],
+      meetings: meetings || [],
+      selectedCourseId: material.course_id
+    });
+  } catch (error) {
+    console.error('Error loading edit materi form:', error);
+    return res.redirect('/materi');
+  }
+});
+
 // POST Create Materi
-app.post('/materi/create', requireAdmin, express.urlencoded({ extended: true }), async (req, res) => {
+app.post('/materi/create', requireAdminOrLecturer, express.urlencoded({ extended: true }), async (req, res) => {
   try {
     const { title, description, ordinal, thumbnail, media_url, course_id } = req.body;
 
-    if (!title || !ordinal) {
+    if (!title || !media_url) {
       return res.status(400).json({
         success: false,
-        message: 'Judul dan urutan wajib diisi'
+        message: 'Judul dan Media URL wajib diisi'
       });
     }
 
@@ -1541,7 +2093,7 @@ app.post('/materi/create', requireAdmin, express.urlencoded({ extended: true }),
         title,
         slug,
         description: description || null,
-        ordinal: parseInt(ordinal),
+        ordinal: parseInt(ordinal) || 0,
         thumbnail: thumbnail || null,
         media_url: media_url || null,
         course_id: course_id || null,
@@ -1557,6 +2109,57 @@ app.post('/materi/create', requireAdmin, express.urlencoded({ extended: true }),
       success: false,
       message: 'Gagal menambahkan materi'
     });
+  }
+});
+
+// ========================================
+// MEETING MANAGEMENT
+// ========================================
+
+// GET Meeting Detail - for managing materials linked to meeting
+app.get('/api/attendance/meetings/:meeting_id/manage', requireAdminOrLecturer, async (req, res) => {
+  try {
+    const { meeting_id } = req.params;
+
+    // Get meeting details
+    const { data: meeting, error: meetingError } = await supabase
+      .from('meetings')
+      .select('id, title, description, scheduled_date, course_id')
+      .eq('id', meeting_id)
+      .single();
+
+    if (meetingError) throw meetingError;
+
+    // Get all materials for this course
+    const { data: materials, error: materialsError } = await supabase
+      .from('materials')
+      .select('id, title, ordinal')
+      .eq('course_id', meeting.course_id)
+      .order('ordinal', { ascending: true });
+
+    if (materialsError) throw materialsError;
+
+    // Get materials already linked to this meeting
+    const { data: linkedMaterials, error: linkedError } = await supabase
+      .from('meeting_materials')
+      .select('material_id')
+      .eq('meeting_id', meeting_id);
+
+    if (linkedError && linkedError.code !== '42P01') throw linkedError;
+
+    const linkedMaterialIds = new Set((linkedMaterials || []).map(lm => lm.material_id));
+
+    res.json({
+      success: true,
+      meeting,
+      materials: (materials || []).map(m => ({
+        ...m,
+        is_linked: linkedMaterialIds.has(m.id)
+      }))
+    });
+  } catch (error) {
+    console.error('Error fetching meeting details:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
@@ -1703,7 +2306,7 @@ app.post('/lecturer/create', requireAdmin, express.urlencoded({ extended: true }
 // ========================================
 
 // GET Edit Kursus Form
-app.get('/kursus/:id/edit', requireAdmin, async (req, res) => {
+app.get('/kursus/:id/edit', requireAdminOrLecturer, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -1728,7 +2331,7 @@ app.get('/kursus/:id/edit', requireAdmin, async (req, res) => {
 });
 
 // POST Edit Kursus
-app.post('/kursus/:id/edit', requireAdmin, express.urlencoded({ extended: true }), async (req, res) => {
+app.post('/kursus/:id/edit', requireAdminOrLecturer, express.urlencoded({ extended: true }), async (req, res) => {
   try {
     const { id } = req.params;
     const { title, description, instructor_id, meet_link, thumbnail, schedule_day, schedule_time_start, schedule_time_end } = req.body;
@@ -1802,10 +2405,10 @@ app.post('/kursus/:id/edit', requireAdmin, express.urlencoded({ extended: true }
 });
 
 // POST Edit Materi
-app.post('/materi/:id/edit', requireAdmin, express.urlencoded({ extended: true }), async (req, res) => {
+app.post('/materi/:id/edit', requireAdminOrLecturer, express.urlencoded({ extended: true }), async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, ordinal, thumbnail, media_url } = req.body;
+    const { title, description, ordinal, thumbnail, media_url, course_id, meeting_id } = req.body;
 
     if (!title || !ordinal) {
       return res.status(400).json({
@@ -1814,36 +2417,53 @@ app.post('/materi/:id/edit', requireAdmin, express.urlencoded({ extended: true }
       });
     }
 
-    // If new thumbnail provided, delete old one
-    if (thumbnail) {
-      const { data: oldMaterial } = await supabase
-        .from('materials')
-        .select('thumbnail')
-        .eq('id', id)
-        .single();
+    // Get current material to know course_id
+    const { data: currentMaterial, error: fetchError } = await supabase
+      .from('materials')
+      .select('course_id, thumbnail')
+      .eq('id', id)
+      .single();
 
-      if (oldMaterial && oldMaterial.thumbnail && oldMaterial.thumbnail !== thumbnail) {
-        try {
-          const url = new URL(oldMaterial.thumbnail);
-          const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/course-images\/(.+)$/);
+    if (fetchError) throw fetchError;
+
+    const resolvedCourseId = course_id || currentMaterial.course_id;
+
+    // If no meeting_id provided, try to auto-detect from course meetings by ordinal
+    let resolvedMeetingId = meeting_id || null;
+    if (!resolvedMeetingId && ordinal && resolvedCourseId) {
+      const { data: meetings, error: meetingsError } = await supabase
+        .from('meetings')
+        .select('id')
+        .eq('course_id', resolvedCourseId)
+        .order('scheduled_date', { ascending: true });
+
+      if (!meetingsError && meetings && meetings.length >= parseInt(ordinal)) {
+        resolvedMeetingId = meetings[parseInt(ordinal) - 1].id;
+      }
+    }
+
+    // If new thumbnail provided, delete old one
+    if (thumbnail && currentMaterial.thumbnail && currentMaterial.thumbnail !== thumbnail) {
+      try {
+        const url = new URL(currentMaterial.thumbnail);
+        const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/course-images\/(.+)$/);
+        
+        if (pathMatch) {
+          const filePath = pathMatch[1];
+          const { createClient } = require('@supabase/supabase-js');
+          const supabaseAdmin = createClient(
+            process.env.SUPABASE_URL,
+            process.env.SUPABASE_SERVICE_ROLE_KEY
+          );
           
-          if (pathMatch) {
-            const filePath = pathMatch[1];
-            const { createClient } = require('@supabase/supabase-js');
-            const supabaseAdmin = createClient(
-              process.env.SUPABASE_URL,
-              process.env.SUPABASE_SERVICE_ROLE_KEY
-            );
-            
-            await supabaseAdmin.storage
-              .from('course-images')
-              .remove([filePath]);
-            
-            console.log('Old thumbnail deleted:', filePath);
-          }
-        } catch (storageError) {
-          console.error('Error deleting old thumbnail:', storageError);
+          await supabaseAdmin.storage
+            .from('course-images')
+            .remove([filePath]);
+          
+          console.log('Old thumbnail deleted:', filePath);
         }
+      } catch (storageError) {
+        console.error('Error deleting old thumbnail:', storageError);
       }
     }
 
@@ -1863,6 +2483,7 @@ app.post('/materi/:id/edit', requireAdmin, express.urlencoded({ extended: true }
         ordinal: parseInt(ordinal),
         thumbnail: thumbnail || null,
         media_url: media_url || null,
+        meeting_id: resolvedMeetingId,
         updated_at: new Date().toISOString()
       })
       .eq('id', id);
@@ -1879,8 +2500,501 @@ app.post('/materi/:id/edit', requireAdmin, express.urlencoded({ extended: true }
   }
 });
 
-// POST Enroll in Package (Member only)
-app.post('/paket_kursus/:id/enroll', express.urlencoded({ extended: true }), async (req, res) => {
+// GET Payment page for package enrollment
+app.get('/pembayaran/:packageId', requireLogin, async (req, res) => {
+  const { packageId } = req.params;
+  const userId = res.locals.user?.id;
+
+  try {
+    // Get package details
+    const { data: packageData, error } = await supabase
+      .from('packages')
+      .select('id, title, description, price, duration, thumbnail')
+      .eq('id', packageId)
+      .single();
+
+    if (error) throw error;
+
+    if (!packageData) {
+      return res.status(404).render('404', { title: '404 - Paket Tidak Ditemukan' });
+    }
+
+    return res.render('member/pembayaran', {
+      title: 'Pembayaran - ' + packageData.title,
+      package: packageData,
+      packageId: packageId,
+      user: res.locals.user
+    });
+  } catch (error) {
+    console.error('Error loading payment page:', error);
+    return res.status(500).send('Gagal memuat halaman pembayaran');
+  }
+});
+
+// POST Submit payment and enroll
+app.post('/pembayaran/:packageId/submit', requireLogin, express.urlencoded({ extended: true }), async (req, res) => {
+  const { packageId } = req.params;
+  const userId = res.locals.user?.id;
+
+  // Check if user is logged in
+  if (!userId) {
+    return res.redirect('/login');
+  }
+
+  try {
+    console.log('Received payment data:', req.body);
+    
+    const { account_number, phone, email, discount_code, discount_percentage } = req.body;
+
+    // Validate required fields
+    if (!account_number) {
+      return res.status(400).send('Nomor rekening / E-Wallet wajib diisi');
+    }
+    
+    if (!phone) {
+      return res.status(400).send('Nomor telepon wajib diisi');
+    }
+
+    // Get all courses in this package
+    const { data: packageCourses, error: packageError } = await supabase
+      .from('package_courses')
+      .select('course_id')
+      .eq('package_id', packageId);
+
+    if (packageError) throw packageError;
+
+    if (!packageCourses || packageCourses.length === 0) {
+      return res.status(400).send('Paket ini belum memiliki kursus');
+    }
+
+    // Check existing enrollments
+    const courseIds = packageCourses.map(pc => pc.course_id);
+    const { data: existingEnrollments } = await supabase
+      .from('enrollments')
+      .select('course_id')
+      .eq('user_id', userId)
+      .in('course_id', courseIds);
+
+    const enrolledCourseIds = (existingEnrollments || []).map(e => e.course_id);
+    const newCourseIds = courseIds.filter(id => !enrolledCourseIds.includes(id));
+
+    // Insert new enrollments
+    if (newCourseIds.length > 0) {
+      const enrollmentsToInsert = newCourseIds.map(courseId => ({
+        user_id: userId,
+        course_id: courseId,
+        status: 'active',
+        progress: 0
+      }));
+
+      const { error: insertError } = await supabase
+        .from('enrollments')
+        .insert(enrollmentsToInsert);
+
+      if (insertError) throw insertError;
+    }
+
+    // Update promo code usage if discount code was used
+    if (discount_code) {
+      console.log('Updating promo code usage for:', discount_code);
+      
+      // Get current promo data
+      const { data: promo, error: promoError } = await supabase
+        .from('promo_codes')
+        .select('current_users')
+        .eq('code', discount_code.toUpperCase())
+        .single();
+
+      if (!promoError && promo) {
+        const { error: updateError } = await supabase
+          .from('promo_codes')
+          .update({ current_users: promo.current_users + 1 })
+          .eq('code', discount_code.toUpperCase());
+
+        if (updateError) {
+          console.error('Error updating promo code usage:', updateError);
+        } else {
+          console.log('Promo code usage updated successfully');
+        }
+      }
+    }
+
+    // Redirect to kursus page with success message
+    return res.redirect('/kursus?enrolled=true');
+  } catch (error) {
+    console.error('Error processing payment:', error);
+    return res.status(500).send('Gagal memproses pembayaran. Silakan coba lagi.');
+  }
+});
+
+// ========== PROMO CODES MANAGEMENT ROUTES ==========
+
+// GET Admin promo codes page
+app.get('/admin/promo-codes', requireAdmin, async (req, res) => {
+  try {
+    const { data: promoCodes, error: promoError } = await supabase
+      .from('promo_codes')
+      .select(`
+        *,
+        packages (id, title)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (promoError) throw promoError;
+
+    // Get all packages for dropdown
+    const { data: packages, error: packagesError } = await supabase
+      .from('packages')
+      .select('id, title')
+      .order('title');
+
+    if (packagesError) throw packagesError;
+
+    return res.render('admin/promo_codes', {
+      title: 'Kelola Kode Promo - Admin',
+      promoCodes: promoCodes || [],
+      packages: packages || []
+    });
+  } catch (error) {
+    console.error('Error loading promo codes:', error);
+    return res.status(500).send('Gagal memuat data kode promo');
+  }
+});
+
+// POST Create promo code
+app.post('/admin/promo-codes', requireAdmin, express.json(), async (req, res) => {
+  try {
+    const { code, package_id, discount_percentage, description, max_users, valid_from, valid_until, is_active } = req.body;
+
+    if (!code || !discount_percentage) {
+      return res.json({ success: false, message: 'Kode dan persentase diskon wajib diisi' });
+    }
+
+    if (!valid_until) {
+      return res.json({ success: false, message: 'Tanggal berakhir wajib diisi' });
+    }
+
+    const { data, error } = await supabase
+      .from('promo_codes')
+      .insert({
+        code: code.toUpperCase(),
+        package_id: package_id || null,
+        discount_percentage: parseInt(discount_percentage),
+        description: description || null,
+        max_users: max_users ? parseInt(max_users) : null,
+        current_users: 0,
+        valid_from: valid_from || new Date().toISOString(),
+        valid_until: new Date(valid_until).toISOString(),
+        is_active: is_active !== false
+      })
+      .select()
+      .single();
+
+    if (error) {
+      if (error.code === '23505') {
+        return res.json({ success: false, message: 'Kode promo sudah ada' });
+      }
+      throw error;
+    }
+
+    return res.json({ success: true, data });
+  } catch (error) {
+    console.error('Error creating promo code:', error);
+    return res.json({ success: false, message: error.message || 'Gagal membuat kode promo' });
+  }
+});
+
+// PUT Update promo code
+app.put('/admin/promo-codes/:id', requireAdmin, express.json(), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { code, package_id, discount_percentage, description, max_users, valid_from, valid_until, is_active } = req.body;
+
+    if (!valid_until) {
+      return res.json({ success: false, message: 'Tanggal berakhir wajib diisi' });
+    }
+
+    const { data, error } = await supabase
+      .from('promo_codes')
+      .update({
+        code: code.toUpperCase(),
+        package_id: package_id || null,
+        discount_percentage: parseInt(discount_percentage),
+        description: description || null,
+        max_users: max_users ? parseInt(max_users) : null,
+        valid_from: valid_from ? new Date(valid_from).toISOString() : null,
+        valid_until: new Date(valid_until).toISOString(),
+        is_active: is_active !== false,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return res.json({ success: true, data });
+  } catch (error) {
+    console.error('Error updating promo code:', error);
+    return res.json({ success: false, message: 'Gagal mengupdate kode promo' });
+  }
+});
+
+// POST Toggle promo code status
+app.post('/admin/promo-codes/:id/toggle', requireAdmin, express.json(), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { is_active } = req.body;
+
+    const { error } = await supabase
+      .from('promo_codes')
+      .update({ is_active })
+      .eq('id', id);
+
+    if (error) throw error;
+
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Error toggling promo code:', error);
+    return res.json({ success: false, message: 'Gagal mengubah status' });
+  }
+});
+
+// DELETE Promo code
+app.delete('/admin/promo-codes/:id', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const { error } = await supabase
+      .from('promo_codes')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting promo code:', error);
+    return res.json({ success: false, message: 'Gagal menghapus kode promo' });
+  }
+});
+
+// API: Validate promo code (for member payment page)
+app.post('/api/validate-promo', express.json(), async (req, res) => {
+  try {
+    const { code, packageId } = req.body;
+
+    console.log('=== VALIDATE PROMO DEBUG ===');
+    console.log('Code:', code);
+    console.log('PackageId from request:', packageId);
+
+    if (!code) {
+      return res.json({ valid: false, message: 'Kode promo tidak boleh kosong' });
+    }
+
+    if (!packageId) {
+      return res.json({ valid: false, message: 'ID paket tidak valid' });
+    }
+
+    const { data: promo, error } = await supabase
+      .from('promo_codes')
+      .select('*')
+      .eq('code', code.toUpperCase())
+      .single();
+
+    if (error || !promo) {
+      return res.json({ valid: false, message: 'Kode promo tidak valid' });
+    }
+
+    console.log('Promo package_id:', promo.package_id);
+    console.log('Promo package_id type:', typeof promo.package_id);
+    console.log('Request packageId type:', typeof packageId);
+    console.log('Are they equal?', promo.package_id === packageId);
+    console.log('Is promo.package_id null?', promo.package_id === null);
+
+    // Check if active
+    if (!promo.is_active) {
+      return res.json({ valid: false, message: 'Kode promo tidak aktif' });
+    }
+
+    // Check if promo applies to this package
+    // If promo.package_id is NULL, it applies to all packages
+    // If promo.package_id has a value, it must match the packageId
+    if (promo.package_id !== null && promo.package_id !== packageId) {
+      console.log('REJECTED: Package mismatch');
+      return res.json({ valid: false, message: 'Kode promo tidak berlaku untuk paket ini' });
+    }
+
+    console.log('ACCEPTED: Package check passed');
+
+    // Check max users
+    if (promo.max_users && promo.current_users >= promo.max_users) {
+      return res.json({ valid: false, message: 'Kode promo sudah mencapai batas penggunaan' });
+    }
+
+    // Check validity period
+    const now = new Date();
+    if (promo.valid_from && new Date(promo.valid_from) > now) {
+      return res.json({ valid: false, message: 'Kode promo belum berlaku' });
+    }
+    if (promo.valid_until && new Date(promo.valid_until) < now) {
+      return res.json({ valid: false, message: 'Kode promo sudah kadaluarsa' });
+    }
+
+    return res.json({
+      valid: true,
+      discount_percentage: promo.discount_percentage,
+      message: `Kode promo berhasil diterapkan! Hemat ${promo.discount_percentage}%`
+    });
+  } catch (error) {
+    console.error('Error validating promo code:', error);
+    return res.json({ valid: false, message: 'Terjadi kesalahan' });
+  }
+});
+
+// GET Promo code for specific package
+app.get('/api/package/:packageId/promo', requireAdmin, async (req, res) => {
+  try {
+    const { packageId } = req.params;
+
+    const { data: promo, error } = await supabase
+      .from('promo_codes')
+      .select('*')
+      .eq('package_id', packageId)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No promo found
+        return res.json({ success: true, data: null });
+      }
+      throw error;
+    }
+
+    return res.json({ success: true, data: promo });
+  } catch (error) {
+    console.error('Error fetching promo code:', error);
+    return res.status(500).json({ success: false, message: 'Gagal mengambil kode promo' });
+  }
+});
+
+// POST Create promo code for package
+app.post('/api/package/:packageId/promo', requireAdmin, express.json(), async (req, res) => {
+  try {
+    const { packageId } = req.params;
+    const { code, discount_percentage, valid_from, valid_until, max_users, description } = req.body;
+
+    // Validation
+    if (!code || !discount_percentage || !valid_until) {
+      return res.status(400).json({ success: false, message: 'Kode, diskon, dan tanggal berakhir wajib diisi' });
+    }
+
+    if (discount_percentage < 1 || discount_percentage > 100) {
+      return res.status(400).json({ success: false, message: 'Persentase diskon harus antara 1-100' });
+    }
+
+    // Check if promo code already exists for this package
+    const { data: existing } = await supabase
+      .from('promo_codes')
+      .select('id')
+      .eq('package_id', packageId)
+      .single();
+
+    if (existing) {
+      return res.status(400).json({ success: false, message: 'Paket ini sudah memiliki kode promo' });
+    }
+
+    const promoData = {
+      package_id: parseInt(packageId),
+      code: code.toUpperCase(),
+      discount_percentage: parseInt(discount_percentage),
+      description: description || null,
+      max_users: max_users ? parseInt(max_users) : null,
+      current_users: 0,
+      valid_from: valid_from ? new Date(valid_from).toISOString() : new Date().toISOString(),
+      valid_until: new Date(valid_until).toISOString(),
+      is_active: true
+    };
+
+    const { data: newPromo, error } = await supabase
+      .from('promo_codes')
+      .insert(promoData)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return res.json({ success: true, data: newPromo });
+  } catch (error) {
+    console.error('Error creating promo code:', error);
+    return res.status(500).json({ success: false, message: error.message || 'Gagal menambahkan kode promo' });
+  }
+});
+
+// PUT Update promo code
+app.put('/api/package/:packageId/promo/:promoId', requireAdmin, express.json(), async (req, res) => {
+  try {
+    const { packageId, promoId } = req.params;
+    const { code, discount_percentage, valid_from, valid_until, max_users, description } = req.body;
+
+    // Validation
+    if (!code || !discount_percentage || !valid_until) {
+      return res.status(400).json({ success: false, message: 'Kode, diskon, dan tanggal berakhir wajib diisi' });
+    }
+
+    if (discount_percentage < 1 || discount_percentage > 100) {
+      return res.status(400).json({ success: false, message: 'Persentase diskon harus antara 1-100' });
+    }
+
+    const promoData = {
+      code: code.toUpperCase(),
+      discount_percentage: parseInt(discount_percentage),
+      description: description || null,
+      max_users: max_users ? parseInt(max_users) : null,
+      valid_from: valid_from ? new Date(valid_from).toISOString() : new Date().toISOString(),
+      valid_until: new Date(valid_until).toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    const { data: updatedPromo, error } = await supabase
+      .from('promo_codes')
+      .update(promoData)
+      .eq('id', promoId)
+      .eq('package_id', packageId)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return res.json({ success: true, data: updatedPromo });
+  } catch (error) {
+    console.error('Error updating promo code:', error);
+    return res.status(500).json({ success: false, message: 'Gagal memperbarui kode promo' });
+  }
+});
+
+// DELETE Promo code
+app.delete('/api/package/:packageId/promo/:promoId', requireAdmin, async (req, res) => {
+  try {
+    const { packageId, promoId } = req.params;
+
+    const { error } = await supabase
+      .from('promo_codes')
+      .delete()
+      .eq('id', promoId)
+      .eq('package_id', packageId);
+
+    if (error) throw error;
+
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting promo code:', error);
+    return res.status(500).json({ success: false, message: 'Gagal menghapus kode promo' });
+  }
+});
+
+// POST Enroll in Package (Member only) - Legacy route, redirects to payment
+app.post('/paket_kursus/:id/enroll', requireLogin, express.urlencoded({ extended: true }), async (req, res) => {
   const packageId = req.params.id;
   const userId = res.locals.user?.id;
 
@@ -2105,6 +3219,153 @@ app.post('/lecturer/:id/edit', requireAdmin, express.urlencoded({ extended: true
       success: false,
       message: 'Gagal memperbarui lecturer'
     });
+  }
+});
+
+// ========== PAYMENT SYSTEM ROUTES ==========
+
+// GET Payment page for a package
+app.get('/payment/:packageId', requireLogin, async (req, res) => {
+  const { packageId } = req.params;
+
+  try {
+    const { data: packageData, error } = await supabase
+      .from('packages')
+      .select('id, title, description, price')
+      .eq('id', packageId)
+      .single();
+
+    if (error || !packageData) {
+      return res.status(404).render('404', { title: '404 - Paket Tidak Ditemukan' });
+    }
+
+    return res.render('member/pembayaran', {
+      title: 'Pembayaran - ' + packageData.title,
+      package: packageData,
+      user: res.locals.user
+    });
+  } catch (error) {
+    console.error('Error loading payment page:', error);
+    return res.status(500).render('404', { title: 'Error' });
+  }
+});
+
+// POST Validate discount code
+app.post('/api/payment/validate-discount', express.json(), async (req, res) => {
+  try {
+    const { code } = req.body;
+
+    if (!code) {
+      return res.json({ success: false, message: 'Kode diskon tidak valid' });
+    }
+
+    const { data: discount, error } = await supabase
+      .from('discount_codes')
+      .select('*')
+      .eq('code', code.toUpperCase())
+      .eq('is_active', true)
+      .single();
+
+    if (error || !discount) {
+      return res.json({ success: false, message: 'Kode diskon tidak ditemukan atau sudah tidak aktif' });
+    }
+
+    // Check if discount is still valid
+    if (discount.valid_until) {
+      const validUntil = new Date(discount.valid_until);
+      if (validUntil < new Date()) {
+        return res.json({ success: false, message: 'Kode diskon sudah kadaluarsa' });
+      }
+    }
+
+    return res.json({
+      success: true,
+      discount: {
+        code: discount.code,
+        percentage: discount.percentage
+      }
+    });
+  } catch (error) {
+    console.error('Error validating discount:', error);
+    return res.status(500).json({ success: false, message: 'Terjadi kesalahan saat memvalidasi kode diskon' });
+  }
+});
+
+// POST Confirm payment and enroll user
+app.post('/payment/confirm', requireLogin, express.urlencoded({ extended: true }), async (req, res) => {
+  try {
+    const {
+      package_id,
+      account_number,
+      email,
+      phone,
+      discount_code,
+      discount_percentage,
+      original_price,
+      final_price,
+      payment_method
+    } = req.body;
+
+    const userId = res.locals.user.id;
+
+    // Validate required fields
+    if (!payment_method) {
+      return res.status(400).send('Metode pembayaran harus dipilih');
+    }
+
+    // Get courses in the package
+    const { data: packageCourses, error: coursesError } = await supabase
+      .from('package_courses')
+      .select('course_id')
+      .eq('package_id', package_id);
+
+    if (coursesError) throw coursesError;
+
+    if (!packageCourses || packageCourses.length === 0) {
+      return res.status(400).send('Paket tidak memiliki kursus');
+    }
+
+    // Create transaction record
+    const { data: transaction, error: transactionError } = await supabase
+      .from('transactions')
+      .insert({
+        user_id: userId,
+        package_id: package_id,
+        payment_method: payment_method,
+        account_number: account_number,
+        email: email,
+        phone: phone,
+        original_price: parseFloat(original_price),
+        discount_code: discount_code || null,
+        discount_amount: parseFloat(original_price) - parseFloat(final_price),
+        final_price: parseFloat(final_price),
+        status: payment_method === 'test_admin' ? 'completed' : 'completed' // For demo, all completed
+      })
+      .select()
+      .single();
+
+    if (transactionError) throw transactionError;
+
+    // Enroll user in all courses in the package
+    const enrollmentPromises = packageCourses.map(pc =>
+      supabase
+        .from('enrollments')
+        .insert({
+          user_id: userId,
+          course_id: pc.course_id,
+          status: 'active',
+          enrolled_at: new Date().toISOString()
+        })
+        .select()
+    );
+
+    await Promise.all(enrollmentPromises);
+
+    // Redirect to success page or courses page
+    return res.redirect('/kursus?payment=success');
+  } catch (error) {
+    console.error('Error confirming payment:', error);
+    return res.status(500).send('Terjadi kesalahan saat memproses pembayaran');
   }
 });
 
